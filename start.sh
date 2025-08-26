@@ -103,7 +103,7 @@ echo "🎯 Starting English Vocabulary Service..."
 echo "📧 Daily vocabulary emails will be sent at 5:00 AM every day"
 echo "🧠 Using Gemini AI for detailed vocabulary explanations"
 echo "📊 Vocabulary words will be logged to vocabulary_log.xlsx"
-echo "🌐 Manual trigger available at: http://localhost:$APP_PORT/api/vocabulary/trigger"
+echo "🌐 Manual trigger available at: http://localhost:$APP_PORT/api/vocabulary/trigger-daily"
 echo "❤️  Application running on: http://localhost:$APP_PORT"
 echo ""
 echo "📚 Features:"
@@ -154,16 +154,16 @@ echo "⏳ Waiting for application to start..."
 sleep 10
 
 # Check if application started successfully
-if curl -s -f http://localhost:$APP_PORT/api/vocabulary/trigger > /dev/null 2>&1; then
+if curl -s -f http://localhost:$APP_PORT/api/vocabulary/trigger-daily > /dev/null 2>&1; then
     echo "✅ Application started successfully!"
     echo "🎉 English Vocabulary Service is now running and ready to enhance your vocabulary!"
     echo ""
-    echo "💡 Quick Test: curl -X POST http://localhost:$APP_PORT/api/vocabulary/trigger"
+    echo "💡 Quick Test: curl -X POST http://localhost:$APP_PORT/api/vocabulary/trigger-daily"
     echo ""
 else
     echo "⚠️  Application may still be starting up or there might be configuration issues."
     echo "   Check the logs above for any error messages."
-    echo "   You can test manually with: curl -X POST http://localhost:$APP_PORT/api/vocabulary/trigger"
+    echo "   You can test manually with: curl -X POST http://localhost:$APP_PORT/api/vocabulary/trigger-daily"
     echo ""
 fi
 

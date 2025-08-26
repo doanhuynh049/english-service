@@ -180,7 +180,7 @@ Just leave the application running! Every day at 5 AM, you'll receive:
 
 ```bash
 # Test the service immediately
-curl -X POST http://localhost:8282/api/vocabulary/trigger
+curl -X POST http://localhost:8282/api/vocabulary/trigger-daily
 
 # Check application status
 curl http://localhost:8282/actuator/health  # If actuator is enabled
