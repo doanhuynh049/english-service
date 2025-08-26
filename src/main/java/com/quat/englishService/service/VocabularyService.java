@@ -76,11 +76,6 @@ public class VocabularyService {
 
     private List<String> generateFreshVocabularyWords(int count, Set<String> usedWords) {
         logger.info("Generating {} fresh vocabulary words using AI, avoiding {} used words", count, usedWords.size());
-        boolean test = true;
-        if (test) {
-            // For testing, return a fixed set of words
-            return List.of("serendipity");
-        }
         List<String> freshWords = new ArrayList<>();
         int attempts = 0;
         int maxAttempts = 5;
