@@ -545,10 +545,6 @@ public class EmailService {
     private String buildWordSection(ParsedVocabularyWord word, int index) {
         StringBuilder section = new StringBuilder();
 
-        // Build audio file names for linking to attachments
-        String pronunciationFileName = word.getWord().toLowerCase() + "_pronunciation.mp3";
-        String exampleFileName = word.getWord().toLowerCase() + "_example.mp3";
-
         // Check which audio files exist
         boolean hasPronunciationAudio = word.getPronunciationAudioPath() != null &&
                                        new File(word.getPronunciationAudioPath()).exists();
@@ -574,35 +570,13 @@ public class EmailService {
                             </div>
                         </div>
                     </div>
-                    
-                    <!-- Enhanced Audio Section with Direct Links to Attachments -->
-                    <div class="audio-section">
-                        <div class="audio-header">
-                            <span class="audio-icon">🎵</span>
-                            <span class="audio-title">Audio Pronunciation & Examples</span>
-                        </div>
-                        <div class="audio-buttons-enhanced">
-                            %s
-                            %s
-                        </div>
-                        %s
-                    </div>
                 """,
                 index,
                 word.getWord(),
                 word.getPronunciation() != null ?
                     "<div class=\"pronunciation\">/🔊 " + word.getPronunciation() + "/</div>" : "",
                 word.getPartOfSpeech() != null ?
-                    "<span class=\"pos\">🏷️ " + word.getPartOfSpeech() + "</span>" : "",
-                hasPronunciationAudio ?
-                    String.format("<a href=\"cid:%s\" class=\"audio-btn-enhanced pronunciation-btn\" title=\"Click to play pronunciation audio\">🔊 Pronunciation</a>",
-                                 pronunciationFileName) :
-                    "<span class=\"audio-btn-enhanced pronunciation-btn\" style=\"opacity:0.5; cursor:not-allowed;\">🔊 Pronunciation (unavailable)</span>",
-                hasExampleAudio ?
-                    String.format("<a href=\"cid:%s\" class=\"audio-btn-enhanced example-btn\" title=\"Click to play example sentence audio\">🎵 Example</a>",
-                                 exampleFileName) :
-                    "<span class=\"audio-btn-enhanced example-btn\" style=\"opacity:0.5; cursor:not-allowed;\">🎵 Example (unavailable)</span>",
-                buildEnhancedAudioAttachmentNotice(word)
+                    "<span class=\"pos\">🏷️ " + word.getPartOfSpeech() + "</span>" : ""
         ));
 
         // Add definitions
@@ -724,15 +698,6 @@ public class EmailService {
                         <div class="footer">
                             <p>🌟 <strong>Keep Learning Every Day!</strong> 🌟</p>
                             <p>Generated on %s | Powered by Gemini AI & gTTS</p>
-                            <div style="margin: 15px 0; padding: 15px; background: rgba(255,255,255,0.1); border-radius: 8px;">
-                                <p style="margin: 0; font-size: 0.9em;">
-                                    🎵 <strong>Audio Files:</strong> MP3 pronunciation and example files are attached to this email.
-                                </p>
-                                <p style="margin: 8px 0 0 0; font-size: 0.8em; opacity: 0.9;">
-                                    💡 <strong>How to play:</strong> Look for the 📎 attachment icon in your email client (Gmail, Outlook, Apple Mail, etc.) 
-                                    and click on the MP3 files to play them directly in your email app.
-                                </p>
-                            </div>
                         </div>
                     </div>
                 </body>
