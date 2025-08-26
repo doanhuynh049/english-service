@@ -131,4 +131,64 @@ public class GeminiClient {
         }
         return "No explanation available";
     }
+
+    public String getWordMonologue(String word) {
+        try {
+            String prompt = createMonologuePrompt(word);
+            GeminiRequest request = new GeminiRequest(prompt);
+
+            String requestBody = objectMapper.writeValueAsString(request);
+
+            HttpRequest httpRequest = HttpRequest.newBuilder()
+                    .uri(URI.create(apiUrl + "?key=" + apiKey))
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(requestBody))
+                    .timeout(Duration.ofSeconds(60))
+                    .build();
+
+            HttpResponse<String> response = httpClient.send(httpRequest,
+                    HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() == 200) {
+                GeminiResponse geminiResponse = objectMapper.readValue(response.body(), GeminiResponse.class);
+                String monologueText = extractTextFromResponse(geminiResponse);
+                logger.info("Generated monologue for word '{}': {} characters", word, monologueText.length());
+                return monologueText;
+            } else {
+                logger.error("Gemini API error for monologue '{}': Status {}, Body: {}",
+                        word, response.statusCode(), response.body());
+                return null;
+            }
+
+        } catch (Exception e) {
+            logger.error("Exception calling Gemini API for monologue '{}': {}", word, e.getMessage(), e);
+            return null;
+        }
+    }
+
+    private String createMonologuePrompt(String word) {
+        return String.format("""
+                Write a short monologue or speech by one person that uses the word '%s' multiple times. 
+                The monologue should clearly show the meaning, usage, and context of the word in everyday situations. 
+                After the monologue, provide a brief explanation of how the word is used, including common collocations or phrases. 
+                Format the output so that it can be converted into audio for English learners to listen and follow along. 
+                Optionally, include IPA pronunciation of the target word.
+                
+                Structure your response as follows:
+                
+                **Monologue:**
+                [Write a natural, conversational monologue (2-3 minutes when spoken) that uses '%s' at least 4-5 times in different contexts. Make it engaging and realistic, like someone telling a story or sharing thoughts.]
+                
+                **Explanation:**
+                [Brief explanation of how '%s' is used in the monologue, including:]
+                - Main meaning and usage patterns
+                - Common collocations or phrases used
+                - Context clues that help understand the word
+                
+                **Pronunciation:**
+                /%s/ (IPA notation)
+                
+                Make sure the monologue flows naturally and provides rich context for English learners to understand the word through listening.
+                """, word, word, word, word);
+    }
 }

@@ -29,6 +29,7 @@ public class AudioService {
     private String pythonScriptPath;
 
     private static final int TIMEOUT_SECONDS = 30;
+    private static final int MONOLOGUE_TIMEOUT_SECONDS = 200; // 2 minutes for long monologues
 
     public AudioInfo generateAudioFiles(String word, String exampleSentence) {
         try {
@@ -45,10 +46,10 @@ public class AudioService {
             Path exampleAudioPath = dailyStoragePath.resolve(exampleFileName);
 
             // Generate pronunciation audio
-            boolean wordSuccess = generateSingleAudio(word, wordAudioPath.toString(), "word");
+            boolean wordSuccess = generateSingleAudio(word, wordAudioPath.toString(), "word", TIMEOUT_SECONDS);
 
             // Generate example sentence audio
-            boolean exampleSuccess = generateSingleAudio(exampleSentence, exampleAudioPath.toString(), "sentence");
+            boolean exampleSuccess = generateSingleAudio(exampleSentence, exampleAudioPath.toString(), "sentence", TIMEOUT_SECONDS);
 
             if (wordSuccess && exampleSuccess) {
                 String wordUrl = audioBaseUrl + "/" + dateFolder + "/" + wordFileName;
@@ -67,13 +68,90 @@ public class AudioService {
         }
     }
 
+    public AudioInfo generateAudioFilesWithMonologue(String word, String monologue) {
+        try {
+            // Create storage directory structure
+            String dateFolder = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+            Path dailyStoragePath = Paths.get(audioStoragePath, dateFolder);
+            Files.createDirectories(dailyStoragePath);
+
+            // Generate file names
+            String wordFileName = sanitizeFilename(word) + "_pronunciation.mp3";
+            String monologueFileName = sanitizeFilename(word) + "_monologue.mp3";
+
+            Path wordAudioPath = dailyStoragePath.resolve(wordFileName);
+            Path monologueAudioPath = dailyStoragePath.resolve(monologueFileName);
+
+            // Clean the monologue text before generating audio
+            String cleanMonologue = cleanTextForTTS(monologue);
+            logger.info("Cleaned monologue for TTS - Original: {} chars, Cleaned: {} chars",
+                       monologue.length(), cleanMonologue.length());
+
+            // Generate pronunciation audio with standard timeout
+            boolean wordSuccess = generateSingleAudio(word, wordAudioPath.toString(), "word", TIMEOUT_SECONDS);
+
+            // Generate monologue audio with extended timeout for longer content
+            boolean monologueSuccess = generateSingleAudio(cleanMonologue, monologueAudioPath.toString(), "monologue", MONOLOGUE_TIMEOUT_SECONDS);
+
+            if (wordSuccess && monologueSuccess) {
+                String wordUrl = audioBaseUrl + "/" + dateFolder + "/" + wordFileName;
+                String monologueUrl = audioBaseUrl + "/" + dateFolder + "/" + monologueFileName;
+
+                logger.info("Successfully generated audio files with monologue for word: {}", word);
+                return new AudioInfo(wordUrl, monologueUrl, wordAudioPath.toString(), monologueAudioPath.toString());
+            } else {
+                logger.error("Failed to generate audio files with monologue for word: {}", word);
+                return null;
+            }
+
+        } catch (Exception e) {
+            logger.error("Error generating audio files with monologue for word '{}': {}", word, e.getMessage(), e);
+            return null;
+        }
+    }
+
+    private String cleanTextForTTS(String text) {
+        if (text == null) return "";
+
+        // Remove markdown formatting
+        String cleaned = text
+                .replaceAll("\\*\\*([^*]+?)\\*\\*", "$1") // Remove bold **text**
+                .replaceAll("\\*([^*]+?)\\*", "$1")       // Remove italic *text*
+                .replaceAll("_([^_]+?)_", "$1")           // Remove italic _text_
+                .replaceAll("#+\\s*", "")                 // Remove headers
+                .replaceAll("\\[([^\\]]+)\\]\\([^)]+\\)", "$1") // Remove links [text](url)
+                .replaceAll("\\[([^\\]]+)\\]", "$1")      // Remove brackets [text]
+                .replaceAll("`([^`]+)`", "$1")            // Remove code `text`
+                .replaceAll("^\\s*>\\s*", "")             // Remove quote markers
+                .replaceAll("^\\s*[-*+]\\s*", "")         // Remove list markers
+                .replaceAll("^\\s*\\d+\\.\\s*", "");      // Remove numbered list markers
+
+        // Clean up extra whitespace and normalize
+        cleaned = cleaned.replaceAll("\\s+", " ").trim();
+
+        // Ensure the text isn't too long for TTS (some providers have limits)
+        if (cleaned.length() > 5000) {
+            logger.warn("Monologue text is very long ({} chars), truncating to 5000 chars", cleaned.length());
+            cleaned = cleaned.substring(0, 5000) + "...";
+        }
+
+        return cleaned;
+    }
+
     private boolean generateSingleAudio(String text, String outputPath, String type) {
+        return generateSingleAudio(text, outputPath, type, TIMEOUT_SECONDS);
+    }
+
+    private boolean generateSingleAudio(String text, String outputPath, String type, int timeoutSeconds) {
         try {
             // Ensure Python script exists
             File scriptFile = new File(pythonScriptPath);
             if (!scriptFile.exists()) {
                 createPythonScript();
             }
+
+            logger.debug("Generating {} audio with timeout {} seconds for text: {} chars",
+                        type, timeoutSeconds, text.length());
 
             // Build Python command
             ProcessBuilder pb = new ProcessBuilder(
@@ -82,24 +160,26 @@ public class AudioService {
             pb.redirectErrorStream(true);
 
             Process process = pb.start();
-            boolean finished = process.waitFor(TIMEOUT_SECONDS, TimeUnit.SECONDS);
+            boolean finished = process.waitFor(timeoutSeconds, TimeUnit.SECONDS);
 
             if (!finished) {
                 process.destroyForcibly();
-                logger.error("Python TTS process timed out for: {}", text);
+                logger.error("Python TTS process timed out after {} seconds for {} (text length: {} chars)",
+                           timeoutSeconds, type, text.length());
                 return false;
             }
 
             int exitCode = process.exitValue();
             if (exitCode != 0) {
-                logger.error("Python TTS process failed with exit code {} for: {}", exitCode, text);
+                logger.error("Python TTS process failed with exit code {} for: {} (length: {} chars)",
+                           exitCode, type, text.length());
                 return false;
             }
 
             // Verify file was created
             File outputFile = new File(outputPath);
             if (outputFile.exists() && outputFile.length() > 0) {
-                logger.debug("Successfully generated {} audio: {}", type, outputPath);
+                logger.debug("Successfully generated {} audio: {} ({} bytes)", type, outputPath, outputFile.length());
                 return true;
             } else {
                 logger.error("Audio file was not created or is empty: {}", outputPath);
@@ -107,7 +187,7 @@ public class AudioService {
             }
 
         } catch (Exception e) {
-            logger.error("Error running Python TTS for '{}': {}", text, e.getMessage(), e);
+            logger.error("Error running Python TTS for {} (length: {} chars): {}", type, text.length(), e.getMessage(), e);
             return false;
         }
     }
@@ -143,7 +223,7 @@ public class AudioService {
                         # For single words, use slower speech
                         tts = gTTS(text=text, lang='en', slow=True)
                     else:
-                        # For sentences, use normal speed
+                        # For sentences and monologues, use normal speed
                         tts = gTTS(text=text, lang='en', slow=False)
                     
                     # Save the audio file

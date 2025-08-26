@@ -319,6 +319,37 @@ public class VocabularyParsingService {
         return null;
     }
 
+    private String extractSection(String text, String startMarker, String endMarker) {
+        try {
+            int startIndex = text.indexOf(startMarker);
+            if (startIndex == -1) {
+                return null;
+            }
+
+            startIndex += startMarker.length();
+            int endIndex = text.length();
+
+            if (endMarker != null) {
+                int markerIndex = text.indexOf(endMarker, startIndex);
+                if (markerIndex != -1) {
+                    endIndex = markerIndex;
+                }
+            }
+
+            String extracted = text.substring(startIndex, endIndex).trim();
+
+            // Clean up markdown formatting
+            extracted = extracted.replaceAll("\\*\\*([^*]+)\\*\\*", "$1"); // Remove bold
+            extracted = extracted.replaceAll("\\[([^\\]]+)\\]", "$1"); // Remove brackets
+
+            return extracted.isEmpty() ? null : extracted;
+
+        } catch (Exception e) {
+            logger.debug("Could not extract section from {} to {}", startMarker, endMarker);
+            return null;
+        }
+    }
+
     private String formatSynonymsContent(String content) {
         StringBuilder formatted = new StringBuilder();
 
@@ -492,5 +523,55 @@ public class VocabularyParsingService {
         }
 
         return formatted.length() > 0 ? formatted.toString() : content;
+    }
+
+    public MonologueInfo parseMonologue(String rawMonologue) {
+        if (rawMonologue == null || rawMonologue.trim().isEmpty()) {
+            return null;
+        }
+
+        try {
+            String monologue = extractSection(rawMonologue, "Monologue:", "Explanation:");
+            String explanation = extractSection(rawMonologue, "Explanation:", "Pronunciation:");
+            String pronunciation = extractSection(rawMonologue, "Pronunciation:", null);
+
+            // Clean up the extracted content
+            monologue = monologue != null ? monologue.trim() : "";
+            explanation = explanation != null ? explanation.trim() : "";
+            pronunciation = pronunciation != null ? pronunciation.replaceAll("[/\\[\\]]", "").trim() : "";
+
+            logger.debug("Parsed monologue - Length: {}, Has explanation: {}, Has pronunciation: {}",
+                        monologue.length(), !explanation.isEmpty(), !pronunciation.isEmpty());
+
+            return new MonologueInfo(monologue, explanation, pronunciation);
+
+        } catch (Exception e) {
+            logger.error("Error parsing monologue: {}", e.getMessage(), e);
+            return null;
+        }
+    }
+
+    public static class MonologueInfo {
+        private final String monologue;
+        private final String explanation;
+        private final String pronunciation;
+
+        public MonologueInfo(String monologue, String explanation, String pronunciation) {
+            this.monologue = monologue;
+            this.explanation = explanation;
+            this.pronunciation = pronunciation;
+        }
+
+        public String getMonologue() { return monologue; }
+        public String getExplanation() { return explanation; }
+        public String getPronunciation() { return pronunciation; }
+
+        @Override
+        public String toString() {
+            return String.format("MonologueInfo{monologue='%s...', explanation='%s...', pronunciation='%s'}",
+                               monologue.substring(0, Math.min(50, monologue.length())),
+                               explanation.substring(0, Math.min(50, explanation.length())),
+                               pronunciation);
+        }
     }
 }

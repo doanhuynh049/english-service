@@ -159,33 +159,44 @@ public class VocabularyService {
 
     private ParsedVocabularyWord processWordCompletely(String word) {
         try {
-            logger.info("Processing word comprehensively: {}", word);
+            logger.info("Processing word comprehensively with AI monologue: {}", word);
 
             // Step 1: Get detailed AI explanation using the existing method
             String aiResponse = geminiClient.getWordExplanation(word);
-            logger.info("Received AI response for word: {}", aiResponse);
+            logger.info("Received AI response for word: {}", word);
 
             // Step 2: Parse the AI response into structured data
             ParsedVocabularyWord parsedWord = parsingService.parseAIResponse(word, aiResponse);
-            logger.info("Parsed AI response for word: {}", parsedWord);
+            logger.info("Parsed AI response for word: {}", word);
 
-            // Step 3: Generate audio files for pronunciation and example sentence
-            String exampleSentence = getFirstExampleSentence(parsedWord);
-            if (exampleSentence != null) {
-                AudioService.AudioInfo audioInfo = audioService.generateAudioFiles(word, exampleSentence);
+            // Step 3: Generate AI monologue for better audio examples
+            String monologueResponse = geminiClient.getWordMonologue(word);
+            if (monologueResponse != null) {
+                VocabularyParsingService.MonologueInfo monologueInfo = parsingService.parseMonologue(monologueResponse);
 
-                if (audioInfo != null) {
-                    parsedWord.setPronunciationAudioUrl(audioInfo.getPronunciationUrl());
-                    parsedWord.setExampleAudioUrl(audioInfo.getExampleUrl());
-                    parsedWord.setPronunciationAudioPath(audioInfo.getPronunciationPath());
-                    parsedWord.setExampleAudioPath(audioInfo.getExamplePath());
+                if (monologueInfo != null && !monologueInfo.getMonologue().isEmpty()) {
+                    // Step 4: Generate audio files using the monologue
+                    AudioService.AudioInfo audioInfo = audioService.generateAudioFilesWithMonologue(word, monologueInfo.getMonologue());
 
-                    logger.info("Generated audio files for word: {}", word);
+                    if (audioInfo != null) {
+                        parsedWord.setPronunciationAudioUrl(audioInfo.getPronunciationUrl());
+                        parsedWord.setExampleAudioUrl(audioInfo.getExampleUrl());
+                        parsedWord.setPronunciationAudioPath(audioInfo.getPronunciationPath());
+                        parsedWord.setExampleAudioPath(audioInfo.getExamplePath());
+
+                        logger.info("Generated audio files with AI monologue for word: {}", word);
+                    } else {
+                        logger.warn("Failed to generate audio files with monologue for word: {}", word);
+                        // Fallback to traditional approach
+                        generateFallbackAudio(word, parsedWord);
+                    }
                 } else {
-                    logger.warn("Failed to generate audio files for word: {}", word);
+                    logger.warn("Failed to parse monologue for word: {}, falling back to traditional audio", word);
+                    generateFallbackAudio(word, parsedWord);
                 }
             } else {
-                logger.warn("No example sentence found for word: {}", word);
+                logger.warn("Failed to generate monologue for word: {}, falling back to traditional audio", word);
+                generateFallbackAudio(word, parsedWord);
             }
 
             logger.debug("Successfully processed word: {} with {} parsed sections",
@@ -196,6 +207,26 @@ public class VocabularyService {
         } catch (Exception e) {
             logger.error("Error processing word '{}': {}", word, e.getMessage(), e);
             return null; // Will be filtered out
+        }
+    }
+
+    private void generateFallbackAudio(String word, ParsedVocabularyWord parsedWord) {
+        try {
+            String exampleSentence = getFirstExampleSentence(parsedWord);
+            if (exampleSentence != null) {
+                AudioService.AudioInfo audioInfo = audioService.generateAudioFiles(word, exampleSentence);
+
+                if (audioInfo != null) {
+                    parsedWord.setPronunciationAudioUrl(audioInfo.getPronunciationUrl());
+                    parsedWord.setExampleAudioUrl(audioInfo.getExampleUrl());
+                    parsedWord.setPronunciationAudioPath(audioInfo.getPronunciationPath());
+                    parsedWord.setExampleAudioPath(audioInfo.getExamplePath());
+
+                    logger.info("Generated fallback audio files for word: {}", word);
+                }
+            }
+        } catch (Exception e) {
+            logger.error("Error generating fallback audio for word '{}': {}", word, e.getMessage(), e);
         }
     }
 
