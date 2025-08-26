@@ -48,7 +48,7 @@ public class VocabularyService {
             logger.info("Found {} previously used words", usedWords.size());
 
             // Generate fresh vocabulary words from Gemini AI
-            List<String> selectedWords = generateFreshVocabularyWords(1, usedWords);
+            List<String> selectedWords = generateFreshVocabularyWords(3, usedWords);
             logger.info("Generated {} new AI vocabulary words for today: {}", selectedWords.size(), selectedWords);
 
             if (selectedWords.isEmpty()) {
