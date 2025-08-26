@@ -531,17 +531,20 @@ public class VocabularyParsingService {
         }
 
         try {
-            String monologue = extractSection(rawMonologue, "Monologue:", "Explanation:");
-            String explanation = extractSection(rawMonologue, "Explanation:", "Pronunciation:");
-            String pronunciation = extractSection(rawMonologue, "Pronunciation:", null);
+            String monologue = extractSection(rawMonologue, "**Monologue:**", "**Explanation:**");
+            String explanation = extractSection(rawMonologue, "**Explanation:**", "**Pronunciation:**");
+            String pronunciation = extractSection(rawMonologue, "**Pronunciation:**", null);
 
-            // Clean up the extracted content
-            monologue = monologue != null ? monologue.trim() : "";
+            // Clean up the extracted monologue content more thoroughly
+            monologue = monologue != null ? cleanMonologueText(monologue) : "";
             explanation = explanation != null ? explanation.trim() : "";
             pronunciation = pronunciation != null ? pronunciation.replaceAll("[/\\[\\]]", "").trim() : "";
 
             logger.debug("Parsed monologue - Length: {}, Has explanation: {}, Has pronunciation: {}",
                         monologue.length(), !explanation.isEmpty(), !pronunciation.isEmpty());
+
+            // Log the cleaned monologue for debugging
+            logger.info("Cleaned monologue text: {}", monologue.substring(0, Math.min(200, monologue.length())) + "...");
 
             return new MonologueInfo(monologue, explanation, pronunciation);
 
@@ -549,6 +552,53 @@ public class VocabularyParsingService {
             logger.error("Error parsing monologue: {}", e.getMessage(), e);
             return null;
         }
+    }
+
+    private String cleanMonologueText(String text) {
+        if (text == null || text.trim().isEmpty()) {
+            return "";
+        }
+
+        String cleaned = text.trim();
+
+        // Remove any remaining section markers
+        cleaned = cleaned.replaceAll("\\*\\*Monologue:\\*\\*", "");
+        cleaned = cleaned.replaceAll("\\*\\*Explanation:\\*\\*", "");
+        cleaned = cleaned.replaceAll("\\*\\*Pronunciation:\\*\\*", "");
+
+        // Remove markdown formatting but preserve structure
+        cleaned = cleaned.replaceAll("\\*\\*([^*]+?)\\*\\*", "$1"); // Remove bold **text**
+        cleaned = cleaned.replaceAll("\\*([^*]+?)\\*", "$1");       // Remove italic *text*
+        cleaned = cleaned.replaceAll("_([^_]+?)_", "$1");           // Remove italic _text_
+
+        // Remove stage directions and formatting artifacts
+        cleaned = cleaned.replaceAll("\\([^)]*\\)", "");            // Remove parenthetical directions like "(Sighs, looking out the window)"
+
+        // Clean up bullet points and list formatting
+        cleaned = cleaned.replaceAll("^\\s*[*•-]\\s*", "");         // Remove bullet points at start of lines
+        cleaned = cleaned.replaceAll("\\n\\s*[*•-]\\s*", "\n");     // Remove bullet points in middle
+
+        // Remove any stray markdown artifacts
+        cleaned = cleaned.replaceAll("#+\\s*", "");                 // Remove headers
+        cleaned = cleaned.replaceAll("```[^`]*```", "");            // Remove code blocks
+        cleaned = cleaned.replaceAll("`([^`]+)`", "$1");            // Remove inline code
+
+        // Normalize whitespace and line breaks
+        cleaned = cleaned.replaceAll("\\n\\s*\\n\\s*\\n", "\n\n");  // Reduce multiple line breaks to max 2
+        cleaned = cleaned.replaceAll("\\s+", " ");                  // Normalize spaces
+        cleaned = cleaned.replaceAll("\\n\\s*", "\n");              // Clean line starts
+
+        // Remove leading/trailing whitespace and ensure proper sentence structure
+        cleaned = cleaned.trim();
+
+        // Ensure sentences end properly for TTS
+        if (!cleaned.isEmpty() && !cleaned.matches(".*[.!?]\\s*$")) {
+            cleaned += ".";
+        }
+
+        logger.debug("Cleaned monologue text from {} chars to {} chars", text.length(), cleaned.length());
+
+        return cleaned;
     }
 
     public static class MonologueInfo {
