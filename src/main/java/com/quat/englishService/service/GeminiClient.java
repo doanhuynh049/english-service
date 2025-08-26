@@ -69,18 +69,56 @@ public class GeminiClient {
 
     private String createPrompt(String word) {
         return String.format("""
-                Teach me the word "%s" in detail. Include:
+                Provide a comprehensive explanation of the English word "%s" using EXACTLY this format:
                 
-                - IPA pronunciation
-                - Part of speech
-                - English definition (simple + advanced if available)
-                - 2–3 example sentences in natural English
-                - Common collocations and fixed expressions with this word
-                - Synonyms & antonyms (with slight differences explained)
-                - Commonly confused words and how to distinguish them
-                - Word family (e.g., noun, verb, adjective forms)
-                - Vietnamese translation with nuance
-                """, word);
+                **IPA Pronunciation:** /pronunciation here/
+                
+                **Part of Speech:** (noun/verb/adjective/etc.)
+                
+                **Simple Definition:** Brief, clear definition
+                
+                **Advanced Definition:** More detailed, nuanced definition
+                
+                **Example Sentences:**
+                
+                1. First example sentence with the word in context.
+                2. Second example sentence showing different usage.
+                3. Third example sentence demonstrating another context.
+                
+                **Common Collocations and Fixed Expressions:**
+                
+                * **Expression 1:** Explanation of usage
+                * **Expression 2:** Explanation of usage
+                * **Expression 3:** Explanation of usage
+                
+                **Synonyms & Antonyms:**
+                
+                * **Synonyms:**
+                    * **Synonym1:** Brief explanation of difference from main word
+                    * **Synonym2:** Brief explanation of difference from main word
+                    * **Synonym3:** Brief explanation of difference from main word
+                * **Antonyms:**
+                    * **Antonym1:** Brief explanation
+                    * **Antonym2:** Brief explanation
+                
+                **Commonly Confused Words:**
+                
+                * **Word1:** Explain how this word differs from "%s" and when to use each
+                * **Word2:** Explain how this word differs from "%s" and when to use each
+                
+                **Word Family:**
+                
+                * **Noun:** related noun forms
+                * **Verb:** related verb forms  
+                * **Adjective:** related adjective forms
+                * **Adverb:** related adverb forms
+                
+                **Vietnamese Translation:**
+                
+                Primary translation and nuanced explanations of usage differences.
+                
+                Please follow this EXACT format for consistency and include ALL sections.
+                """, word, word, word);
     }
 
     private String extractTextFromResponse(GeminiResponse response) {

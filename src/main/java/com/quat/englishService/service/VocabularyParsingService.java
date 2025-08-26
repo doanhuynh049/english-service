@@ -108,25 +108,38 @@ public class VocabularyParsingService {
     private String[] extractExampleSentences(String text) {
         List<String> sentences = new ArrayList<>();
 
-        // Look for numbered examples or bullet points
-        Pattern pattern = Pattern.compile("(?i)(?:\\*|\\d+\\.|-)\\s*\"([^\"]+)\"", Pattern.MULTILINE);
-        Matcher matcher = pattern.matcher(text);
+        // Look for the Example Sentences section
+        Pattern sectionPattern = Pattern.compile("(?i)\\*\\s*Example Sentences:\\*\\*(.*?)(?=\\*\\s*\\w|$)", Pattern.DOTALL);
+        Matcher sectionMatcher = sectionPattern.matcher(text);
 
-        while (matcher.find() && sentences.size() < 5) {
-            sentences.add(matcher.group(1).trim());
+        if (sectionMatcher.find()) {
+            String exampleSection = sectionMatcher.group(1);
+
+            // Look for numbered examples with quotes
+            Pattern numberedPattern = Pattern.compile("\\d+\\.\\s*([^\\n]+)", Pattern.MULTILINE);
+            Matcher numberedMatcher = numberedPattern.matcher(exampleSection);
+
+            while (numberedMatcher.find() && sentences.size() < 5) {
+                String sentence = numberedMatcher.group(1).trim();
+                // Clean up the sentence - remove extra quotes and formatting
+                sentence = sentence.replaceAll("^[\"']|[\"']$", ""); // Remove quotes at start/end
+                sentence = sentence.replaceAll("\\*\\*([^*]+)\\*\\*", "$1"); // Remove bold formatting
+                if (!sentence.isEmpty() && sentence.length() > 10) {
+                    sentences.add(sentence);
+                }
+            }
         }
 
-        // If no quoted sentences found, look for sentences with the word in bold/asterisks
+        // If no numbered examples found, try alternative patterns
         if (sentences.isEmpty()) {
-            Pattern boldPattern = Pattern.compile("\"([^\"]*\\*\\*[^*]+\\*\\*[^\"]*)\"|\"([^\"]*__[^_]+__[^\"]*)\"|\"([^\"]+)\"");
-            Matcher boldMatcher = boldPattern.matcher(text);
+            Pattern bulletPattern = Pattern.compile("(?:^|\\n)\\s*[-*]\\s*\"?([^\\n\"]+)\"?", Pattern.MULTILINE);
+            Matcher bulletMatcher = bulletPattern.matcher(text);
 
-            while (boldMatcher.find() && sentences.size() < 5) {
-                for (int i = 1; i <= 3; i++) {
-                    if (boldMatcher.group(i) != null) {
-                        sentences.add(boldMatcher.group(i).trim());
-                        break;
-                    }
+            while (bulletMatcher.find() && sentences.size() < 5) {
+                String sentence = bulletMatcher.group(1).trim();
+                sentence = sentence.replaceAll("\\*\\*([^*]+)\\*\\*", "$1");
+                if (!sentence.isEmpty() && sentence.length() > 10 && sentence.matches(".*[a-zA-Z].*")) {
+                    sentences.add(sentence);
                 }
             }
         }
@@ -143,6 +156,16 @@ public class VocabularyParsingService {
     }
 
     private String extractAndFormatSynonyms(String text) {
+        // First try to extract the full Synonyms section with improved pattern
+        Pattern sectionPattern = Pattern.compile("(?i)\\*\\s*Synonyms:\\*\\*(.*?)(?=\\*\\s*Antonyms:|$)", Pattern.DOTALL);
+        Matcher sectionMatcher = sectionPattern.matcher(text);
+
+        if (sectionMatcher.find()) {
+            String synonymsSection = sectionMatcher.group(1).trim();
+            return formatSynonymsContent(synonymsSection);
+        }
+
+        // Fallback to generic extraction
         String section = extractSection(text, "synonyms?");
         if (section != null) {
             return formatSynonymsContent(section);
@@ -151,6 +174,16 @@ public class VocabularyParsingService {
     }
 
     private String extractAndFormatAntonyms(String text) {
+        // First try to extract the full Antonyms section with improved pattern
+        Pattern sectionPattern = Pattern.compile("(?i)\\*\\s*Antonyms:\\*\\*(.*?)(?=\\*\\*\\s*Commonly Confused Words:|\\*\\*\\s*Word Family:|$)", Pattern.DOTALL);
+        Matcher sectionMatcher = sectionPattern.matcher(text);
+
+        if (sectionMatcher.find()) {
+            String antonymsSection = sectionMatcher.group(1).trim();
+            return formatAntonymsContent(antonymsSection);
+        }
+
+        // Fallback to generic extraction
         String section = extractSection(text, "antonyms?");
         if (section != null) {
             return formatAntonymsContent(section);
@@ -159,11 +192,95 @@ public class VocabularyParsingService {
     }
 
     private String extractAndFormatConfusedWords(String text) {
+        // First try to extract the full "Commonly Confused Words" section with improved pattern
+        Pattern sectionPattern = Pattern.compile("(?i)\\*\\*\\s*Commonly Confused Words:\\*\\*(.*?)(?=\\*\\*\\s*Word Family:|\\*\\*\\s*Vietnamese|$)", Pattern.DOTALL);
+        Matcher sectionMatcher = sectionPattern.matcher(text);
+
+        if (sectionMatcher.find()) {
+            String confusedSection = sectionMatcher.group(1).trim();
+            return formatConfusedWordsContent(confusedSection);
+        }
+
+        // Fallback patterns for different formats
+        Pattern altPattern1 = Pattern.compile("(?i)\\*\\*Commonly Confused Words:\\*\\*(.*?)(?=\\*\\*[A-Z]|$)", Pattern.DOTALL);
+        Matcher altMatcher1 = altPattern1.matcher(text);
+
+        if (altMatcher1.find()) {
+            String confusedSection = altMatcher1.group(1).trim();
+            return formatConfusedWordsContent(confusedSection);
+        }
+
+        // Generic section extraction as final fallback
         String section = extractSection(text, "(?:commonly )?confused");
         if (section != null) {
-            return formatListContent(section, "confusion");
+            return formatConfusedWordsContent(section);
         }
+
+        logger.debug("No Commonly Confused Words section found in text");
         return null;
+    }
+
+    private String formatConfusedWordsContent(String content) {
+        StringBuilder formatted = new StringBuilder();
+
+        // Pattern 1: Look for standardized format "* **Word:** explanation"
+        Pattern standardPattern = Pattern.compile("\\*\\s*\\*\\*([^:*]+?):\\*\\*\\s*([^*]+?)(?=\\*\\s*\\*\\*|$)", Pattern.MULTILINE | Pattern.DOTALL);
+        Matcher standardMatcher = standardPattern.matcher(content);
+
+        while (standardMatcher.find()) {
+            String word = standardMatcher.group(1).trim();
+            String explanation = standardMatcher.group(2).trim();
+
+            // Clean up explanation
+            explanation = explanation.replaceAll("\\*([^*]+?)\\*", "<em>$1</em>"); // Single asterisks to italics
+            explanation = explanation.replaceAll("_([^_]+?)_", "<em>$1</em>"); // Underscores to italics
+            explanation = explanation.replaceAll("\\s+", " "); // Normalize whitespace
+            explanation = explanation.replaceAll("\\n", " "); // Replace newlines with spaces
+
+            formatted.append("• <strong>").append(word).append(":</strong> ")
+                     .append(explanation).append("<br>");
+        }
+
+        // If no standard format found, try alternative parsing
+        if (formatted.length() == 0) {
+            // Pattern 2: Look for lines that contain word comparisons
+            String[] lines = content.split("\\n");
+            for (String line : lines) {
+                line = line.trim();
+                if (line.isEmpty() || line.startsWith("*") && line.length() < 10) {
+                    continue;
+                }
+
+                // Clean up the line
+                line = line.replaceAll("^\\*\\s*", ""); // Remove leading bullet
+                line = line.replaceAll("\\*\\*([^*]+?)\\*\\*", "<strong>$1</strong>");
+                line = line.replaceAll("\\*([^*]+?)\\*", "<em>$1</em>");
+
+                if (line.length() > 15 && (line.contains(":") || line.contains("vs") || line.contains("differ"))) {
+                    formatted.append("• ").append(line).append("<br>");
+                }
+            }
+        }
+
+        // Pattern 3: If still no content, try to parse as continuous text
+        if (formatted.length() == 0 && content.length() > 20) {
+            // Split by sentences and format each meaningful one
+            String cleanContent = content.replaceAll("\\*\\*([^*]+?)\\*\\*", "<strong>$1</strong>");
+            cleanContent = cleanContent.replaceAll("\\*([^*]+?)\\*", "<em>$1</em>");
+            cleanContent = cleanContent.replaceAll("\\s+", " ").trim();
+
+            String[] sentences = cleanContent.split("\\.");
+            for (String sentence : sentences) {
+                sentence = sentence.trim();
+                if (sentence.length() > 20 && (sentence.contains("differ") || sentence.contains("vs") || sentence.contains("distinguish"))) {
+                    formatted.append("• ").append(sentence).append(".<br>");
+                }
+            }
+        }
+
+        String result = formatted.length() > 0 ? formatted.toString() : null;
+        logger.debug("Formatted confused words section: {}", result != null ? "success" : "failed");
+        return result;
     }
 
     private String extractAndFormatWordFamily(String text) {
@@ -205,57 +322,115 @@ public class VocabularyParsingService {
     private String formatSynonymsContent(String content) {
         StringBuilder formatted = new StringBuilder();
 
-        // Look for synonym entries with explanations
-        Pattern synonymPattern = Pattern.compile("([A-Za-z]+):\\s*([^.]+(?:\\.[^A-Z]*)*)", Pattern.MULTILINE);
+        // Look for individual synonym entries with explanations using improved pattern
+        Pattern synonymPattern = Pattern.compile("\\*\\s*\\*\\*([^:*]+?):\\*\\*\\s*([^*]+?)(?=\\*\\s*\\*\\*|$)", Pattern.MULTILINE | Pattern.DOTALL);
         Matcher matcher = synonymPattern.matcher(content);
 
         while (matcher.find()) {
             String synonym = matcher.group(1).trim();
             String explanation = matcher.group(2).trim();
+
+            // Clean up explanation - preserve formatting but normalize
+            explanation = explanation.replaceAll("\\*([^*]+?)\\*", "<em>$1</em>"); // Single asterisks to italics
+            explanation = explanation.replaceAll("_([^_]+?)_", "<em>$1</em>"); // Underscores to italics
+            explanation = explanation.replaceAll("\\s+", " "); // Normalize whitespace
+            explanation = explanation.replaceAll("\\n", " "); // Replace newlines with spaces
+
             formatted.append("• <strong>").append(synonym).append(":</strong> ")
                      .append(explanation).append("<br>");
         }
 
-        // If no structured synonyms found, try to extract simple list
+        // If no structured format found, try simpler parsing
         if (formatted.length() == 0) {
-            String[] words = content.split("[,;]");
-            for (String word : words) {
-                word = word.trim().replaceAll("[*_]", "");
-                if (!word.isEmpty() && word.matches("^[A-Za-z\\s]+$")) {
-                    formatted.append("• ").append(word).append("<br>");
+            // Split by lines and look for pattern Word: explanation
+            String[] lines = content.split("\\n");
+            for (String line : lines) {
+                line = line.trim();
+                if (line.isEmpty() || line.length() < 5) continue;
+
+                // Remove leading bullets and formatting
+                line = line.replaceAll("^\\*\\s*", "");
+                line = line.replaceAll("\\*\\*([^*]+?)\\*\\*", "<strong>$1</strong>");
+
+                if (line.contains(":") && line.length() > 10) {
+                    String[] parts = line.split(":", 2);
+                    if (parts.length == 2) {
+                        String word = parts[0].trim();
+                        String explanation = parts[1].trim();
+                        formatted.append("• <strong>").append(word).append(":</strong> ")
+                                 .append(explanation).append("<br>");
+                    }
                 }
             }
         }
 
-        return formatted.length() > 0 ? formatted.toString() : content;
+        return formatted.length() > 0 ? formatted.toString() : null;
     }
 
     private String formatAntonymsContent(String content) {
         StringBuilder formatted = new StringBuilder();
 
-        // Look for antonym entries with explanations
-        Pattern antonymPattern = Pattern.compile("([A-Za-z]+):\\s*([^.]+(?:\\.[^A-Z]*)*)", Pattern.MULTILINE);
+        // Look for individual antonym entries with explanations using improved pattern
+        Pattern antonymPattern = Pattern.compile("\\*\\s*\\*\\*([^:*]+?):\\*\\*\\s*([^*]+?)(?=\\*\\s*\\*\\*|$)", Pattern.MULTILINE | Pattern.DOTALL);
         Matcher matcher = antonymPattern.matcher(content);
 
         while (matcher.find()) {
             String antonym = matcher.group(1).trim();
             String explanation = matcher.group(2).trim();
+
+            // Clean up explanation - preserve formatting but normalize
+            explanation = explanation.replaceAll("\\*([^*]+?)\\*", "<em>$1</em>"); // Single asterisks to italics
+            explanation = explanation.replaceAll("_([^_]+?)_", "<em>$1</em>"); // Underscores to italics
+            explanation = explanation.replaceAll("\\s+", " "); // Normalize whitespace
+            explanation = explanation.replaceAll("\\n", " "); // Replace newlines with spaces
+
             formatted.append("• <strong>").append(antonym).append(":</strong> ")
                      .append(explanation).append("<br>");
         }
 
-        // If no structured antonyms found, try to extract simple list
+        // If no structured format found, try simpler parsing
         if (formatted.length() == 0) {
-            String[] words = content.split("[,;]");
-            for (String word : words) {
-                word = word.trim().replaceAll("[*_]", "");
-                if (!word.isEmpty() && word.matches("^[A-Za-z\\s]+$")) {
-                    formatted.append("• ").append(word).append("<br>");
+            // Split by lines and look for pattern Word: explanation
+            String[] lines = content.split("\\n");
+            for (String line : lines) {
+                line = line.trim();
+                if (line.isEmpty() || line.length() < 5) continue;
+
+                // Remove leading bullets and formatting
+                line = line.replaceAll("^\\*\\s*", "");
+                line = line.replaceAll("\\*\\*([^*]+?)\\*\\*", "<strong>$1</strong>");
+
+                if (line.contains(":") && line.length() > 10) {
+                    String[] parts = line.split(":", 2);
+                    if (parts.length == 2) {
+                        String word = parts[0].trim();
+                        String explanation = parts[1].trim();
+                        formatted.append("• <strong>").append(word).append(":</strong> ")
+                                 .append(explanation).append("<br>");
+                    }
                 }
             }
         }
 
-        return formatted.length() > 0 ? formatted.toString() : content;
+        return formatted.length() > 0 ? formatted.toString() : null;
+    }
+
+    private String cleanFallbackContent(String content) {
+        if (content == null || content.trim().isEmpty()) {
+            return null;
+        }
+
+        // Clean up markdown formatting and return simple list
+        String cleaned = content.replaceAll("\\*\\*([^*]+)\\*\\*", "<strong>$1</strong>");
+        cleaned = cleaned.replaceAll("\\*([^*]+)\\*", "$1");
+        cleaned = cleaned.replaceAll("_([^_]+)_", "$1");
+        cleaned = cleaned.replaceAll("\\n\\s*", "<br>• ");
+
+        if (!cleaned.startsWith("• ")) {
+            cleaned = "• " + cleaned;
+        }
+
+        return cleaned;
     }
 
     private String formatListContent(String content, String type) {

@@ -76,7 +76,11 @@ public class VocabularyService {
 
     private List<String> generateFreshVocabularyWords(int count, Set<String> usedWords) {
         logger.info("Generating {} fresh vocabulary words using AI, avoiding {} used words", count, usedWords.size());
-
+        boolean test = true;
+        if (test) {
+            // For testing, return a fixed set of words
+            return List.of("serendipity");
+        }
         List<String> freshWords = new ArrayList<>();
         int attempts = 0;
         int maxAttempts = 5;
@@ -164,9 +168,11 @@ public class VocabularyService {
 
             // Step 1: Get detailed AI explanation using the existing method
             String aiResponse = geminiClient.getWordExplanation(word);
+            logger.info("Received AI response for word: {}", aiResponse);
 
             // Step 2: Parse the AI response into structured data
             ParsedVocabularyWord parsedWord = parsingService.parseAIResponse(word, aiResponse);
+            logger.info("Parsed AI response for word: {}", parsedWord);
 
             // Step 3: Generate audio files for pronunciation and example sentence
             String exampleSentence = getFirstExampleSentence(parsedWord);

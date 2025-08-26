@@ -153,19 +153,5 @@ MAVEN_PID=$!
 echo "⏳ Waiting for application to start..."
 sleep 10
 
-# Check if application started successfully
-if curl -s -f http://localhost:$APP_PORT/api/vocabulary/trigger-daily > /dev/null 2>&1; then
-    echo "✅ Application started successfully!"
-    echo "🎉 English Vocabulary Service is now running and ready to enhance your vocabulary!"
-    echo ""
-    echo "💡 Quick Test: curl -X POST http://localhost:$APP_PORT/api/vocabulary/trigger-daily"
-    echo ""
-else
-    echo "⚠️  Application may still be starting up or there might be configuration issues."
-    echo "   Check the logs above for any error messages."
-    echo "   You can test manually with: curl -X POST http://localhost:$APP_PORT/api/vocabulary/trigger-daily"
-    echo ""
-fi
-
 # Wait for the Maven process to complete
 wait $MAVEN_PID
