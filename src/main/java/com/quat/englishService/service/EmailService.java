@@ -58,6 +58,34 @@ public class EmailService {
         }
     }
 
+    public void sendVocabularyEmailWithDocument(List<ParsedVocabularyWord> vocabularyWords, String documentPath) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setFrom(fromEmail);
+            helper.setTo(toEmail);
+            helper.setSubject("📚 Daily English Vocabulary - " + LocalDate.now().format(DateTimeFormatter.ofPattern("MMM dd, yyyy")));
+            helper.setText(buildVocabularyEmailContent(vocabularyWords), true);
+
+            // Attach audio files directly to the email
+            attachAudioFiles(helper, vocabularyWords);
+
+            // Attach monologue transcript document
+            if (documentPath != null) {
+                attachMonologueDocument(helper, documentPath);
+            }
+
+            mailSender.send(message);
+            logger.info("Enhanced vocabulary email sent successfully to {} with {} words, {} audio attachments, and transcript document",
+                       toEmail, vocabularyWords.size(), countAudioFiles(vocabularyWords));
+
+        } catch (Exception e) {
+            logger.error("Failed to send vocabulary email with document: {}", e.getMessage(), e);
+            throw new RuntimeException("Email sending failed", e);
+        }
+    }
+
     private void attachAudioFiles(MimeMessageHelper helper, List<ParsedVocabularyWord> vocabularyWords) {
         for (ParsedVocabularyWord word : vocabularyWords) {
             try {
@@ -83,6 +111,22 @@ public class EmailService {
             } catch (Exception e) {
                 logger.error("Error attaching audio files for word '{}': {}", word.getWord(), e.getMessage(), e);
             }
+        }
+    }
+
+    private void attachMonologueDocument(MimeMessageHelper helper, String documentPath) {
+        try {
+            File documentFile = new File(documentPath);
+            if (documentFile.exists() && documentFile.isFile()) {
+                String fileName = "Vocabulary_Audio_Transcripts_" +
+                                LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + ".txt";
+                helper.addAttachment(fileName, documentFile);
+                logger.info("Attached monologue transcript document: {} ({} bytes)", fileName, documentFile.length());
+            } else {
+                logger.warn("Monologue document file not found: {}", documentPath);
+            }
+        } catch (Exception e) {
+            logger.error("Error attaching monologue document: {}", e.getMessage(), e);
         }
     }
 

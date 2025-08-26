@@ -531,11 +531,30 @@ public class VocabularyParsingService {
         }
 
         try {
-            String monologue = extractSection(rawMonologue, "**Monologue:**", "**Explanation:**");
-            String explanation = extractSection(rawMonologue, "**Explanation:**", "**Pronunciation:**");
-            String pronunciation = extractSection(rawMonologue, "**Pronunciation:**", null);
+            String monologue = "";
+            String explanation = "";
+            String pronunciation = "";
 
-            // Clean up the extracted monologue content more thoroughly
+            // Try to extract with markdown format first
+            String monologueWithMarkdown = extractSection(rawMonologue, "**Monologue:**", "**Explanation:**");
+            if (monologueWithMarkdown != null) {
+                monologue = monologueWithMarkdown;
+                explanation = extractSection(rawMonologue, "**Explanation:**", "**Pronunciation:**");
+                pronunciation = extractSection(rawMonologue, "**Pronunciation:**", null);
+            } else {
+                // Try to extract with plain format (without markdown)
+                monologue = extractSection(rawMonologue, "Monologue:", "Explanation:");
+                if (monologue != null) {
+                    explanation = extractSection(rawMonologue, "Explanation:", "Pronunciation:");
+                    pronunciation = extractSection(rawMonologue, "Pronunciation:", null);
+                } else {
+                    // Fallback: assume the entire content is the monologue if no markers found
+                    logger.warn("No clear monologue markers found, treating entire content as monologue");
+                    monologue = rawMonologue;
+                }
+            }
+
+            // Clean up the extracted content
             monologue = monologue != null ? cleanMonologueText(monologue) : "";
             explanation = explanation != null ? explanation.trim() : "";
             pronunciation = pronunciation != null ? pronunciation.replaceAll("[/\\[\\]]", "").trim() : "";
@@ -543,8 +562,10 @@ public class VocabularyParsingService {
             logger.debug("Parsed monologue - Length: {}, Has explanation: {}, Has pronunciation: {}",
                         monologue.length(), !explanation.isEmpty(), !pronunciation.isEmpty());
 
-            // Log the cleaned monologue for debugging
-            logger.info("Cleaned monologue text: {}", monologue.substring(0, Math.min(200, monologue.length())) + "...");
+            // Log the first part of cleaned monologue for debugging
+            if (monologue.length() > 0) {
+                logger.info("Cleaned monologue text: {}", monologue.substring(0, Math.min(200, monologue.length())) + "...");
+            }
 
             return new MonologueInfo(monologue, explanation, pronunciation);
 

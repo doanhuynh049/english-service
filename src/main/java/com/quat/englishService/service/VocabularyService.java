@@ -22,17 +22,20 @@ public class VocabularyService {
     private final VocabularyParsingService parsingService;
     private final AudioService audioService;
     private final VocabularyGeneratorService vocabularyGenerator;
+    private final MonologueDocumentService monologueDocumentService;
     private final ExecutorService executorService;
 
     public VocabularyService(GeminiClient geminiClient, EmailService emailService,
                            ExcelService excelService, VocabularyParsingService parsingService,
-                           AudioService audioService, VocabularyGeneratorService vocabularyGenerator) {
+                           AudioService audioService, VocabularyGeneratorService vocabularyGenerator,
+                           MonologueDocumentService monologueDocumentService) {
         this.geminiClient = geminiClient;
         this.emailService = emailService;
         this.excelService = excelService;
         this.parsingService = parsingService;
         this.audioService = audioService;
         this.vocabularyGenerator = vocabularyGenerator;
+        this.monologueDocumentService = monologueDocumentService;
         this.executorService = Executors.newFixedThreadPool(8); // Increased for audio processing
     }
 
@@ -57,8 +60,11 @@ public class VocabularyService {
             List<ParsedVocabularyWord> processedWords = processWordsComprehensively(selectedWords);
 
             if (!processedWords.isEmpty()) {
-                // Send enhanced HTML email with audio links
-                emailService.sendVocabularyEmail(processedWords);
+                // Generate monologue document for email attachment
+                String documentPath = monologueDocumentService.generateMonologueDocument(processedWords);
+
+                // Send enhanced HTML email with audio links and monologue transcript
+                emailService.sendVocabularyEmailWithDocument(processedWords, documentPath);
 
                 // Log to Excel with all details including audio paths
                 logWordsToExcel(processedWords);
@@ -171,9 +177,15 @@ public class VocabularyService {
 
             // Step 3: Generate AI monologue for better audio examples
             String monologueResponse = geminiClient.getWordMonologue(word);
+            logger.info("Received AI monologue for monologueResponse: {}", monologueResponse);
             if (monologueResponse != null) {
-                VocabularyParsingService.MonologueInfo monologueInfo = parsingService.parseMonologue(monologueResponse);
+                // Store the monologue response in the parsed word for document generation
+                // Format it properly so MonologueDocumentService can extract it
+                String formattedMonologue = formatMonologueForStorage(monologueResponse);
+                parsedWord.setRawExplanation(parsedWord.getRawExplanation() + "\n\n" + formattedMonologue);
 
+                VocabularyParsingService.MonologueInfo monologueInfo = parsingService.parseMonologue(monologueResponse);
+                logger.info("Parsed monologue for monologueInfo.getMonologue(): {}", monologueInfo != null ? monologueInfo.getMonologue().substring(0, Math.min(100, monologueInfo.getMonologue().length())) + "..." : "null");
                 if (monologueInfo != null && !monologueInfo.getMonologue().isEmpty()) {
                     // Step 4: Generate audio files using the monologue
                     AudioService.AudioInfo audioInfo = audioService.generateAudioFilesWithMonologue(word, monologueInfo.getMonologue());
@@ -299,5 +311,38 @@ public class VocabularyService {
     public List<ParsedVocabularyWord> processSpecificWords(List<String> words) {
         logger.info("Processing {} specific words manually", words.size());
         return processWordsComprehensively(words);
+    }
+
+    private String formatMonologueForStorage(String rawMonologue) {
+        if (rawMonologue == null || rawMonologue.trim().isEmpty()) {
+            return "";
+        }
+
+        // If the raw monologue already has the proper markdown format, return as-is
+        if (rawMonologue.contains("**Monologue:**")) {
+            return rawMonologue;
+        }
+
+        // Otherwise, format it properly for MonologueDocumentService extraction
+        StringBuilder formatted = new StringBuilder();
+        formatted.append("=== AI MONOLOGUE DATA ===\n");
+
+        // Ensure proper markdown formatting
+        if (rawMonologue.contains("Monologue:")) {
+            // Replace plain format with markdown format
+            String formattedContent = rawMonologue
+                    .replaceAll("(?i)Monologue:", "**Monologue:**")
+                    .replaceAll("(?i)Explanation:", "**Explanation:**")
+                    .replaceAll("(?i)Pronunciation:", "**Pronunciation:**");
+            formatted.append(formattedContent);
+        } else {
+            // If no clear structure, wrap the entire content as a monologue
+            formatted.append("**Monologue:**\n");
+            formatted.append(rawMonologue);
+            formatted.append("\n**Explanation:**\n");
+            formatted.append("Natural conversational monologue demonstrating word usage in context.");
+        }
+
+        return formatted.toString();
     }
 }
