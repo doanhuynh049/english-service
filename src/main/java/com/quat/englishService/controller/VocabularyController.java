@@ -1,14 +1,20 @@
 package com.quat.englishService.controller;
 
+import com.quat.englishService.dto.ParsedVocabularyWord;
 import com.quat.englishService.service.VocabularyService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/vocabulary")
 public class VocabularyController {
+
+    private static final Logger logger = LoggerFactory.getLogger(VocabularyController.class);
 
     private final VocabularyService vocabularyService;
 
@@ -16,14 +22,46 @@ public class VocabularyController {
         this.vocabularyService = vocabularyService;
     }
 
-    @PostMapping("/trigger")
-    public ResponseEntity<String> triggerVocabularySession() {
+    @PostMapping("/trigger-daily")
+    public ResponseEntity<Map<String, Object>> triggerDailyVocabulary() {
         try {
-            vocabularyService.triggerManualVocabularySession();
-            return ResponseEntity.ok("Vocabulary session triggered successfully! Check your email and Excel file.");
+            logger.info("Manually triggering daily vocabulary processing");
+            vocabularyService.processDailyVocabulary();
+
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "Daily vocabulary processing completed successfully"
+            ));
         } catch (Exception e) {
-            return ResponseEntity.internalServerError()
-                    .body("Error triggering vocabulary session: " + e.getMessage());
+            logger.error("Error during manual daily vocabulary trigger: {}", e.getMessage(), e);
+            return ResponseEntity.internalServerError().body(Map.of(
+                "success", false,
+                "error", e.getMessage()
+            ));
         }
+    }
+
+    @PostMapping("/process-words")
+    public ResponseEntity<List<ParsedVocabularyWord>> processSpecificWords(
+            @RequestBody List<String> words) {
+        try {
+            logger.info("Processing specific words: {}", words);
+            List<ParsedVocabularyWord> processedWords = vocabularyService.processSpecificWords(words);
+
+            logger.info("Successfully processed {} words", processedWords.size());
+            return ResponseEntity.ok(processedWords);
+        } catch (Exception e) {
+            logger.error("Error processing specific words: {}", e.getMessage(), e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    @GetMapping("/health")
+    public ResponseEntity<Map<String, Object>> healthCheck() {
+        return ResponseEntity.ok(Map.of(
+            "status", "healthy",
+            "service", "vocabulary-service",
+            "timestamp", System.currentTimeMillis()
+        ));
     }
 }

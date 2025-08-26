@@ -15,6 +15,12 @@ public class ParsedVocabularyWord {
     private String vietnameseTranslation;
     private String rawExplanation;
 
+    // Audio URL fields
+    private String pronunciationAudioUrl;
+    private String exampleAudioUrl;
+    private String pronunciationAudioPath;
+    private String exampleAudioPath;
+
     // Constructors
     public ParsedVocabularyWord() {}
 
@@ -62,4 +68,31 @@ public class ParsedVocabularyWord {
 
     public String getRawExplanation() { return rawExplanation; }
     public void setRawExplanation(String rawExplanation) { this.rawExplanation = rawExplanation; }
+
+    // Audio getters and setters
+    public String getPronunciationAudioUrl() { return pronunciationAudioUrl; }
+    public void setPronunciationAudioUrl(String pronunciationAudioUrl) { this.pronunciationAudioUrl = pronunciationAudioUrl; }
+
+    public String getExampleAudioUrl() { return exampleAudioUrl; }
+    public void setExampleAudioUrl(String exampleAudioUrl) { this.exampleAudioUrl = exampleAudioUrl; }
+
+    public String getPronunciationAudioPath() { return pronunciationAudioPath; }
+    public void setPronunciationAudioPath(String pronunciationAudioPath) { this.pronunciationAudioPath = pronunciationAudioPath; }
+
+    public String getExampleAudioPath() { return exampleAudioPath; }
+    public void setExampleAudioPath(String exampleAudioPath) { this.exampleAudioPath = exampleAudioPath; }
+
+    @Override
+    public String toString() {
+        return "ParsedVocabularyWord{" +
+                "word='" + word + '\'' +
+                ", pronunciation='" + pronunciation + '\'' +
+                ", partOfSpeech='" + partOfSpeech + '\'' +
+                ", simpleDefinition='" + simpleDefinition + '\'' +
+                ", advancedDefinition='" + advancedDefinition + '\'' +
+                ", vietnameseTranslation='" + vietnameseTranslation + '\'' +
+                ", pronunciationAudioUrl='" + pronunciationAudioUrl + '\'' +
+                ", exampleAudioUrl='" + exampleAudioUrl + '\'' +
+                '}';
+    }
 }

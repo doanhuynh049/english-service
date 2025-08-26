@@ -7,10 +7,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
+import org.springframework.retry.annotation.Retryable;
+import org.springframework.retry.annotation.Backoff;
 
 import jakarta.mail.internet.MimeMessage;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
@@ -31,6 +32,7 @@ public class EmailService {
         this.mailSender = mailSender;
     }
 
+    @Retryable(value = {Exception.class}, maxAttempts = 3, backoff = @Backoff(delay = 2000))
     public void sendVocabularyEmail(List<ParsedVocabularyWord> vocabularyWords) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
@@ -46,6 +48,7 @@ public class EmailService {
 
         } catch (Exception e) {
             logger.error("Failed to send vocabulary email: {}", e.getMessage(), e);
+            throw new RuntimeException("Email sending failed", e); // Re-throw for retry mechanism
         }
     }
 
@@ -99,140 +102,146 @@ public class EmailService {
                             margin: 0;
                             font-size: 2.5em;
                             font-weight: 300;
+                            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
                         }
-                        .header .date {
+                        .date {
                             font-size: 1.1em;
-                            opacity: 0.9;
                             margin-top: 10px;
+                            opacity: 0.9;
                         }
-                        .word-container {
-                            padding: 0 30px;
+                        .word-section {
+                            padding: 30px;
+                            border-bottom: 1px solid #eee;
+                            transition: background-color 0.3s ease;
                         }
-                        .word-card {
-                            margin: 30px 0;
-                            border-left: 5px solid #667eea;
-                            background: #f8f9ff;
-                            border-radius: 10px;
-                            overflow: hidden;
-                            transition: transform 0.3s ease;
+                        .word-section:hover {
+                            background-color: #f8f9fa;
+                        }
+                        .word-section:last-child {
+                            border-bottom: none;
                         }
                         .word-header {
-                            background: #667eea;
-                            color: white;
-                            padding: 20px;
                             display: flex;
-                            justify-content: space-between;
                             align-items: center;
-                        }
-                        .word-title {
-                            font-size: 1.8em;
-                            font-weight: bold;
-                            margin: 0;
+                            margin-bottom: 20px;
+                            flex-wrap: wrap;
+                            gap: 15px;
                         }
                         .word-number {
-                            background: rgba(255,255,255,0.2);
-                            padding: 5px 15px;
-                            border-radius: 20px;
+                            background: linear-gradient(135deg, #667eea, #764ba2);
+                            color: white;
+                            width: 40px;
+                            height: 40px;
+                            border-radius: 50%%;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
                             font-weight: bold;
+                            font-size: 1.2em;
                         }
-                        .word-content {
-                            padding: 25px;
+                        .word-title {
+                            font-size: 2.2em;
+                            font-weight: bold;
+                            color: #2c3e50;
+                            margin: 0;
                         }
                         .pronunciation {
-                            font-size: 1.3em;
-                            color: #764ba2;
-                            font-weight: 500;
-                            margin-bottom: 15px;
+                            font-family: 'Courier New', monospace;
+                            color: #7f8c8d;
+                            font-size: 1.1em;
                         }
-                        .pos-badge {
-                            display: inline-block;
-                            background: #e8f0fe;
-                            color: #1976d2;
-                            padding: 5px 12px;
-                            border-radius: 20px;
+                        .pos {
+                            background: #3498db;
+                            color: white;
+                            padding: 4px 12px;
+                            border-radius: 15px;
                             font-size: 0.9em;
-                            font-weight: 500;
-                            margin-bottom: 20px;
+                            font-weight: bold;
+                        }
+                        .audio-buttons {
+                            display: flex;
+                            gap: 10px;
+                            flex-wrap: wrap;
+                        }
+                        .audio-btn {
+                            background: #e74c3c;
+                            color: white;
+                            padding: 8px 15px;
+                            border-radius: 20px;
+                            text-decoration: none;
+                            font-size: 0.9em;
+                            font-weight: bold;
+                            transition: all 0.3s ease;
+                            box-shadow: 0 4px 8px rgba(231, 76, 60, 0.3);
+                        }
+                        .audio-btn:hover {
+                            background: #c0392b;
+                            transform: translateY(-2px);
+                            box-shadow: 0 6px 12px rgba(231, 76, 60, 0.4);
                         }
                         .definition-section {
                             margin: 20px 0;
-                            padding: 20px;
-                            background: white;
-                            border-radius: 8px;
-                            border-left: 3px solid #4caf50;
                         }
-                        .section-title {
-                            color: #2c3e50;
+                        .definition-label {
                             font-weight: bold;
+                            color: #2c3e50;
+                            margin-bottom: 8px;
                             font-size: 1.1em;
-                            margin-bottom: 10px;
-                            text-transform: uppercase;
-                            letter-spacing: 0.5px;
                         }
-                        .simple-def {
-                            font-size: 1.1em;
-                            color: #27ae60;
-                            margin-bottom: 10px;
+                        .definition-content {
+                            background: #f8f9fa;
+                            padding: 15px;
+                            border-left: 4px solid #3498db;
+                            border-radius: 0 8px 8px 0;
+                            margin-bottom: 15px;
                         }
-                        .advanced-def {
-                            color: #555;
-                            font-style: italic;
+                        .examples {
+                            background: #fff3cd;
+                            padding: 15px;
+                            border-radius: 8px;
+                            border-left: 4px solid #ffc107;
+                            margin: 15px 0;
                         }
                         .example-sentence {
-                            background: #fff3cd;
-                            padding: 12px;
-                            margin: 8px 0;
-                            border-left: 3px solid #ffc107;
-                            border-radius: 5px;
                             font-style: italic;
+                            margin: 8px 0;
+                            padding: 5px 0;
+                            border-bottom: 1px dotted #ddd;
                         }
-                        .info-grid {
-                            display: grid;
-                            grid-template-columns: 1fr 1fr;
-                            gap: 20px;
-                            margin: 20px 0;
+                        .example-sentence:last-child {
+                            border-bottom: none;
                         }
-                        .info-box {
-                            background: white;
-                            padding: 15px;
-                            border-radius: 8px;
-                            border: 1px solid #e1e8ed;
+                        .section-content {
+                            margin: 15px 0;
+                            padding: 12px;
+                            background: #f1f3f4;
+                            border-radius: 6px;
                         }
                         .vietnamese {
-                            background: #e8f5e8;
-                            color: #2e7d32;
-                            padding: 15px;
-                            border-radius: 8px;
-                            margin: 15px 0;
-                            border-left: 3px solid #4caf50;
+                            background: #d4edda;
+                            color: #155724;
+                            padding: 12px;
+                            border-radius: 6px;
+                            border-left: 4px solid #28a745;
+                            font-weight: 500;
                         }
                         .footer {
                             background: #2c3e50;
                             color: white;
                             padding: 30px;
                             text-align: center;
-                            margin-top: 30px;
-                        }
-                        .footer h3 {
-                            margin: 0 0 10px 0;
-                            color: #3498db;
-                        }
-                        .stats {
-                            background: #ecf0f1;
-                            padding: 20px;
-                            text-align: center;
-                            color: #7f8c8d;
                         }
                         @media (max-width: 600px) {
-                            .info-grid {
-                                grid-template-columns: 1fr;
+                            .word-header {
+                                flex-direction: column;
+                                align-items: flex-start;
                             }
-                            .container {
-                                margin: 10px;
-                                border-radius: 10px;
+                            .word-title {
+                                font-size: 1.8em;
                             }
-                            body {
-                                padding: 10px;
+                            .audio-buttons {
+                                width: 100%%;
+                                justify-content: center;
                             }
                         }
                     </style>
@@ -243,155 +252,112 @@ public class EmailService {
                             <h1>📚 Daily English Vocabulary</h1>
                             <div class="date">%s</div>
                         </div>
-                        <div class="word-container">
-                """,
-                LocalDate.now().format(DateTimeFormatter.ofPattern("EEEE, MMMM dd, yyyy")));
+                """, LocalDate.now().format(DateTimeFormatter.ofPattern("EEEE, MMMM dd, yyyy")));
     }
 
-    private String buildWordSection(ParsedVocabularyWord word, int wordNumber) {
+    private String buildWordSection(ParsedVocabularyWord word, int index) {
         StringBuilder section = new StringBuilder();
 
         section.append(String.format("""
-                <div class="word-card">
+                <div class="word-section">
                     <div class="word-header">
-                        <h2 class="word-title">%s</h2>
-                        <div class="word-number">Word %d</div>
+                        <div class="word-number">%d</div>
+                        <div>
+                            <h2 class="word-title">%s</h2>
+                            %s
+                            %s
+                        </div>
+                        <div class="audio-buttons">
+                            %s
+                            %s
+                        </div>
                     </div>
-                    <div class="word-content">
-                """, word.getWord().toUpperCase(), wordNumber));
+                """,
+                index,
+                word.getWord(),
+                word.getPronunciation() != null ? "<div class=\"pronunciation\">" + word.getPronunciation() + "</div>" : "",
+                word.getPartOfSpeech() != null ? "<span class=\"pos\">" + word.getPartOfSpeech() + "</span>" : "",
+                word.getPronunciationAudioUrl() != null ?
+                    "<a href=\"" + word.getPronunciationAudioUrl() + "\" class=\"audio-btn\">🔊 Pronunciation</a>" : "",
+                word.getExampleAudioUrl() != null ?
+                    "<a href=\"" + word.getExampleAudioUrl() + "\" class=\"audio-btn\">🔊 Example</a>" : ""
+        ));
 
-        // Pronunciation
-        if (word.getPronunciation() != null) {
+        // Add definitions
+        if (word.getSimpleDefinition() != null) {
             section.append(String.format("""
-                    <div class="pronunciation">🔊 %s</div>
-                    """, word.getPronunciation()));
-        }
-
-        // Part of Speech
-        if (word.getPartOfSpeech() != null) {
-            section.append(String.format("""
-                    <div class="pos-badge">%s</div>
-                    """, word.getPartOfSpeech()));
-        }
-
-        // Definitions
-        if (word.getSimpleDefinition() != null || word.getAdvancedDefinition() != null) {
-            section.append("""
                     <div class="definition-section">
-                        <div class="section-title">📖 Definition</div>
-                    """);
-
-            if (word.getSimpleDefinition() != null) {
-                section.append(String.format("""
-                        <div class="simple-def"><strong>Simple:</strong> %s</div>
-                        """, word.getSimpleDefinition()));
-            }
-
-            if (word.getAdvancedDefinition() != null) {
-                section.append(String.format("""
-                        <div class="advanced-def"><strong>Advanced:</strong> %s</div>
-                        """, word.getAdvancedDefinition()));
-            }
-
-            section.append("</div>");
+                        <div class="definition-label">💡 Simple Definition:</div>
+                        <div class="definition-content">%s</div>
+                    </div>
+                    """, word.getSimpleDefinition()));
         }
 
-        // Example Sentences
+        if (word.getAdvancedDefinition() != null) {
+            section.append(String.format("""
+                    <div class="definition-section">
+                        <div class="definition-label">🎓 Advanced Definition:</div>
+                        <div class="definition-content">%s</div>
+                    </div>
+                    """, word.getAdvancedDefinition()));
+        }
+
+        // Add example sentences
         if (word.getExampleSentences() != null && word.getExampleSentences().length > 0) {
             section.append("""
-                    <div class="definition-section">
-                        <div class="section-title">💬 Example Sentences</div>
+                    <div class="examples">
+                        <div class="definition-label">📝 Example Sentences:</div>
                     """);
-
             for (String example : word.getExampleSentences()) {
-                section.append(String.format("""
-                        <div class="example-sentence">"%s"</div>
-                        """, example));
+                section.append(String.format("<div class=\"example-sentence\">• %s</div>", example));
             }
-
             section.append("</div>");
         }
 
-        // Info Grid for Synonyms, Antonyms, etc.
-        section.append("""
-                <div class="info-grid">
-                """);
+        // Add other sections
+        addSection(section, "🤝 Collocations:", word.getCollocations());
+        addSection(section, "🔄 Synonyms:", word.getSynonyms());
+        addSection(section, "⚖️ Antonyms:", word.getAntonyms());
+        addSection(section, "❓ Confused Words:", word.getConfusedWords());
+        addSection(section, "👨‍👩‍👧‍👦 Word Family:", word.getWordFamily());
 
-        if (word.getSynonyms() != null) {
-            section.append(String.format("""
-                    <div class="info-box">
-                        <div class="section-title">✅ Synonyms</div>
-                        <div>%s</div>
-                    </div>
-                    """, word.getSynonyms()));
-        }
-
-        if (word.getCollocations() != null) {
-            section.append(String.format("""
-                    <div class="info-box">
-                        <div class="section-title">🔗 Collocations</div>
-                        <div>%s</div>
-                    </div>
-                    """, word.getCollocations()));
-        }
-
-        if (word.getWordFamily() != null) {
-            section.append(String.format("""
-                    <div class="info-box">
-                        <div class="section-title">👨‍👩‍👧‍👦 Word Family</div>
-                        <div>%s</div>
-                    </div>
-                    """, word.getWordFamily()));
-        }
-
-        if (word.getConfusedWords() != null) {
-            section.append(String.format("""
-                    <div class="info-box">
-                        <div class="section-title">⚠️ Commonly Confused</div>
-                        <div>%s</div>
-                    </div>
-                    """, word.getConfusedWords()));
-        }
-
-        section.append("</div>");
-
-        // Vietnamese Translation
+        // Add Vietnamese translation
         if (word.getVietnameseTranslation() != null) {
             section.append(String.format("""
                     <div class="vietnamese">
-                        <div class="section-title">🇻🇳 Vietnamese Translation</div>
-                        <div>%s</div>
+                        <div class="definition-label">🇻🇳 Vietnamese Translation:</div>
+                        %s
                     </div>
                     """, word.getVietnameseTranslation()));
         }
 
-        section.append("""
-                    </div>
-                </div>
-                """);
-
+        section.append("</div>");
         return section.toString();
+    }
+
+    private void addSection(StringBuilder section, String label, String content) {
+        if (content != null && !content.trim().isEmpty()) {
+            section.append(String.format("""
+                    <div class="definition-section">
+                        <div class="definition-label">%s</div>
+                        <div class="section-content">%s</div>
+                    </div>
+                    """, label, content));
+        }
     }
 
     private String buildEmailFooter() {
         return String.format("""
-                        </div>
-                        <div class="stats">
-                            <p><strong>📊 Today's Learning Session Complete!</strong></p>
-                            <p>You've learned 10 new vocabulary words • Keep up the great work! 🌟</p>
-                        </div>
                         <div class="footer">
-                            <h3>🎯 Keep Learning & Growing!</h3>
-                            <p>Remember: Consistency is key to mastering English vocabulary.</p>
-                            <p>Practice using these words in your daily conversations!</p>
-                            <hr style="border: 1px solid #34495e; margin: 20px 0;">
-                            <p><em>📧 This email was automatically generated by your English Vocabulary Service</em></p>
-                            <p><small>Generated on %s</small></p>
+                            <p>🌟 <strong>Keep Learning Every Day!</strong> 🌟</p>
+                            <p>Generated on %s | Powered by Gemini AI & gTTS</p>
+                            <p style="font-size: 0.9em; opacity: 0.8;">
+                                💡 Tip: Click the 🔊 buttons to hear the pronunciation and examples!
+                            </p>
                         </div>
                     </div>
                 </body>
                 </html>
-                """,
-                LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd 'at' HH:mm")));
+                """, LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
     }
 }
