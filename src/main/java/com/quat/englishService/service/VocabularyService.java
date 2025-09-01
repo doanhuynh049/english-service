@@ -24,7 +24,7 @@ public class VocabularyService {
     private final VocabularyGeneratorService vocabularyGenerator;
     private final MonologueDocumentService monologueDocumentService;
     private final ExecutorService executorService;
-
+    private static final int NUMBER_VOCABULARY_WORDS = 3;
     public VocabularyService(GeminiClient geminiClient, EmailService emailService,
                            ExcelService excelService, VocabularyParsingService parsingService,
                            AudioService audioService, VocabularyGeneratorService vocabularyGenerator,
@@ -48,12 +48,13 @@ public class VocabularyService {
             logger.info("Found {} previously used words", usedWords.size());
 
             // Generate fresh vocabulary words from Gemini AI
-            List<String> selectedWords = generateFreshVocabularyWords(3, usedWords);
+            // Replace used words with empty set for fresh generation
+            List<String> selectedWords = generateFreshVocabularyWords(NUMBER_VOCABULARY_WORDS, new HashSet<>());
             logger.info("Generated {} new AI vocabulary words for today: {}", selectedWords.size(), selectedWords);
 
             if (selectedWords.isEmpty()) {
                 logger.warn("No fresh words generated, using fallback vocabulary");
-                selectedWords = vocabularyGenerator.getRandomMixedVocabulary(1);
+                selectedWords = vocabularyGenerator.getRandomMixedVocabulary(3);
             }
 
             // Process words with AI, audio generation, and parsing
@@ -182,6 +183,7 @@ public class VocabularyService {
                 // Store the monologue response in the parsed word for document generation
                 // Format it properly so MonologueDocumentService can extract it
                 String formattedMonologue = formatMonologueForStorage(monologueResponse);
+                logger.info("Formatted monologue for storage: {}", formattedMonologue.substring(0, Math.min(100, formattedMonologue.length())) + "...");
                 parsedWord.setRawExplanation(parsedWord.getRawExplanation() + "\n\n" + formattedMonologue);
 
                 VocabularyParsingService.MonologueInfo monologueInfo = parsingService.parseMonologue(monologueResponse);

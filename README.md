@@ -80,7 +80,7 @@ java -jar target/english-service-0.0.1-SNAPSHOT.jar
 
 ```bash
 # Trigger a manual vocabulary session
-curl -X POST http://localhost:8282/api/vocabulary/trigger
+curl -X POST http://localhost:8282/api/vocabulary/trigger-daily
 ```
 
 ## 📧 Email Setup (Gmail)

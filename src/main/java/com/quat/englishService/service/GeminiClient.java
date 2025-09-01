@@ -170,6 +170,7 @@ public class GeminiClient {
         return String.format("""
                 Write a short monologue or speech by one person that uses the word '%s' multiple times. 
                 The monologue should clearly show the meaning, usage, and context of the word in everyday situations. 
+                Do not shorten, truncate, or add ellipses ("...") in the monologue. Write full sentences and paragraphs.
                 After the monologue, provide a brief explanation of how the word is used, including common collocations or phrases. 
                 Format the output so that it can be converted into audio for English learners to listen and follow along. 
                 Optionally, include IPA pronunciation of the target word.
