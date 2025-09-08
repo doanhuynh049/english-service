@@ -66,7 +66,7 @@
             border-bottom: none;
         }
 
-        .section-title {
+        .section-header {
             font-size: 1.5rem;
             font-weight: 600;
             color: #2d3748;
@@ -85,14 +85,114 @@
         /* Collocations Section */
         .collocations-content {
             background: #fffbeb;
-            border-left: 4px solid #f6ad55;
-            padding: 1.5rem;
-            border-radius: 0 0.5rem 0.5rem 0;
-            white-space: pre-wrap;
-            font-family: 'Georgia', serif;
-            line-height: 1.8;
-            color: #92400e;
+            border-radius: 0.5rem;
+            padding: 1rem;
             margin-bottom: 1rem;
+        }
+
+        /* Enhanced Collocation Item Styles */
+        .collocations-container {
+            margin: 0;
+        }
+
+        .collocations-container h2 {
+            color: #2c5aa0 !important;
+            border-bottom: 2px solid #ff6b35 !important;
+            padding-bottom: 10px !important;
+            margin-bottom: 20px !important;
+            font-size: 1.4rem !important;
+        }
+
+        .collocation-item {
+            margin-bottom: 20px !important;
+            padding: 15px !important;
+            background-color: #ffffff !important;
+            border-left: 4px solid #ff6b35 !important;
+            border-radius: 8px !important;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+            transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+        }
+
+        .collocation-item:hover {
+            transform: translateY(-2px) !important;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15) !important;
+        }
+
+        .collocation-header {
+            margin-bottom: 10px !important;
+            display: flex !important;
+            align-items: center !important;
+            flex-wrap: wrap !important;
+            gap: 8px !important;
+        }
+
+        .collocation-header .number {
+            font-weight: bold !important;
+            color: #2c5aa0 !important;
+            background: #e6f3ff !important;
+            padding: 4px 8px !important;
+            border-radius: 50% !important;
+            min-width: 28px !important;
+            text-align: center !important;
+            font-size: 14px !important;
+        }
+
+        .collocation-header .phrase {
+            font-size: 18px !important;
+            font-weight: bold !important;
+            color: #1a365d !important;
+            flex: 1 !important;
+        }
+
+        .collocation-header .ipa {
+            color: #666 !important;
+            font-style: italic !important;
+            background: #f8f9fa !important;
+            padding: 2px 8px !important;
+            border-radius: 4px !important;
+            font-size: 14px !important;
+        }
+
+        .meaning, .example, .vietnamese {
+            margin-bottom: 8px !important;
+            line-height: 1.5 !important;
+        }
+
+        .meaning {
+            color: #2d4a22 !important;
+            background: #f0f8ef !important;
+            padding: 8px 12px !important;
+            border-radius: 4px !important;
+            border-left: 3px solid #48bb78 !important;
+        }
+
+        .example {
+            color: #744210 !important;
+            background: #fef5e7 !important;
+            padding: 8px 12px !important;
+            border-radius: 4px !important;
+            font-style: italic !important;
+            border-left: 3px solid #ed8936 !important;
+        }
+
+        .vietnamese {
+            color: #553c9a !important;
+            background: #f7fafc !important;
+            padding: 8px 12px !important;
+            border-radius: 4px !important;
+            font-size: 14px !important;
+            border-left: 3px solid #805ad5 !important;
+        }
+
+        .meaning strong,
+        .example strong,
+        .vietnamese strong {
+            display: inline-block !important;
+            margin-right: 8px !important;
+            font-weight: 600 !important;
+            text-transform: uppercase !important;
+            font-size: 12px !important;
+            letter-spacing: 0.5px !important;
         }
 
         .collocations-note {
@@ -104,63 +204,6 @@
             color: #92400e;
         }
 
-        /* Audio Files Section */
-        .audio-section {
-            background: #f0fdfa;
-            border-left: 4px solid #14b8a6;
-            padding: 1.5rem;
-            border-radius: 0 0.5rem 0.5rem 0;
-        }
-
-        .audio-list {
-            list-style: none;
-            padding: 0;
-            margin: 1rem 0;
-        }
-
-        .audio-item {
-            background: white;
-            padding: 1rem;
-            margin-bottom: 0.75rem;
-            border-radius: 0.5rem;
-            border: 1px solid #a7f3d0;
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            transition: all 0.2s ease;
-        }
-
-        .audio-item:hover {
-            background: #ecfdf5;
-            transform: translateX(2px);
-        }
-
-        .audio-icon {
-            color: #14b8a6;
-            font-size: 1.2rem;
-            min-width: 1.5rem;
-        }
-
-        .audio-title {
-            font-weight: 600;
-            color: #065f46;
-        }
-
-        .audio-description {
-            font-size: 0.9rem;
-            color: #059669;
-            margin-top: 0.25rem;
-        }
-
-        .attachment-note {
-            background: #dcfce7;
-            padding: 1rem;
-            border-radius: 0.375rem;
-            border: 1px solid #86efac;
-            font-style: italic;
-            color: #166534;
-            margin-top: 1rem;
-        }
 
         /* Tips Section */
         .tips-section {
@@ -316,14 +359,13 @@
                 font-size: 1.5rem;
             }
 
-            .section-title {
+            .section-header {
                 font-size: 1.25rem;
                 flex-direction: column;
                 align-items: flex-start;
                 gap: 0.25rem;
             }
 
-            .audio-item,
             .tips-list li,
             .practice-steps li {
                 flex-direction: column;
@@ -370,61 +412,24 @@
         <div class="content">
             <!-- Collocations Section -->
             <div class="content-section">
-                <h2 class="section-title">
+                <div class="section-header">
                     <span class="section-icon">📝</span>
                     <span>Common TOEIC Collocations</span>
-                </h2>
+                </div>
                 <div class="collocations-content">{{COLLOCATIONS_CONTENT}}</div>
                 <div class="collocations-note">
-                    <strong>💡 Study Tip:</strong> Focus on these collocations while listening to the audio passages. 
-                    They frequently appear in TOEIC Part 4 and will help you improve your listening comprehension score.
+                    <strong>💡 Study Tip:</strong> Focus on these collocations while listening to the audio passages. They frequently appear in TOEIC Part 4 and will help you improve your listening comprehension score.
                 </div>
             </div>
 
-            <!-- Audio Files Section -->
-            <div class="content-section">
-                <h2 class="section-title">
-                    <span class="section-icon">🎵</span>
-                    <span>Audio Practice Files</span>
-                </h2>
-                <div class="audio-section">
-                    <p><strong>Three TOEIC Part 4 Style Passages:</strong></p>
-                    <ul class="audio-list">
-                        <li class="audio-item">
-                            <span class="audio-icon">🎵</span>
-                            <div>
-                                <div class="audio-title">Passage 1 - Business Meeting</div>
-                                <div class="audio-description">Office announcement with workplace collocations</div>
-                            </div>
-                        </li>
-                        <li class="audio-item">
-                            <span class="audio-icon">🎵</span>
-                            <div>
-                                <div class="audio-title">Passage 2 - Customer Service</div>
-                                <div class="audio-description">Service-related dialogue with business terms</div>
-                            </div>
-                        </li>
-                        <li class="audio-item">
-                            <span class="audio-icon">🎵</span>
-                            <div>
-                                <div class="audio-title">Passage 3 - Company Presentation</div>
-                                <div class="audio-description">Professional presentation with advanced vocabulary</div>
-                            </div>
-                        </li>
-                    </ul>
-                    <div class="attachment-note">
-                        📎 <strong>Email Attachments:</strong> Check your email attachments for MP3 audio files and 
-                        a complete text document with passages, questions, and answer keys.
-                    </div>
-                </div>
-            </div>
+
 
             <!-- Practice Instructions -->
             <div class="content-section">
-                <h2 class="section-title">
+                <div class="section-header">
                     <span class="section-icon">📚</span>
                     <span>How to Practice</span>
-                </h2>
+                </div>
                 <div class="practice-section">
                     <ol class="practice-steps">
                         <li>
@@ -453,10 +458,10 @@
 
             <!-- Tips Section -->
             <div class="content-section">
-                <h2 class="section-title">
+                <div class="section-header">
                     <span class="section-icon">💡</span>
                     <span>Listening Success Tips</span>
-                </h2>
+                </div>
                 <div class="tips-section">
                     <ul class="tips-list">
                         <li>

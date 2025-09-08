@@ -26,40 +26,14 @@ public class ToeicListeningService {
     private final GeminiClient geminiClient;
     private final EmailService emailService;
     private final AudioService audioService;
+    private final CollocationHistoryService collocationHistoryService;
     private final ExecutorService executorService;
     private static final int NUMBER_PASSAGES = 1;
-    private static final String COLLOCATIONS_JSON_PROMPT = """
-            Generate 10 common collocations frequently used in TOEIC Listening tests for learners within the 600–950 score range (intermediate to advanced). 
-
-            Requirements:
-
-            1. Output the results strictly in JSON format, with no additional text.
-            2. Each collocation should have the following fields:
-               - "collocation": the exact phrase
-               - "ipa": IPA pronunciation
-               - "meaning": short explanation in simple English suitable for TOEIC learners
-               - "example": example sentence in a workplace or business context (TOEIC style)
-               - "vietnamese": Vietnamese translation for both the collocation and the example sentence
-            3. Present the collocations as an array under the key "collocations".
-            4. Ensure the JSON is properly formatted for easy parsing in Java.
-            5. Keep the output consistent so it can be directly used to generate HTML emails with structured design.
-
-            Example of JSON structure:
-            {
-                "collocations": [
-                    {
-                        "collocation": "make a decision",
-                        "ipa": "/meɪk ə dɪˈsɪʒən/",
-                        "meaning": "To choose between alternatives or options",
-                        "example": "The board of directors will make a decision about the merger next week.",
-                        "vietnamese": "đưa ra quyết định - Hội đồng quản trị sẽ đưa ra quyết định về việc sáp nhập vào tuần tới."
-                    }
-                ]
-            }
-            """;
 
     private static final String PASSAGE_PROMPT_TEMPLATE = """
-            Using the provided collocations, create a TOEIC Part 4–style listening passage. The passage should:
+            Using the provided collocations, 
+            %s
+            .Create a TOEIC Part 4–style listening passage. The passage should:
 
             Be 150–180 words long.
 
@@ -73,24 +47,46 @@ public class ToeicListeningService {
 
             Provide the correct answer key after the questions.
 
-            Format clearly with:
+            Output Format clearly with:
 
-            Passage text
+            Passage:
+            <Insert passage text here>
 
-            Questions
+            Questions:
+            1. <Question 1>
+            A. <Option A>
+            B. <Option B>
+            C. <Option C>
+            D. <Option D>
 
-            Answer key
-            
+            2. <Question 2>
+            A. <Option A>
+            B. <Option B>
+            C. <Option C>
+            D. <Option D>
+
+            3. <Question 3>
+            A. <Option A>
+            B. <Option B>
+            C. <Option C>
+            D. <Option D>
+
+            Answer Key:
+            1. <Correct answer>
+            2. <Correct answer>
+            3. <Correct answer>
+
             Collocations to include:
-            %s
+            <Insert collocations here>
             """;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public ToeicListeningService(GeminiClient geminiClient, EmailService emailService, AudioService audioService) {
+    public ToeicListeningService(GeminiClient geminiClient, EmailService emailService, AudioService audioService, CollocationHistoryService collocationHistoryService) {
         this.geminiClient = geminiClient;
         this.emailService = emailService;
         this.audioService = audioService;
+        this.collocationHistoryService = collocationHistoryService;
         this.executorService = Executors.newFixedThreadPool(4);
     }
 
@@ -98,37 +94,54 @@ public class ToeicListeningService {
         logger.info("Starting TOEIC Listening collocation processing...");
 
         try {
-            // Step 1: Generate 10 TOEIC collocations
-            String collocationsResponse = geminiClient.generateContent(COLLOCATIONS_JSON_PROMPT);
-            logger.info("Generated TOEIC collocations");
+            // Step 1: Get 3 review collocations from history
+            List<Collocation> reviewCollocations = collocationHistoryService.getCollocationsForToday();
+            logger.info("Retrieved {} review collocations", reviewCollocations.size());
 
-            // Step 2: Parse collocations from JSON response
-            List<Collocation> parsedCollocations = parseCollocationsFromJson(collocationsResponse);
-            logger.info("Parsed {} collocations from JSON", parsedCollocations.size());
+            // Step 2: Generate 7 new collocations using updated prompt
+            String newCollocationsPrompt = collocationHistoryService.generateNewCollocationsPrompt(reviewCollocations);
+            String newCollocationsResponse = geminiClient.generateContent(newCollocationsPrompt);
+            logger.info("Generated 7 new TOEIC collocations");
 
-            // Step 3: Build HTML content for email
-            String collocationsHtmlContent = buildCollocationsHtmlContent(parsedCollocations);
+            // Step 3: Parse new collocations from JSON response
+            List<Collocation> newCollocations = parseCollocationsFromJson(newCollocationsResponse);
+            logger.info("Parsed {} new collocations from JSON", newCollocations.size());
+
+            // Step 4: Combine review and new collocations (3 + 7 = 10 total)
+            List<Collocation> allCollocations = new ArrayList<>();
+            allCollocations.addAll(reviewCollocations);
+            allCollocations.addAll(newCollocations);
+            
+            // Shuffle to mix review and new collocations
+            Collections.shuffle(allCollocations);
+            logger.info("Combined total {} collocations (3 review + 7 new)", allCollocations.size());
+
+            // Step 5: Save new collocations to history
+            collocationHistoryService.saveNewCollocations(newCollocations);
+            logger.info("Saved new collocations to history");
+
+            // Step 6: Build HTML content for email
+            String collocationsHtmlContent = buildCollocationsHtmlContent(allCollocations);
             logger.info("Built HTML content for collocations");
 
-            // Step 4: Extract simple collocation phrases for passage generation
-            List<String> collocationPhrases = parsedCollocations.stream()
+            // Step 7: Extract simple collocation phrases for passage generation
+            List<String> collocationPhrases = allCollocations.stream()
                     .map(Collocation::getCollocation)
                     .toList();
             logger.info("Extracted {} collocation phrases for passage generation", collocationPhrases.size());
 
-            // Step 5: Generate 3 listening passages
+            // Step 8: Generate 3 listening passages
             List<ListeningPassage> passages = generateListeningPassages(collocationPhrases);
             logger.info("Generated {} listening passages", passages.size());
 
-            // Step 6: Generate audio files for all passages
+            // Step 9: Generate audio files for all passages
             List<AudioFileInfo> audioFiles = generateAudioFiles(passages);
             logger.info("Generated {} audio files", audioFiles.size());
 
-            // Step 7: Create text file with all passages
+            // Step 10: Create text file with all passages
             String passagesFilePath = createPassagesTextFile(passages);
-            logger.info("Created passages text file: {}", passagesFilePath);
 
-            // Step 8: Send email with structured collocations and attachments
+            // Step 11: Send email with structured collocations and attachments
             emailService.sendToeicListeningEmail(collocationsHtmlContent, audioFiles, passagesFilePath);
             logger.info("TOEIC Listening email sent successfully");
 
@@ -265,6 +278,7 @@ public class ToeicListeningService {
             CompletableFuture<ListeningPassage> future = CompletableFuture.supplyAsync(() -> {
                 try {
                     String prompt = String.format(PASSAGE_PROMPT_TEMPLATE, collocationsText);
+                    logger.info("Generated prompt for passage {}: {}", passageNumber, prompt);
                     String passageResponse = geminiClient.generateContent(prompt);
                     return parseListeningPassage(passageResponse, passageNumber);
                 } catch (Exception e) {
