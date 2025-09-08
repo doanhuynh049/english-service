@@ -142,7 +142,7 @@ public class AudioService {
         return generateSingleAudio(text, outputPath, type, TIMEOUT_SECONDS);
     }
 
-    private boolean generateSingleAudio(String text, String outputPath, String type, int timeoutSeconds) {
+    public boolean generateSingleAudio(String text, String outputPath, String type, int timeoutSeconds) {
         try {
             // Ensure Python script exists
             File scriptFile = new File(pythonScriptPath);

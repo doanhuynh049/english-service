@@ -192,4 +192,37 @@ public class GeminiClient {
                 Make sure the monologue flows naturally and provides rich context for English learners to understand the word through listening.
                 """, word, word, word, word);
     }
+
+    public String generateContent(String prompt) {
+        try {
+            GeminiRequest request = new GeminiRequest(prompt);
+
+            String requestBody = objectMapper.writeValueAsString(request);
+
+            HttpRequest httpRequest = HttpRequest.newBuilder()
+                    .uri(URI.create(apiUrl + "?key=" + apiKey))
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(requestBody))
+                    .timeout(Duration.ofSeconds(120)) // Longer timeout for complex prompts
+                    .build();
+
+            HttpResponse<String> response = httpClient.send(httpRequest,
+                    HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() == 200) {
+                GeminiResponse geminiResponse = objectMapper.readValue(response.body(), GeminiResponse.class);
+                String result = extractTextFromResponse(geminiResponse);
+                logger.info("Generated content: {} characters", result.length());
+                return result;
+            } else {
+                logger.error("Gemini API error for custom prompt: Status {}, Body: {}",
+                        response.statusCode(), response.body());
+                return "Error generating content";
+            }
+
+        } catch (Exception e) {
+            logger.error("Exception calling Gemini API for custom prompt: {}", e.getMessage(), e);
+            return "Error generating content: " + e.getMessage();
+        }
+    }
 }

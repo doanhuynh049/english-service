@@ -1,0 +1,451 @@
+package com.quat.englishService.service;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+@Service
+public class ToeicListeningService {
+
+    private static final Logger logger = LoggerFactory.getLogger(ToeicListeningService.class);
+
+    private final GeminiClient geminiClient;
+    private final EmailService emailService;
+    private final AudioService audioService;
+    private final ExecutorService executorService;
+    private static final int NUMBER_PASSAGES = 1;
+    private static final String COLLOCATIONS_JSON_PROMPT = """
+            Generate 10 common collocations frequently used in TOEIC Listening tests for learners within the 600–950 score range (intermediate to advanced). 
+
+            Requirements:
+
+            1. Output the results strictly in JSON format, with no additional text.
+            2. Each collocation should have the following fields:
+               - "collocation": the exact phrase
+               - "ipa": IPA pronunciation
+               - "meaning": short explanation in simple English suitable for TOEIC learners
+               - "example": example sentence in a workplace or business context (TOEIC style)
+               - "vietnamese": Vietnamese translation for both the collocation and the example sentence
+            3. Present the collocations as an array under the key "collocations".
+            4. Ensure the JSON is properly formatted for easy parsing in Java.
+            5. Keep the output consistent so it can be directly used to generate HTML emails with structured design.
+
+            Example of JSON structure:
+            {
+                "collocations": [
+                    {
+                        "collocation": "make a decision",
+                        "ipa": "/meɪk ə dɪˈsɪʒən/",
+                        "meaning": "To choose between alternatives or options",
+                        "example": "The board of directors will make a decision about the merger next week.",
+                        "vietnamese": "đưa ra quyết định - Hội đồng quản trị sẽ đưa ra quyết định về việc sáp nhập vào tuần tới."
+                    }
+                ]
+            }
+            """;
+
+    private static final String PASSAGE_PROMPT_TEMPLATE = """
+            Using the provided collocations, create a TOEIC Part 4–style listening passage. The passage should:
+
+            Be 150–180 words long.
+
+            Be in a business or workplace context (e.g., announcements, meetings, presentations, customer service).
+
+            Naturally include all of the given collocations.
+
+            Match the tone and difficulty of TOEIC Listening Part 4 (score range 600–950).
+
+            End with 3 multiple-choice comprehension questions (with 4 options each, A–D).
+
+            Provide the correct answer key after the questions.
+
+            Format clearly with:
+
+            Passage text
+
+            Questions
+
+            Answer key
+            
+            Collocations to include:
+            %s
+            """;
+
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
+    public ToeicListeningService(GeminiClient geminiClient, EmailService emailService, AudioService audioService) {
+        this.geminiClient = geminiClient;
+        this.emailService = emailService;
+        this.audioService = audioService;
+        this.executorService = Executors.newFixedThreadPool(4);
+    }
+
+    public void processDailyToeicListening() {
+        logger.info("Starting TOEIC Listening collocation processing...");
+
+        try {
+            // Step 1: Generate 10 TOEIC collocations
+            String collocationsResponse = geminiClient.generateContent(COLLOCATIONS_JSON_PROMPT);
+            logger.info("Generated TOEIC collocations");
+
+            // Step 2: Parse collocations from JSON response
+            List<Collocation> parsedCollocations = parseCollocationsFromJson(collocationsResponse);
+            logger.info("Parsed {} collocations from JSON", parsedCollocations.size());
+
+            // Step 3: Build HTML content for email
+            String collocationsHtmlContent = buildCollocationsHtmlContent(parsedCollocations);
+            logger.info("Built HTML content for collocations");
+
+            // Step 4: Extract simple collocation phrases for passage generation
+            List<String> collocationPhrases = parsedCollocations.stream()
+                    .map(Collocation::getCollocation)
+                    .toList();
+            logger.info("Extracted {} collocation phrases for passage generation", collocationPhrases.size());
+
+            // Step 5: Generate 3 listening passages
+            List<ListeningPassage> passages = generateListeningPassages(collocationPhrases);
+            logger.info("Generated {} listening passages", passages.size());
+
+            // Step 6: Generate audio files for all passages
+            List<AudioFileInfo> audioFiles = generateAudioFiles(passages);
+            logger.info("Generated {} audio files", audioFiles.size());
+
+            // Step 7: Create text file with all passages
+            String passagesFilePath = createPassagesTextFile(passages);
+            logger.info("Created passages text file: {}", passagesFilePath);
+
+            // Step 8: Send email with structured collocations and attachments
+            emailService.sendToeicListeningEmail(collocationsHtmlContent, audioFiles, passagesFilePath);
+            logger.info("TOEIC Listening email sent successfully");
+
+        } catch (Exception e) {
+            logger.error("Error during TOEIC Listening processing: {}", e.getMessage(), e);
+            throw new RuntimeException("TOEIC Listening processing failed", e);
+        }
+    }
+
+    private List<Collocation> parseCollocationsFromJson(String jsonResponse) {
+        List<Collocation> collocations = new ArrayList<>();
+        try {
+            // Clean the response to extract only the JSON part
+            String cleanJson = extractJsonFromResponse(jsonResponse);
+            
+            JsonNode rootNode = objectMapper.readTree(cleanJson);
+            JsonNode collocationsArray = rootNode.get("collocations");
+            
+            if (collocationsArray != null && collocationsArray.isArray()) {
+                for (JsonNode collocationNode : collocationsArray) {
+                    Collocation collocation = new Collocation(
+                        collocationNode.get("collocation").asText(),
+                        collocationNode.get("ipa").asText(),
+                        collocationNode.get("meaning").asText(),
+                        collocationNode.get("example").asText(),
+                        collocationNode.get("vietnamese").asText()
+                    );
+                    collocations.add(collocation);
+                }
+            }
+            
+            logger.info("Successfully parsed {} collocations from JSON", collocations.size());
+            
+        } catch (Exception e) {
+            logger.error("Error parsing collocations JSON: {}", e.getMessage(), e);
+            // Fallback to old parsing method
+            return parseCollocationsFromText(jsonResponse);
+        }
+        
+        return collocations;
+    }
+
+    private String extractJsonFromResponse(String response) {
+        // Find the start and end of JSON object
+        int startIndex = response.indexOf('{');
+        int endIndex = response.lastIndexOf('}');
+        
+        if (startIndex != -1 && endIndex != -1 && endIndex > startIndex) {
+            return response.substring(startIndex, endIndex + 1);
+        }
+        
+        // If no valid JSON found, return the original response
+        return response;
+    }
+
+    private List<Collocation> parseCollocationsFromText(String textResponse) {
+        // Fallback method for non-JSON responses
+        List<Collocation> collocations = new ArrayList<>();
+        String[] lines = textResponse.split("\n");
+        
+        for (String line : lines) {
+            if (line.trim().matches("^\\d+\\..*")) {
+                // Extract basic collocation info from text format
+                String collocationLine = line.trim().replaceFirst("^\\d+\\.", "").trim();
+                if (collocationLine.contains(":")) {
+                    String collocation = collocationLine.split(":")[0].trim();
+                    if (!collocation.isEmpty()) {
+                        collocations.add(new Collocation(
+                            collocation, 
+                            "N/A", 
+                            "See email content", 
+                            "See email content", 
+                            "Xem nội dung email"
+                        ));
+                    }
+                }
+            }
+        }
+        
+        logger.warn("Used fallback text parsing for {} collocations", collocations.size());
+        return collocations;
+    }
+
+    public String buildCollocationsHtmlContent(List<Collocation> collocations) {
+        StringBuilder html = new StringBuilder();
+        
+        html.append("<div class=\"collocations-container\">\n");
+        html.append("  <h2 style=\"color: #2c5aa0; border-bottom: 2px solid #ff6b35; padding-bottom: 10px; margin-bottom: 20px;\">");
+        html.append("📘 Business Collocations</h2>\n");
+        
+        for (int i = 0; i < collocations.size(); i++) {
+            Collocation col = collocations.get(i);
+            html.append("  <div class=\"collocation-item\" style=\"margin-bottom: 20px; padding: 15px; ");
+            html.append("background-color: #f8f9fa; border-left: 4px solid #ff6b35; border-radius: 5px;\">\n");
+            
+            html.append("    <div class=\"collocation-header\" style=\"margin-bottom: 10px;\">\n");
+            html.append("      <span class=\"number\" style=\"font-weight: bold; color: #2c5aa0; margin-right: 10px;\">");
+            html.append(i + 1).append(".</span>\n");
+            html.append("      <span class=\"phrase\" style=\"font-size: 18px; font-weight: bold; color: #333;\">");
+            html.append(col.getCollocation()).append("</span>\n");
+            html.append("      <span class=\"ipa\" style=\"margin-left: 10px; color: #666; font-style: italic;\">");
+            html.append(col.getIpa()).append("</span>\n");
+            html.append("    </div>\n");
+            
+            html.append("    <div class=\"meaning\" style=\"margin-bottom: 8px; color: #555;\">\n");
+            html.append("      <strong>Meaning:</strong> ").append(col.getMeaning()).append("\n");
+            html.append("    </div>\n");
+            
+            html.append("    <div class=\"example\" style=\"margin-bottom: 8px; font-style: italic; color: #444;\">\n");
+            html.append("      <strong>Example:</strong> ").append(col.getExample()).append("\n");
+            html.append("    </div>\n");
+            
+            html.append("    <div class=\"vietnamese\" style=\"color: #777; font-size: 14px;\">\n");
+            html.append("      <strong>Vietnamese:</strong> ").append(col.getVietnamese()).append("\n");
+            html.append("    </div>\n");
+            
+            html.append("  </div>\n");
+        }
+        
+        html.append("</div>\n");
+        
+        return html.toString();
+    }
+
+    private List<ListeningPassage> generateListeningPassages(List<String> collocations) {
+        List<ListeningPassage> passages = new ArrayList<>();
+        String collocationsText = String.join("\n", collocations);
+
+        // Generate 3 passages concurrently
+        List<CompletableFuture<ListeningPassage>> futures = new ArrayList<>();
+        
+        for (int i = 1; i <= NUMBER_PASSAGES; i++) {
+            final int passageNumber = i;
+            CompletableFuture<ListeningPassage> future = CompletableFuture.supplyAsync(() -> {
+                try {
+                    String prompt = String.format(PASSAGE_PROMPT_TEMPLATE, collocationsText);
+                    String passageResponse = geminiClient.generateContent(prompt);
+                    return parseListeningPassage(passageResponse, passageNumber);
+                } catch (Exception e) {
+                    logger.error("Error generating passage {}: {}", passageNumber, e.getMessage(), e);
+                    return null;
+                }
+            }, executorService);
+            futures.add(future);
+        }
+
+        // Collect results
+        for (CompletableFuture<ListeningPassage> future : futures) {
+            try {
+                ListeningPassage passage = future.get();
+                if (passage != null) {
+                    passages.add(passage);
+                }
+            } catch (Exception e) {
+                logger.error("Error collecting passage result: {}", e.getMessage(), e);
+            }
+        }
+
+        return passages;
+    }
+
+    private ListeningPassage parseListeningPassage(String response, int passageNumber) {
+        // Parse the response to extract passage text and questions
+        String[] sections = response.split("(?i)(Questions?|Answer Key)");
+        
+        String passageText = "";
+        String questions = "";
+        
+        if (sections.length >= 1) {
+            passageText = sections[0].trim();
+            // Clean up passage text
+            passageText = passageText.replaceAll("(?i)^.*?passage.*?:", "").trim();
+        }
+        
+        if (sections.length >= 2) {
+            questions = sections[1].trim();
+        }
+        
+        return new ListeningPassage(passageNumber, passageText, questions, response);
+    }
+
+    private List<AudioFileInfo> generateAudioFiles(List<ListeningPassage> passages) {
+        List<AudioFileInfo> audioFiles = new ArrayList<>();
+        
+        // Generate audio files concurrently
+        List<CompletableFuture<AudioFileInfo>> futures = passages.stream()
+                .map(passage -> CompletableFuture.supplyAsync(() -> generateSingleAudioFile(passage), executorService))
+                .toList();
+
+        // Collect results
+        for (CompletableFuture<AudioFileInfo> future : futures) {
+            try {
+                AudioFileInfo audioFile = future.get();
+                if (audioFile != null) {
+                    audioFiles.add(audioFile);
+                }
+            } catch (Exception e) {
+                logger.error("Error collecting audio file result: {}", e.getMessage(), e);
+            }
+        }
+
+        return audioFiles;
+    }
+
+    private AudioFileInfo generateSingleAudioFile(ListeningPassage passage) {
+        try {
+            // Combine passage text and questions for audio generation
+            String audioText = passage.getPassageText() + "\n\n" + passage.getQuestions();
+            
+            // Create storage directory
+            String dateFolder = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+            Path dailyStoragePath = Paths.get("/tmp/vocabulary-audio", dateFolder);
+            Files.createDirectories(dailyStoragePath);
+            
+            String fileName = "toeic_passage_" + passage.getPassageNumber() + ".mp3";
+            Path audioPath = dailyStoragePath.resolve(fileName);
+            
+            // Generate audio using AudioService's method
+            boolean success = audioService.generateSingleAudio(audioText, audioPath.toString(), "passage", 120);
+            
+            if (success) {
+                String audioUrl = "http://localhost:8282/audio/" + dateFolder + "/" + fileName;
+                logger.info("Generated audio file for passage {}: {}", passage.getPassageNumber(), fileName);
+                return new AudioFileInfo(passage.getPassageNumber(), audioPath.toString(), audioUrl, fileName);
+            } else {
+                logger.error("Failed to generate audio for passage {}", passage.getPassageNumber());
+                return null;
+            }
+            
+        } catch (Exception e) {
+            logger.error("Error generating audio for passage {}: {}", passage.getPassageNumber(), e.getMessage(), e);
+            return null;
+        }
+    }
+
+    private String createPassagesTextFile(List<ListeningPassage> passages) throws IOException {
+        String dateFolder = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        Path dailyStoragePath = Paths.get("/tmp/vocabulary-audio", dateFolder);
+        Files.createDirectories(dailyStoragePath);
+        
+        Path textFilePath = dailyStoragePath.resolve("toeic_listening_passages_" + dateFolder + ".txt");
+        
+        StringBuilder content = new StringBuilder();
+        content.append("TOEIC Listening Passages - ").append(dateFolder).append("\n");
+        content.append("=" .repeat(50)).append("\n\n");
+        
+        for (ListeningPassage passage : passages) {
+            content.append("PASSAGE ").append(passage.getPassageNumber()).append("\n");
+            content.append("-".repeat(20)).append("\n");
+            content.append(passage.getFullContent()).append("\n\n");
+        }
+        
+        Files.write(textFilePath, content.toString().getBytes());
+        logger.info("Created passages text file: {}", textFilePath);
+        
+        return textFilePath.toString();
+    }
+
+    // Inner classes for data structures
+    public static class ListeningPassage {
+        private final int passageNumber;
+        private final String passageText;
+        private final String questions;
+        private final String fullContent;
+
+        public ListeningPassage(int passageNumber, String passageText, String questions, String fullContent) {
+            this.passageNumber = passageNumber;
+            this.passageText = passageText;
+            this.questions = questions;
+            this.fullContent = fullContent;
+        }
+
+        public int getPassageNumber() { return passageNumber; }
+        public String getPassageText() { return passageText; }
+        public String getQuestions() { return questions; }
+        public String getFullContent() { return fullContent; }
+    }
+
+    public static class AudioFileInfo {
+        private final int passageNumber;
+        private final String filePath;
+        private final String url;
+        private final String fileName;
+
+        public AudioFileInfo(int passageNumber, String filePath, String url, String fileName) {
+            this.passageNumber = passageNumber;
+            this.filePath = filePath;
+            this.url = url;
+            this.fileName = fileName;
+        }
+
+        public int getPassageNumber() { return passageNumber; }
+        public String getFilePath() { return filePath; }
+        public String getUrl() { return url; }
+        public String getFileName() { return fileName; }
+    }
+
+    // Data class for Collocation
+    public static class Collocation {
+        private final String collocation;
+        private final String ipa;
+        private final String meaning;
+        private final String example;
+        private final String vietnamese;
+
+        public Collocation(String collocation, String ipa, String meaning, String example, String vietnamese) {
+            this.collocation = collocation;
+            this.ipa = ipa;
+            this.meaning = meaning;
+            this.example = example;
+            this.vietnamese = vietnamese;
+        }
+
+        public String getCollocation() { return collocation; }
+        public String getIpa() { return ipa; }
+        public String getMeaning() { return meaning; }
+        public String getExample() { return example; }
+        public String getVietnamese() { return vietnamese; }
+    }
+}

@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TOEIC Listening Practice</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #2d3748;
+            background-color: #f7fafc;
+        }
+
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #f6ad55 0%, #ed8936 100%);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .header .date {
+            font-size: 0.95rem;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+
+        .header .subtitle {
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+            opacity: 0.8;
+        }
+
+        /* Main Content */
+        .content {
+            padding: 0;
+        }
+
+        /* Section Styling */
+        .content-section {
+            padding: 2rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .content-section:last-child {
+            border-bottom: none;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 1.5rem;
+            border-bottom: 2px solid #f6ad55;
+            padding-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .section-icon {
+            font-size: 1.2rem;
+        }
+
+        /* Collocations Section */
+        .collocations-content {
+            background: #fffbeb;
+            border-left: 4px solid #f6ad55;
+            padding: 1.5rem;
+            border-radius: 0 0.5rem 0.5rem 0;
+            white-space: pre-wrap;
+            font-family: 'Georgia', serif;
+            line-height: 1.8;
+            color: #92400e;
+            margin-bottom: 1rem;
+        }
+
+        .collocations-note {
+            background: #fef3c7;
+            padding: 1rem;
+            border-radius: 0.375rem;
+            border: 1px solid #fbbf24;
+            font-size: 0.9rem;
+            color: #92400e;
+        }
+
+        /* Audio Files Section */
+        .audio-section {
+            background: #f0fdfa;
+            border-left: 4px solid #14b8a6;
+            padding: 1.5rem;
+            border-radius: 0 0.5rem 0.5rem 0;
+        }
+
+        .audio-list {
+            list-style: none;
+            padding: 0;
+            margin: 1rem 0;
+        }
+
+        .audio-item {
+            background: white;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            border-radius: 0.5rem;
+            border: 1px solid #a7f3d0;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            transition: all 0.2s ease;
+        }
+
+        .audio-item:hover {
+            background: #ecfdf5;
+            transform: translateX(2px);
+        }
+
+        .audio-icon {
+            color: #14b8a6;
+            font-size: 1.2rem;
+            min-width: 1.5rem;
+        }
+
+        .audio-title {
+            font-weight: 600;
+            color: #065f46;
+        }
+
+        .audio-description {
+            font-size: 0.9rem;
+            color: #059669;
+            margin-top: 0.25rem;
+        }
+
+        .attachment-note {
+            background: #dcfce7;
+            padding: 1rem;
+            border-radius: 0.375rem;
+            border: 1px solid #86efac;
+            font-style: italic;
+            color: #166534;
+            margin-top: 1rem;
+        }
+
+        /* Tips Section */
+        .tips-section {
+            background: #fef7ed;
+            border-left: 4px solid #ea580c;
+            padding: 1.5rem;
+            border-radius: 0 0.5rem 0.5rem 0;
+        }
+
+        .tips-list {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        .tips-list li {
+            margin-bottom: 1rem;
+            padding: 0.75rem;
+            background: white;
+            border-radius: 0.375rem;
+            border: 1px solid #fed7aa;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+        }
+
+        .tips-list li:last-child {
+            margin-bottom: 0;
+        }
+
+        .tip-icon {
+            font-size: 1.1rem;
+            min-width: 1.5rem;
+            margin-top: 0.1rem;
+        }
+
+        .tip-content {
+            flex: 1;
+        }
+
+        .tip-title {
+            font-weight: 600;
+            color: #9a3412;
+            margin-bottom: 0.25rem;
+        }
+
+        .tip-description {
+            color: #c2410c;
+            font-size: 0.9rem;
+        }
+
+        /* Practice Instructions */
+        .practice-section {
+            background: #f8fafc;
+            border-left: 4px solid #6366f1;
+            padding: 1.5rem;
+            border-radius: 0 0.5rem 0.5rem 0;
+        }
+
+        .practice-steps {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+            counter-reset: step-counter;
+        }
+
+        .practice-steps li {
+            margin-bottom: 1rem;
+            padding: 1rem;
+            background: white;
+            border-radius: 0.375rem;
+            border: 1px solid #c7d2fe;
+            counter-increment: step-counter;
+            position: relative;
+            padding-left: 3rem;
+        }
+
+        .practice-steps li::before {
+            content: counter(step-counter);
+            position: absolute;
+            left: 1rem;
+            top: 1rem;
+            background: #6366f1;
+            color: white;
+            width: 1.5rem;
+            height: 1.5rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.8rem;
+        }
+
+        .practice-steps li:last-child {
+            margin-bottom: 0;
+        }
+
+        .step-title {
+            font-weight: 600;
+            color: #3730a3;
+            margin-bottom: 0.25rem;
+        }
+
+        .step-description {
+            color: #4f46e5;
+            font-size: 0.9rem;
+        }
+
+        /* Footer */
+        .footer {
+            background: #2d3748;
+            color: #a0aec0;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .footer-title {
+            color: #ffffff;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        .footer-text {
+            font-size: 0.9rem;
+            line-height: 1.5;
+            margin-bottom: 1rem;
+        }
+
+        .footer-divider {
+            height: 1px;
+            background: #4a5568;
+            margin: 1rem 0;
+        }
+
+        .footer-credits {
+            font-size: 0.8rem;
+            opacity: 0.8;
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .content-section {
+                padding: 1.5rem 1rem;
+            }
+
+            .header {
+                padding: 1.5rem 1rem;
+            }
+
+            .header h1 {
+                font-size: 1.5rem;
+            }
+
+            .section-title {
+                font-size: 1.25rem;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.25rem;
+            }
+
+            .audio-item,
+            .tips-list li,
+            .practice-steps li {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
+
+            .practice-steps li {
+                padding-left: 1rem;
+                padding-top: 2.5rem;
+            }
+
+            .practice-steps li::before {
+                top: 0.75rem;
+                left: 50%;
+                transform: translateX(-50%);
+            }
+        }
+
+        /* Print styles */
+        @media print {
+            .email-container {
+                box-shadow: none;
+                max-width: none;
+            }
+
+            .header {
+                background: #f6ad55 !important;
+                -webkit-print-color-adjust: exact;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🎧 TOEIC Listening Practice</h1>
+            <div class="date">{{DATE}}</div>
+            <div class="subtitle">Master collocations through immersive listening</div>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+            <!-- Collocations Section -->
+            <div class="content-section">
+                <h2 class="section-title">
+                    <span class="section-icon">📝</span>
+                    <span>Common TOEIC Collocations</span>
+                </h2>
+                <div class="collocations-content">{{COLLOCATIONS_CONTENT}}</div>
+                <div class="collocations-note">
+                    <strong>💡 Study Tip:</strong> Focus on these collocations while listening to the audio passages. 
+                    They frequently appear in TOEIC Part 4 and will help you improve your listening comprehension score.
+                </div>
+            </div>
+
+            <!-- Audio Files Section -->
+            <div class="content-section">
+                <h2 class="section-title">
+                    <span class="section-icon">🎵</span>
+                    <span>Audio Practice Files</span>
+                </h2>
+                <div class="audio-section">
+                    <p><strong>Three TOEIC Part 4 Style Passages:</strong></p>
+                    <ul class="audio-list">
+                        <li class="audio-item">
+                            <span class="audio-icon">🎵</span>
+                            <div>
+                                <div class="audio-title">Passage 1 - Business Meeting</div>
+                                <div class="audio-description">Office announcement with workplace collocations</div>
+                            </div>
+                        </li>
+                        <li class="audio-item">
+                            <span class="audio-icon">🎵</span>
+                            <div>
+                                <div class="audio-title">Passage 2 - Customer Service</div>
+                                <div class="audio-description">Service-related dialogue with business terms</div>
+                            </div>
+                        </li>
+                        <li class="audio-item">
+                            <span class="audio-icon">🎵</span>
+                            <div>
+                                <div class="audio-title">Passage 3 - Company Presentation</div>
+                                <div class="audio-description">Professional presentation with advanced vocabulary</div>
+                            </div>
+                        </li>
+                    </ul>
+                    <div class="attachment-note">
+                        📎 <strong>Email Attachments:</strong> Check your email attachments for MP3 audio files and 
+                        a complete text document with passages, questions, and answer keys.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Practice Instructions -->
+            <div class="content-section">
+                <h2 class="section-title">
+                    <span class="section-icon">📚</span>
+                    <span>How to Practice</span>
+                </h2>
+                <div class="practice-section">
+                    <ol class="practice-steps">
+                        <li>
+                            <div class="step-title">Review Collocations</div>
+                            <div class="step-description">Study the collocations above and understand their meanings in business contexts</div>
+                        </li>
+                        <li>
+                            <div class="step-title">First Listen</div>
+                            <div class="step-description">Listen to each passage once without looking at the text, focusing on overall comprehension</div>
+                        </li>
+                        <li>
+                            <div class="step-title">Answer Questions</div>
+                            <div class="step-description">Read the questions and listen again, taking notes on key information</div>
+                        </li>
+                        <li>
+                            <div class="step-title">Check Answers</div>
+                            <div class="step-description">Compare your answers with the answer key and identify areas for improvement</div>
+                        </li>
+                        <li>
+                            <div class="step-title">Repeat Practice</div>
+                            <div class="step-description">Listen multiple times until you can identify all the collocations naturally</div>
+                        </li>
+                    </ol>
+                </div>
+            </div>
+
+            <!-- Tips Section -->
+            <div class="content-section">
+                <h2 class="section-title">
+                    <span class="section-icon">💡</span>
+                    <span>Listening Success Tips</span>
+                </h2>
+                <div class="tips-section">
+                    <ul class="tips-list">
+                        <li>
+                            <span class="tip-icon">🎯</span>
+                            <div class="tip-content">
+                                <div class="tip-title">Listen for Keywords</div>
+                                <div class="tip-description">Focus on the collocations you studied - they're often key to understanding the main ideas</div>
+                            </div>
+                        </li>
+                        <li>
+                            <span class="tip-icon">📝</span>
+                            <div class="tip-content">
+                                <div class="tip-title">Take Strategic Notes</div>
+                                <div class="tip-description">Jot down key phrases, numbers, and names while listening - don't try to write everything</div>
+                            </div>
+                        </li>
+                        <li>
+                            <span class="tip-icon">🔄</span>
+                            <div class="tip-content">
+                                <div class="tip-title">Practice Regularly</div>
+                                <div class="tip-description">Listen to each passage multiple times over several days to build familiarity</div>
+                            </div>
+                        </li>
+                        <li>
+                            <span class="tip-icon">⏰</span>
+                            <div class="tip-content">
+                                <div class="tip-title">Simulate Test Conditions</div>
+                                <div class="tip-description">Practice with time limits and no pausing to prepare for the actual TOEIC test</div>
+                            </div>
+                        </li>
+                        <li>
+                            <span class="tip-icon">📖</span>
+                            <div class="tip-content">
+                                <div class="tip-title">Review and Analyze</div>
+                                <div class="tip-description">After each practice, review what you missed and why certain answers were correct</div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <div class="footer-title">🎯 Achieve Your TOEIC Goals!</div>
+            <div class="footer-divider"></div>
+            <div class="footer-text">
+                Consistent practice with authentic materials like these will significantly improve your listening skills.<br>
+                Focus on understanding business contexts and common workplace expressions.
+            </div>
+            <div class="footer-divider"></div>
+            <div class="footer-credits">
+                Generated on {{GENERATION_DATE}} • Powered by Gemini AI & Google Text-to-Speech
+            </div>
+        </div>
+    </div>
+</body>
+</html>

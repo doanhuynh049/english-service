@@ -1,34 +1,56 @@
-# English Vocabulary Notification Service 📚
+# English Vocabulary & TOEIC Listening Service 📚🎧
 
-A Spring Boot application that automatically sends you detailed English vocabulary lessons every day at 5 AM via email, powered by Google's Gemini AI.
+A Spring Boot application that automatically delivers comprehensive English learning content via email:
+- **Daily Vocabulary** (5:00 AM): 4 vocabulary words with AI explanations and audio
+- **TOEIC Listening Practice** (6:00 PM): Business collocations with audio passages
+
+Both powered by Google's Gemini AI and Google Text-to-Speech for immersive learning.
 
 ## 🌟 Features
 
-- **Daily Automated Learning**: Receives 10 English vocabulary words every day at 5:00 AM
-- **AI-Powered Explanations**: Uses Google Gemini AI to provide comprehensive word explanations including:
-  - IPA pronunciation
-  - Part of speech
-  - English definitions (simple + advanced)
-  - Example sentences in natural English
-  - Common collocations and fixed expressions
-  - Synonyms & antonyms with differences explained
-  - Commonly confused words
-  - Word family variations
-  - Vietnamese translations with nuance
-- **Email Notifications**: Beautifully formatted HTML emails sent to your Gmail
-- **Excel Logging**: Persistent storage of all vocabulary words and explanations in Excel format
-- **Manual Trigger**: REST API endpoint for testing and manual vocabulary sessions
-- **Comprehensive Word Database**: 100+ carefully selected English vocabulary words
+### 📚 Daily Vocabulary Learning (5:00 AM)
+- **Smart Word Selection**: 3 new words + 1 review word based on learning history
+- **AI-Powered Explanations**: Comprehensive explanations including:
+  - IPA pronunciation with slow/normal speech audio
+  - Part of speech and detailed definitions
+  - Natural example sentences with contextual audio
+  - Collocations, synonyms, antonyms, and word families
+  - Vietnamese translations with cultural nuance
+  - AI-generated monologues for natural context
+- **Multi-Modal Content**: Text explanations + pronunciation audio + contextual audio
+
+### 🎧 TOEIC Listening Practice (6:00 PM)  
+- **Business Collocations**: 10 common TOEIC collocations (score range 600-950)
+- **Authentic Practice**: 3 TOEIC Part 4 style listening passages
+- **Complete Package**: 
+  - Structured collocation explanations with IPA, meanings, and examples
+  - Audio passages (150-180 words each) in workplace contexts
+  - Multiple-choice comprehension questions with answer keys
+  - Practice instructions and listening strategies
+  - Professional HTML email template with orange/blue theme
+
+### 🔧 System Features
+- **Automated Scheduling**: Two daily sessions with different content types
+- **Beautiful HTML Emails**: Professional templates for vocabulary and TOEIC content  
+- **Audio Generation**: High-quality TTS with different speeds for learning
+- **Excel Logging**: Persistent tracking of all vocabulary and progress
+- **Manual Testing**: REST API endpoints for immediate testing
+- **Comprehensive Attachments**: Audio files and text documents in every email
 
 ## 🏗️ Architecture
 
 ```
-├── VocabularyScheduler    → Automated daily scheduling at 5 AM
-├── GeminiClient          → Google Gemini AI API integration
-├── EmailService          → HTML email formatting and sending via Gmail SMTP
-├── ExcelService          → Excel file management using Apache POI
-├── VocabularyService     → Core business logic coordinator
-└── VocabularyController  → REST API endpoints for manual testing
+├── VocabularyScheduler     → Daily vocabulary at 5:00 AM (4 words: 3 new + 1 review)
+├── ToeicScheduler         → Daily TOEIC listening at 6:00 PM (collocations + passages)
+├── GeminiClient           → Google Gemini AI integration for content generation
+├── EmailService           → Dual HTML templates for vocabulary and TOEIC emails
+├── AudioService           → TTS generation with Python/gTTS integration
+├── ExcelService           → Progress tracking and word history management
+├── VocabularyService      → Core vocabulary processing with AI monologues
+├── ToeicListeningService  → TOEIC content generation and audio processing
+├── VocabularyController   → REST API for vocabulary testing
+├── ToeicController        → REST API for TOEIC testing
+└── AudioController        → Audio file serving and streaming
 ```
 
 ## 🚀 Quick Start
@@ -76,11 +98,14 @@ mvn clean package
 java -jar target/english-service-0.0.1-SNAPSHOT.jar
 ```
 
-### 4. Test the Service
+### 4. Test the Services
 
 ```bash
-# Trigger a manual vocabulary session
+# Test vocabulary service (generates 4 words: 3 new + 1 review)
 curl -X POST http://localhost:8282/api/vocabulary/trigger-daily
+
+# Test TOEIC listening service (generates collocations + 3 audio passages)
+curl -X POST http://localhost:8282/api/toeic/trigger-listening
 ```
 
 ## 📧 Email Setup (Gmail)
@@ -136,78 +161,173 @@ The application automatically creates and maintains a `vocabulary_log.xlsx` file
 
 ## 🕐 Scheduling
 
-The application runs automatically at **5:00 AM every day** using Spring's `@Scheduled` annotation:
+The application runs two automated daily sessions:
 
+### 📚 Vocabulary Session (5:00 AM)
 ```java
 @Scheduled(cron = "0 0 5 * * ?") // 5:00 AM daily
 public void scheduledVocabularySession() {
-    // Processes 10 random vocabulary words
+    // Processes 4 vocabulary words (3 new + 1 review)
+    // Generates AI explanations, monologues, and audio
+    // Sends vocabulary email with attachments
 }
 ```
 
-### Cron Expression Breakdown
+### 🎧 TOEIC Listening Session (6:00 PM)
+```java
+@Scheduled(cron = "0 0 18 * * ?") // 6:00 PM daily  
+public void scheduledToeicListeningSession() {
+    // Generates 10 TOEIC collocations
+    // Creates 3 Part 4 style listening passages
+    // Produces audio files and comprehension questions
+    // Sends TOEIC email with practice materials
+}
+```
+
+### Cron Expression Guide
 - `0 0 5 * * ?` = Every day at 5:00:00 AM
-- Modify in `VocabularyScheduler.java` if you want a different time
+- `0 0 18 * * ?` = Every day at 6:00:00 PM
+- Modify in `VocabularyScheduler.java` or `ToeicScheduler.java` to change times
 
 ## 🔧 API Endpoints
 
-### Manual Vocabulary Trigger
+### Vocabulary Endpoints
 
-**POST** `/api/vocabulary/trigger`
-
-Manually triggers a vocabulary session for testing purposes.
+**POST** `/api/vocabulary/trigger-daily`
+Manually triggers a vocabulary session (4 words: 3 new + 1 review).
 
 ```bash
-curl -X POST http://localhost:8282/api/vocabulary/trigger
+curl -X POST http://localhost:8282/api/vocabulary/trigger-daily
 ```
 
-**Response:**
-```json
-"Vocabulary session triggered successfully! Check your email and Excel file."
+**POST** `/api/vocabulary/process-words`
+Process specific custom words.
+
+```bash
+curl -X POST http://localhost:8282/api/vocabulary/process-words \
+  -H "Content-Type: application/json" \
+  -d '["eloquent", "resilient", "serendipity"]'
+```
+
+**GET** `/api/vocabulary/health`
+Check vocabulary service health.
+
+```bash
+curl http://localhost:8282/api/vocabulary/health
+```
+
+### TOEIC Endpoints
+
+**POST** `/api/toeic/trigger-listening`
+Manually triggers TOEIC listening practice generation.
+
+```bash
+curl -X POST http://localhost:8282/api/toeic/trigger-listening
+```
+
+**GET** `/api/toeic/health`
+Check TOEIC service health.
+
+```bash
+curl http://localhost:8282/api/toeic/health
+```
+
+### Audio Endpoints
+
+**GET** `/audio/{date}/{filename}`
+Stream or download audio files.
+
+```bash
+# Download audio file
+curl http://localhost:8282/audio/2025-09-08/eloquent_pronunciation.mp3 -o pronunciation.mp3
+
+# Stream in browser
+open http://localhost:8282/audio/2025-09-08/toeic_passage_1.mp3
+```
+
+**GET** `/audio/health`
+Check audio service health.
+
+```bash
+curl http://localhost:8282/audio/health
 ```
 
 ## 📱 Usage Examples
 
 ### 1. Daily Automatic Usage
 
-Just leave the application running! Every day at 5 AM, you'll receive:
+Leave the application running for automated learning:
 
-1. **Email**: HTML-formatted vocabulary lesson with 10 words
-2. **Excel Log**: Updated with new vocabulary entries
-3. **Console Logs**: Detailed processing information
+**5:00 AM Daily:** Vocabulary Email
+- 4 vocabulary words (3 new + 1 review word)
+- AI explanations with pronunciation and context
+- Audio files for pronunciation and examples
+- Monologue transcript document
+- Excel log updated with learning history
+
+**6:00 PM Daily:** TOEIC Listening Email  
+- 10 business collocations with explanations
+- 3 TOEIC Part 4 style audio passages
+- Comprehension questions with answer keys
+- Practice instructions and listening tips
+- Complete passages text file
 
 ### 2. Manual Testing
 
 ```bash
-# Test the service immediately
+# Test vocabulary service immediately
 curl -X POST http://localhost:8282/api/vocabulary/trigger-daily
 
-# Check application status
-curl http://localhost:8282/actuator/health  # If actuator is enabled
+# Test TOEIC listening service immediately  
+curl -X POST http://localhost:8282/api/toeic/trigger-listening
+
+# Process custom vocabulary words
+curl -X POST http://localhost:8282/api/vocabulary/process-words \
+  -H "Content-Type: application/json" \
+  -d '["innovative", "meticulous", "collaborate"]'
+
+# Check service health
+curl http://localhost:8282/api/vocabulary/health
+curl http://localhost:8282/api/toeic/health
+curl http://localhost:8282/audio/health
+
+# Download today's audio files
+curl http://localhost:8282/audio/2025-09-08/eloquent_pronunciation.mp3 -o eloquent.mp3
+curl http://localhost:8282/audio/2025-09-08/toeic_passage_1.mp3 -o toeic1.mp3
 ```
 
-### 3. Customizing Word Selection
+### 3. Audio File Access
 
-Edit the `vocabularyWords` list in `VocabularyService.java`:
+Audio files are organized by date and accessible via HTTP:
 
-```java
-private final List<String> vocabularyWords = Arrays.asList(
-    "your-custom-word-1",
-    "your-custom-word-2",
-    // Add more words here
-);
+```
+http://localhost:8282/audio/2025-09-08/
+├── eloquent_pronunciation.mp3      # Word pronunciation (slow speech)
+├── eloquent_monologue.mp3          # Contextual monologue (normal speech)
+├── toeic_passage_1.mp3             # TOEIC passage 1 with questions
+├── toeic_passage_2.mp3             # TOEIC passage 2 with questions
+└── toeic_passage_3.mp3             # TOEIC passage 3 with questions
 ```
 
-## 🎨 Email Template
+## 🎨 Email Templates
 
-The emails are sent in beautiful HTML format with:
+The application sends two types of beautiful HTML emails:
 
+### 📚 Vocabulary Email Template (`email-template.html`)
 - **Header**: Date and vocabulary session title
 - **Word Sections**: Each word with complete AI explanation
+- **Audio Player Links**: Direct access to pronunciation and example audio
 - **Footer**: Motivational message and service attribution
-- **Styling**: Professional CSS styling with colors and formatting
+- **Styling**: Professional CSS with green theme and clean formatting
 
-### Sample Email Structure
+### 🎧 TOEIC Email Template (`toeic-email-template.html`)
+- **Header**: TOEIC Listening Practice title with date
+- **Collocations Section**: 10 business collocations with detailed explanations
+- **Audio Files Section**: Links to 3 listening passages with descriptions
+- **Practice Tips**: Instructions for effective TOEIC preparation
+- **Styling**: Orange/blue theme with modern business design
+
+### Sample Vocabulary Email Structure
 
 ```
 📚 Daily English Vocabulary
@@ -216,6 +336,9 @@ Date: Monday, August 25, 2025
 Word 1: ELOQUENT
 ──────────────────────────────
 [Full Gemini AI explanation including pronunciation, examples, synonyms, etc.]
+🔊 Audio Files:
+- Pronunciation (slow speech)
+- Example in context (normal speech)
 
 ═══════════════════════════════
 
@@ -223,7 +346,30 @@ Word 2: RESILIENT
 ──────────────────────────────
 [Full Gemini AI explanation...]
 
-[...8 more words...]
+[...2 more words...]
+```
+
+### Sample TOEIC Email Structure
+
+```
+🎧 TOEIC Listening Practice
+Date: Monday, August 25, 2025
+
+📘 BUSINESS COLLOCATIONS
+─────────────────────────
+1. make a decision /meɪk ə dɪˈsɪʒən/
+   Meaning: To choose between alternatives
+   Example: The CEO will make a decision about the merger tomorrow.
+
+[...9 more collocations...]
+
+🎵 LISTENING PASSAGES
+─────────────────────
+📁 toeic_passage_1.mp3 - Company Meeting (152 words)
+📁 toeic_passage_2.mp3 - Product Launch (167 words)  
+📁 toeic_passage_3.mp3 - Customer Service (148 words)
+
+📄 Complete passages and questions available in attached document.
 ```
 
 ## 📋 Configuration Reference
@@ -254,19 +400,30 @@ Word 2: RESILIENT
 src/main/java/com/quat/englishService/
 ├── EnglishServiceApplication.java     # Main Spring Boot application
 ├── controller/
-│   └── VocabularyController.java      # REST API endpoints
+│   ├── VocabularyController.java      # Vocabulary REST API endpoints
+│   ├── ToeicController.java           # TOEIC REST API endpoints
+│   └── AudioController.java           # Audio streaming endpoints
 ├── dto/
 │   ├── GeminiRequest.java            # Gemini AI request DTOs
-│   └── GeminiResponse.java           # Gemini AI response DTOs
+│   ├── GeminiResponse.java           # Gemini AI response DTOs
+│   └── ParsedVocabularyWord.java     # Vocabulary word DTO
 ├── model/
 │   └── VocabularyWord.java           # Domain model
 ├── scheduler/
-│   └── VocabularyScheduler.java      # Daily scheduling logic
+│   ├── VocabularyScheduler.java      # Daily vocabulary scheduling (5:00 AM)
+│   └── ToeicScheduler.java           # Daily TOEIC scheduling (6:00 PM)
 └── service/
-    ├── EmailService.java             # Email handling
-    ├── ExcelService.java             # Excel file operations
-    ├── GeminiClient.java             # AI API client
-    └── VocabularyService.java        # Core business logic
+    ├── EmailService.java             # Dual email handling (vocabulary + TOEIC)
+    ├── ExcelService.java             # Excel file operations and logging
+    ├── GeminiClient.java             # AI API client with custom prompts
+    ├── AudioService.java             # TTS generation with Python/gTTS
+    ├── VocabularyService.java        # Core vocabulary business logic
+    └── ToeicListeningService.java    # TOEIC content generation and processing
+
+src/main/resources/
+├── application.properties            # Main configuration
+├── email-template.html              # Vocabulary email template
+└── toeic-email-template.html        # TOEIC email template
 ```
 
 ### Building from Source

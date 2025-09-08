@@ -15,7 +15,6 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.io.File;
-import java.util.ArrayList;
 
 @Service
 public class EmailService {
@@ -86,6 +85,35 @@ public class EmailService {
         }
     }
 
+    @Retryable(value = {Exception.class}, maxAttempts = 3, backoff = @Backoff(delay = 2000))
+    public void sendToeicListeningEmail(String collocationsContent, List<ToeicListeningService.AudioFileInfo> audioFiles, String passagesFilePath) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setFrom(fromEmail);
+            helper.setTo(toEmail);
+            helper.setSubject("🎧 TOEIC Listening Practice - " + LocalDate.now().format(DateTimeFormatter.ofPattern("MMM dd, yyyy")));
+            helper.setText(buildToeicEmailContent(collocationsContent), true);
+
+            // Attach audio files
+            attachToeicAudioFiles(helper, audioFiles);
+
+            // Attach passages text file
+            if (passagesFilePath != null) {
+                attachToeicPassagesFile(helper, passagesFilePath);
+            }
+
+            mailSender.send(message);
+            logger.info("TOEIC Listening email sent successfully to {} with {} audio files and passages document",
+                       toEmail, audioFiles.size());
+
+        } catch (Exception e) {
+            logger.error("Failed to send TOEIC Listening email: {}", e.getMessage(), e);
+            throw new RuntimeException("TOEIC Email sending failed", e);
+        }
+    }
+
     private void attachAudioFiles(MimeMessageHelper helper, List<ParsedVocabularyWord> vocabularyWords) {
         for (ParsedVocabularyWord word : vocabularyWords) {
             try {
@@ -130,6 +158,38 @@ public class EmailService {
         }
     }
 
+    private void attachToeicAudioFiles(MimeMessageHelper helper, List<ToeicListeningService.AudioFileInfo> audioFiles) {
+        for (ToeicListeningService.AudioFileInfo audioFile : audioFiles) {
+            try {
+                File file = new File(audioFile.getFilePath());
+                if (file.exists() && file.isFile()) {
+                    helper.addAttachment(audioFile.getFileName(), file);
+                    logger.debug("Attached TOEIC audio: {}", audioFile.getFileName());
+                } else {
+                    logger.warn("TOEIC audio file not found: {}", audioFile.getFilePath());
+                }
+            } catch (Exception e) {
+                logger.error("Error attaching TOEIC audio file '{}': {}", audioFile.getFileName(), e.getMessage(), e);
+            }
+        }
+    }
+
+    private void attachToeicPassagesFile(MimeMessageHelper helper, String passagesFilePath) {
+        try {
+            File passagesFile = new File(passagesFilePath);
+            if (passagesFile.exists() && passagesFile.isFile()) {
+                String fileName = "TOEIC_Listening_Passages_" +
+                                LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + ".txt";
+                helper.addAttachment(fileName, passagesFile);
+                logger.info("Attached TOEIC passages file: {} ({} bytes)", fileName, passagesFile.length());
+            } else {
+                logger.warn("TOEIC passages file not found: {}", passagesFilePath);
+            }
+        } catch (Exception e) {
+            logger.error("Error attaching TOEIC passages file: {}", e.getMessage(), e);
+        }
+    }
+
     private int countAudioFiles(List<ParsedVocabularyWord> vocabularyWords) {
         int count = 0;
         for (ParsedVocabularyWord word : vocabularyWords) {
@@ -169,6 +229,25 @@ public class EmailService {
             logger.error("Failed to build email content, falling back to simple template", e);
             // Fallback to simple template if template loading fails
             return buildSimpleEmailContent(vocabularyWords);
+        }
+    }
+
+    private String buildToeicEmailContent(String collocationsContent) {
+        try {
+            // Load the TOEIC HTML template
+            String template = loadToeicEmailTemplate();
+
+            // Replace placeholders
+            String content = template
+                .replace("{{DATE}}", LocalDate.now().format(DateTimeFormatter.ofPattern("EEEE, MMMM dd, yyyy")))
+                .replace("{{COLLOCATIONS_CONTENT}}", collocationsContent)
+                .replace("{{GENERATION_DATE}}", LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+
+            return content;
+
+        } catch (Exception e) {
+            logger.error("Failed to build TOEIC email content, falling back to simple template", e);
+            return null;
         }
     }
 
@@ -360,5 +439,14 @@ public class EmailService {
     private boolean hasAudioFiles(ParsedVocabularyWord word) {
         return (word.getPronunciationAudioPath() != null && new File(word.getPronunciationAudioPath()).exists()) ||
                (word.getExampleAudioPath() != null && new File(word.getExampleAudioPath()).exists());
+    }
+
+    private String loadToeicEmailTemplate() throws Exception {
+        try (var inputStream = getClass().getResourceAsStream("/toeic-email-template.html")) {
+            if (inputStream == null) {
+                throw new RuntimeException("TOEIC email template not found");
+            }
+            return new String(inputStream.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
+        }
     }
 }
