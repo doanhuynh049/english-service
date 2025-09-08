@@ -555,17 +555,17 @@ public class VocabularyParsingService {
             }
 
             // Clean up the extracted content
-            monologue = monologue != null ? cleanMonologueText(monologue) : "";
-            explanation = explanation != null ? explanation.trim() : "";
+            // Log the first part of cleaned monologue for debugging
+            if (monologue.length() > 0) {
+                logger.info("Cleaned monologue text: {}", monologue.substring(0, Math.min(200, monologue.length())) + "...");
+            }
             pronunciation = pronunciation != null ? pronunciation.replaceAll("[/\\[\\]]", "").trim() : "";
 
             logger.debug("Parsed monologue - Length: {}, Has explanation: {}, Has pronunciation: {}",
                         monologue.length(), !explanation.isEmpty(), !pronunciation.isEmpty());
 
-            // Log the first part of cleaned monologue for debugging
-            if (monologue.length() > 0) {
-                logger.info("Cleaned monologue text: {}", monologue.substring(0, Math.min(200, monologue.length())) + "...");
-            }
+            // Log the cleaned monologue for debugging
+            logger.info("Cleaned monologue text: {}", monologue.substring(0, Math.min(200, monologue.length())) + "...");
 
             return new MonologueInfo(monologue, explanation, pronunciation);
 

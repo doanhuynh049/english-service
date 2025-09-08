@@ -24,7 +24,9 @@ public class VocabularyService {
     private final VocabularyGeneratorService vocabularyGenerator;
     private final MonologueDocumentService monologueDocumentService;
     private final ExecutorService executorService;
-    private static final int NUMBER_VOCABULARY_WORDS = 3;
+    private static final int NUMBER_VOCABULARY_WORDS = 3; // Total words: 3 fresh + 1 used
+    // private static final int FRESH_WORDS_COUNT = 2; // Number of new words to generate
+    private static final int USED_WORDS_COUNT = 1; // Number of used words to include for review
     public VocabularyService(GeminiClient geminiClient, EmailService emailService,
                            ExcelService excelService, VocabularyParsingService parsingService,
                            AudioService audioService, VocabularyGeneratorService vocabularyGenerator,
@@ -47,10 +49,9 @@ public class VocabularyService {
             Set<String> usedWords = excelService.getUsedWords();
             logger.info("Found {} previously used words", usedWords.size());
 
-            // Generate fresh vocabulary words from Gemini AI
-            // Replace used words with empty set for fresh generation
-            List<String> selectedWords = generateFreshVocabularyWords(NUMBER_VOCABULARY_WORDS, new HashSet<>());
-            logger.info("Generated {} new AI vocabulary words for today: {}", selectedWords.size(), selectedWords);
+            // Generate vocabulary words with mix of fresh and used words (3 new + 1 used)
+            List<String> selectedWords = generateMixedVocabularyWords(NUMBER_VOCABULARY_WORDS, usedWords);
+            logger.info("Generated {} vocabulary words for today (mix of new and used): {}", selectedWords.size(), selectedWords);
 
             if (selectedWords.isEmpty()) {
                 logger.warn("No fresh words generated, using fallback vocabulary");
@@ -136,6 +137,45 @@ public class VocabularyService {
         List<String> result = freshWords.subList(0, Math.min(count, freshWords.size()));
 
         logger.info("Successfully generated {} fresh vocabulary words using AI", result.size());
+        return result;
+    }
+
+    private List<String> generateMixedVocabularyWords(int totalCount, Set<String> usedWords) {
+        logger.info("Generating {} vocabulary words with mix of fresh and used words", totalCount);
+        
+        // Calculate how many fresh vs used words to generate
+        int freshWordsCount = totalCount - USED_WORDS_COUNT; // 3 fresh words
+        int usedWordsCount = USED_WORDS_COUNT; // 1 used word
+        
+        List<String> result = new ArrayList<>();
+        
+        // Step 1: Generate fresh words (avoiding used words)
+        if (freshWordsCount > 0) {
+            List<String> freshWords = generateFreshVocabularyWords(freshWordsCount, usedWords);
+            result.addAll(freshWords);
+            logger.info("Added {} fresh words: {}", freshWords.size(), freshWords);
+        }
+        
+        // Step 2: Add one used word for review/reinforcement
+        if (usedWordsCount > 0 && !usedWords.isEmpty()) {
+            List<String> usedWordsList = new ArrayList<>(usedWords);
+            Collections.shuffle(usedWordsList);
+            String selectedUsedWord = usedWordsList.get(0);
+            result.add(selectedUsedWord);
+            logger.info("Added 1 used word for review: {}", selectedUsedWord);
+        } else if (usedWordsCount > 0 && usedWords.isEmpty()) {
+            // Fallback: if no used words available, generate one more fresh word
+            logger.info("No used words available, generating additional fresh word");
+            List<String> additionalFresh = generateFreshVocabularyWords(1, usedWords);
+            result.addAll(additionalFresh);
+        }
+        
+        // Shuffle the final result to mix fresh and used words
+        Collections.shuffle(result);
+        
+        logger.info("Successfully generated {} mixed vocabulary words: {} fresh, {} used", 
+                   result.size(), freshWordsCount, Math.min(usedWordsCount, usedWords.size()));
+        
         return result;
     }
 
