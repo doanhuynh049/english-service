@@ -17,9 +17,9 @@ public class VocabularyScheduler {
         this.vocabularyService = vocabularyService;
     }
 
-    @Scheduled(cron = "0 0 5 * * ?") // Run at 5:00 AM every day
+    @Scheduled(cron = "0 30 4 * * ?") // Run at 4:30 AM every day
     public void scheduledVocabularySession() {
-        logger.info("Scheduled vocabulary session started at 5:00 AM");
+        logger.info("Scheduled vocabulary session started at 4:30 AM");
         vocabularyService.processDailyVocabulary();
     }
 }

@@ -78,6 +78,7 @@ Thumbs.db
 
 # Application specific files
 vocabulary_log.xlsx
+toeic_collocations_history.json
 *.xlsx
 *.xls
 

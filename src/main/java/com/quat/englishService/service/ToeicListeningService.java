@@ -28,26 +28,34 @@ public class ToeicListeningService {
     private final AudioService audioService;
     private final CollocationHistoryService collocationHistoryService;
     private final ExecutorService executorService;
-    private static final int NUMBER_PASSAGES = 3;
+    private static final int NUMBER_PASSAGES = 1;
 
     private static final String PASSAGE_PROMPT_TEMPLATE = """
             Using the provided collocations, 
             %s
-            .Create a TOEIC Part 4–style listening passage. The passage should:
+            . Create a TOEIC Part 4–style listening passage. The passage should:
 
             Be 150–180 words long.
 
-            Be in a business or workplace context (e.g., announcements, meetings, presentations, customer service).
+            Be set in a realistic TOEIC-style context with a randomly chosen topic, 
+            such as:
+            - Business and workplace (meetings, presentations, conference calls, training sessions)
+            - Travel and transportation (airport announcements, train stations, bus terminals, car rentals)
+            - Hospitality and customer service (hotels, restaurants, tourism, retail stores, service centers)
+            - Public announcements (events, museums, exhibitions, community centers, promotional offers)
 
             Naturally include all of the given collocations.
 
-            Match the tone and difficulty of TOEIC Listening Part 4 (score range 600–950).
+            Match the tone and difficulty of TOEIC Listening Part 4 (score range 700–950).
 
             End with 3 multiple-choice comprehension questions (with 4 options each, A–D).
 
             Provide the correct answer key after the questions.
 
             Output Format clearly with:
+
+            Chosen Topic:
+            <Insert chosen topic here>
 
             Passage:
             <Insert passage text here>
@@ -77,8 +85,8 @@ public class ToeicListeningService {
             3. <Correct answer>
 
             Collocations to include:
-            <Insert collocations here>
-            """;
+            <Insert collocations here>""";
+
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 

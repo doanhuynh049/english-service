@@ -17,9 +17,9 @@ public class ToeicScheduler {
         this.toeicListeningService = toeicListeningService;
     }
 
-    @Scheduled(cron = "0 0 18 * * ?") // Run at 6:00 PM (18:00) every day
+    @Scheduled(cron = "0 0 6 * * ?") // Run at 6:00 AM (06:00) every day
     public void scheduledToeicListeningSession() {
-        logger.info("Scheduled TOEIC listening session started at 6:00 PM");
+        logger.info("Scheduled TOEIC listening session started at 6:00 AM");
         try {
             toeicListeningService.processDailyToeicListening();
             logger.info("Scheduled TOEIC listening session completed successfully");
