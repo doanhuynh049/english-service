@@ -28,7 +28,7 @@ public class ToeicListeningService {
     private final AudioService audioService;
     private final CollocationHistoryService collocationHistoryService;
     private final ExecutorService executorService;
-    private static final int NUMBER_PASSAGES = 1;
+    private static final int NUMBER_PASSAGES = 3;
 
     private static final String PASSAGE_PROMPT_TEMPLATE = """
             Using the provided collocations, 
