@@ -28,7 +28,7 @@ public class ToeicListeningService {
     private final AudioService audioService;
     private final CollocationHistoryService collocationHistoryService;
     private final ExecutorService executorService;
-    private static final int NUMBER_PASSAGES = 1;
+    private static final int NUMBER_PASSAGES = 3;
 
     private static final String PASSAGE_PROMPT_TEMPLATE = """
             Using the provided collocations, 
@@ -39,11 +39,18 @@ public class ToeicListeningService {
 
             Be set in a realistic TOEIC-style context with a randomly chosen topic, 
             such as:
-            - Business and workplace (meetings, presentations, conference calls, training sessions)
             - Travel and transportation (airport announcements, train stations, bus terminals, car rentals)
             - Hospitality and customer service (hotels, restaurants, tourism, retail stores, service centers)
             - Public announcements (events, museums, exhibitions, community centers, promotional offers)
-
+            - Business and workplace (meetings, presentations, conference calls, training sessions)
+            - Health and safety (medical facilities, health advisories, safety instructions)
+            - Education and training (school announcements, course information, campus events)
+            - Technology and services (product launches, service updates, tech support)
+            - Environment and sustainability (green initiatives, recycling programs, conservation efforts)
+            - Real estate and housing (property listings, open house announcements, rental information)
+            - Finance and banking (account services, loan information, financial advice)
+            Choose one of these topics randomly for each passage.
+            Use 8–10 of the provided collocations naturally within the passage.
             Naturally include all of the given collocations.
 
             Match the tone and difficulty of TOEIC Listening Part 4 (score range 700–950).
@@ -313,20 +320,100 @@ public class ToeicListeningService {
     }
 
     private ListeningPassage parseListeningPassage(String response, int passageNumber) {
-        // Parse the response to extract passage text and questions
-        String[] sections = response.split("(?i)(Questions?|Answer Key)");
-        
+        // Parse the response to extract passage text and questions only
         String passageText = "";
         String questions = "";
         
-        if (sections.length >= 1) {
-            passageText = sections[0].trim();
-            // Clean up passage text
-            passageText = passageText.replaceAll("(?i)^.*?passage.*?:", "").trim();
-        }
-        
-        if (sections.length >= 2) {
-            questions = sections[1].trim();
+        try {
+            // First, find the "Passage:" section
+            int passageStart = response.toLowerCase().indexOf("passage:");
+            int questionsStart = response.toLowerCase().indexOf("questions:");
+            int answerKeyStart = response.toLowerCase().indexOf("answer key:");
+            
+            if (passageStart != -1 && questionsStart != -1) {
+                // Extract passage text between "Passage:" and "Questions:"
+                passageText = response.substring(passageStart, questionsStart).trim();
+                
+                // Remove "Passage:" header
+                passageText = passageText.replaceAll("(?i)^.*?passage\\s*:", "").trim();
+                
+                // Clean up any ** formatting around collocations (keep the collocations visible)
+                passageText = passageText.replaceAll("\\*\\*(.*?)\\*\\*", "$1");
+                
+                // Extract questions section
+                if (answerKeyStart != -1) {
+                    // Questions from "Questions:" to "Answer Key:"
+                    String questionsOnly = response.substring(questionsStart, answerKeyStart).trim();
+                    questionsOnly = questionsOnly.replaceAll("(?i)^.*?questions\\s*:", "").trim();
+                    
+                    // Answer key from "Answer Key:" to end (or until "Collocations to include:")
+                    String answerKeySection = response.substring(answerKeyStart).trim();
+                    answerKeySection = answerKeySection.replaceAll("(?i)^.*?answer key\\s*:", "").trim();
+                    
+                    // Remove "Collocations to include:" section if present
+                    if (answerKeySection.toLowerCase().contains("collocations to include:")) {
+                        int collocationsStart = answerKeySection.toLowerCase().indexOf("collocations to include:");
+                        answerKeySection = answerKeySection.substring(0, collocationsStart).trim();
+                    }
+                    
+                    // Combine questions and answer key
+                    questions = questionsOnly + "\n\nAnswer Key:\n" + answerKeySection;
+                } else {
+                    // No separate answer key section, take everything after "Questions:"
+                    questions = response.substring(questionsStart).trim();
+                    questions = questions.replaceAll("(?i)^.*?questions\\s*:", "").trim();
+                    
+                    // Remove "Collocations to include:" section if present
+                    if (questions.toLowerCase().contains("collocations to include:")) {
+                        int collocationsStart = questions.toLowerCase().indexOf("collocations to include:");
+                        questions = questions.substring(0, collocationsStart).trim();
+                    }
+                }
+            } else {
+                logger.warn("Could not find 'Passage:' and 'Questions:' sections in response for passage {}", passageNumber);
+                
+                // Fallback: try to extract using simple patterns
+                String[] lines = response.split("\n");
+                StringBuilder passageBuilder = new StringBuilder();
+                StringBuilder questionsBuilder = new StringBuilder();
+                boolean inPassage = false;
+                boolean inQuestions = false;
+                
+                for (String line : lines) {
+                    String lowerLine = line.toLowerCase().trim();
+                    
+                    if (lowerLine.startsWith("passage:")) {
+                        inPassage = true;
+                        inQuestions = false;
+                        continue;
+                    } else if (lowerLine.startsWith("questions:")) {
+                        inPassage = false;
+                        inQuestions = true;
+                        continue;
+                    } else if (lowerLine.startsWith("collocations to include:")) {
+                        break; // Stop processing
+                    }
+                    
+                    if (inPassage && !line.trim().isEmpty()) {
+                        passageBuilder.append(line).append("\n");
+                    } else if (inQuestions && !line.trim().isEmpty()) {
+                        questionsBuilder.append(line).append("\n");
+                    }
+                }
+                
+                passageText = passageBuilder.toString().trim().replaceAll("\\*\\*(.*?)\\*\\*", "$1");
+                questions = questionsBuilder.toString().trim();
+            }
+            
+            logger.debug("Parsed passage {}: passageText length={}, questions length={}", 
+                        passageNumber, passageText.length(), questions.length());
+            
+        } catch (Exception e) {
+            logger.error("Error parsing passage {}: {}", passageNumber, e.getMessage(), e);
+            
+            // Last resort: use entire response but clean it
+            passageText = response.replaceAll("\\*\\*(.*?)\\*\\*", "$1");
+            questions = "Could not parse questions from response.";
         }
         
         return new ListeningPassage(passageNumber, passageText, questions, response);
