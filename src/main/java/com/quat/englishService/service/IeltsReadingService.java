@@ -35,7 +35,7 @@ public class IeltsReadingService {
             End with 5 multiple-choice comprehension questions with 4 options each, testing both factual information and inference.
 
             Ensure the topic is different each time the prompt is used, to create diverse passages for practice.
-
+            Answer should be mixed in terms of difficulty, with some questions focusing on direct information and others requiring inference or understanding of vocabulary in context and random order.
             Output Format clearly with:
 
             Topic:
@@ -85,54 +85,60 @@ public class IeltsReadingService {
 
     private static final String EXPLANATION_PROMPT_TEMPLATE = """
             Provide a detailed explanation for the following IELTS Academic Reading passage.
-            
+
             The explanation should include:
-            - Summarize the main idea and each paragraph in simple, clear English
-            - Highlight the purpose of the passage and the author's perspective
-            - Identify key academic collocations (word combinations) from the passage with definitions and examples
-            - Identify implicit and explicit information in the passage
-            - Clarify any inferences, assumptions, or relationships between ideas that may be tested in comprehension questions
-            - Provide a brief guide on how to answer potential multiple-choice or matching questions based on this passage
-            - Maintain formal, academic language suitable for IELTS learners
 
-            Output Format clearly with section headers:
+            1. **Main Idea & Purpose:** Summarize the central theme and purpose of the passage in clear, concise English.
 
-            Main Idea:
-            <Brief summary of the main concept and purpose of the passage>
+            2. **Paragraph Summaries:** Provide a brief summary of each paragraph, capturing the key points and supporting details.
 
-            Paragraph Summary:
-            **Paragraph 1:** <Summary of first paragraph content>
-            **Paragraph 2:** <Summary of second paragraph content>
-            **Paragraph 3:** <Summary of third paragraph content if exists>
+            3. **Academic Collocations & Vocabulary:**  
+            - Identify 8–10 key academic collocations (word combinations) and important topic-specific vocabulary from the passage.  
+            - For each collocation/vocabulary word, include:  
+                - **Definition & Meaning in Context:** Explain how it is used in the passage.  
+                - **Example Sentence:** Provide a natural sentence using the word/collocation.  
+                - **Academic Usage:** Explain how it is typically used in academic or formal writing.  
+            - Highlight bold words or phrases as they appear in the passage.
 
-            Key Collocations:
-            **collocation phrase:** clear definition and meaning in context
-            *Example:* natural example sentence using the collocation
-            *Academic usage:* how it's typically used in academic writing
+            4. **Implicit vs Explicit Information:**  
+            - **Explicit Information:** Directly stated facts or details from the text.  
+            - **Implicit Information:** Implied meanings, assumptions, or relationships that the reader must infer.
 
-            **another collocation:** definition and contextual meaning
-            *Example:* example sentence showing proper usage
-            *Academic usage:* academic context explanation
+            5. **Question Strategy:** Provide strategies for answering IELTS reading comprehension questions, such as:  
+            - Techniques for identifying explicit and implicit information.  
+            - How to recognize paraphrasing or distractor options.  
+            - Tips for efficiently tackling multiple-choice and matching questions.
+
+            **Output Format with Clear Section Headers:**
+
+            Main Idea & Purpose:
+            <Concise summary of the main concept and author's intention>
+
+            Paragraph Summaries:
+            **Paragraph 1:** <Summary>  
+            **Paragraph 2:** <Summary>  
+            **Paragraph 3:** <Summary if applicable>  
+
+            Key Collocations & Vocabulary:
+            **collocation or word:** definition & meaning in context  
+            *Example:* natural sentence using it  
+            *Academic usage:* typical academic use  
 
             Implicit vs Explicit Information:
-            **Explicit Information:**
-            • Directly stated fact or information from the passage
-            • Another explicitly mentioned point
-            • Clear factual statement from the text
+            **Explicit Information:**  
+            • Directly stated fact 1  
+            • Fact 2  
+            • Fact 3  
 
-            **Implicit Information:**
-            • Implied meaning or inference that readers must deduce
-            • Unstated assumption that underlies the argument
-            • Relationship between ideas that must be inferred
+            **Implicit Information:**  
+            • Implied meaning or inference 1  
+            • Inference 2  
+            • Relationships between ideas
 
             Question Strategy:
-            **Strategy 1:** <Specific tip for answering comprehension questions>
-            **Strategy 2:** <Method for identifying correct answers>
-            **Strategy 3:** <Technique for avoiding common mistakes>
-
-            Use **bold formatting** for important terms, concepts, and section headings.
-            Focus on academic collocations that are commonly tested in IELTS reading.
-            Keep explanations clear and suitable for intermediate to advanced English learners.
+            **Strategy 1:** <Tip>  
+            **Strategy 2:** <Tip>  
+            **Strategy 3:** <Tip>
 
             Passage:
             %s
@@ -240,19 +246,46 @@ public class IeltsReadingService {
         String questionStrategy = "";
 
         try {
-            // Extract sections using case-insensitive matching
-            String[] sections = response.split("(?i)(Main Idea:|Paragraph Summary:|Key Collocations:|Implicit vs Explicit Information:|Question Strategy:)");
-            
-            if (sections.length >= 6) {
-                mainIdea = sections[2].trim();
-                paragraphSummary = sections[3].trim();
-                keyVocabulary = sections[4].trim();
-                implicitExplicit = sections[5].trim();
-                if (sections.length > 6) {
-                    questionStrategy = sections[6].trim();
-                }
-            } else {
-                // Fallback: use the entire response
+            // Find section positions
+            int mainIdeaStart = findSectionStart(response, "Main Idea & Purpose:");
+            int paragraphSummaryStart = findSectionStart(response, "Paragraph Summaries:");
+            int keyVocabularyStart = findSectionStart(response, "Key Collocations & Vocabulary:");
+            int implicitExplicitStart = findSectionStart(response, "Implicit vs Explicit Information:");
+            int questionStrategyStart = findSectionStart(response, "Question Strategy:");
+
+            // Extract main idea
+            if (mainIdeaStart != -1 && paragraphSummaryStart != -1) {
+                mainIdea = response.substring(mainIdeaStart, paragraphSummaryStart)
+                    .replaceAll("(?i)^.*?Main Idea & Purpose:\\s*", "").trim();
+            }
+
+            // Extract paragraph summaries
+            if (paragraphSummaryStart != -1 && keyVocabularyStart != -1) {
+                paragraphSummary = response.substring(paragraphSummaryStart, keyVocabularyStart)
+                    .replaceAll("(?i)^.*?Paragraph Summaries:\\s*", "").trim();
+            }
+
+            // Extract key vocabulary/collocations
+            if (keyVocabularyStart != -1 && implicitExplicitStart != -1) {
+                keyVocabulary = response.substring(keyVocabularyStart, implicitExplicitStart)
+                    .replaceAll("(?i)^.*?Key Collocations & Vocabulary:\\s*", "").trim();
+            }
+
+            // Extract implicit vs explicit information
+            if (implicitExplicitStart != -1 && questionStrategyStart != -1) {
+                implicitExplicit = response.substring(implicitExplicitStart, questionStrategyStart)
+                    .replaceAll("(?i)^.*?Implicit vs Explicit Information:\\s*", "").trim();
+            }
+
+            // Extract question strategy
+            if (questionStrategyStart != -1) {
+                questionStrategy = response.substring(questionStrategyStart)
+                    .replaceAll("(?i)^.*?Question Strategy:\\s*", "").trim();
+            }
+
+            // Fallback logic if sections not found properly
+            if (mainIdea.isEmpty() && paragraphSummary.isEmpty() && keyVocabulary.isEmpty()) {
+                logger.warn("Section parsing failed, using fallback method");
                 mainIdea = "Please refer to the full explanation below.";
                 paragraphSummary = response;
             }
@@ -264,6 +297,12 @@ public class IeltsReadingService {
         }
 
         return new IeltsExplanation(mainIdea, paragraphSummary, keyVocabulary, implicitExplicit, questionStrategy);
+    }
+
+    private int findSectionStart(String text, String sectionHeader) {
+        // Try case-insensitive search for the section header
+        int index = text.toLowerCase().indexOf(sectionHeader.toLowerCase());
+        return index;
     }
 
     private String buildIeltsEmailContent(IeltsPassage passage, IeltsExplanation explanation) {
@@ -297,21 +336,37 @@ public class IeltsReadingService {
             content.append("    Comprehension Questions\n");
             content.append("  </h2>\n");
             content.append("  <div class=\"questions-content\">\n");
-            content.append("    ").append(formatQuestions(passage.getQuestions())).append("\n");
+            
+            // Parse questions and answer key separately
+            String[] questionParts = formatQuestionsAndAnswers(passage.getQuestions());
+            content.append("    ").append(questionParts[0]).append("\n"); // Questions only
             content.append("  </div>\n");
             content.append("</div>\n");
             
+            // Answer Key section (if available)
+            if (questionParts.length > 1 && !questionParts[1].trim().isEmpty()) {
+                content.append("<div class=\"section\">\n");
+                content.append("  <h2 class=\"section-title\">\n");
+                content.append("    <span class=\"section-icon\">🔑</span>\n");
+                content.append("    Answer Key\n");
+                content.append("  </h2>\n");
+                content.append("  <div class=\"answer-key-section\">\n");
+                content.append("    ").append(questionParts[1]).append("\n"); // Answer key only
+                content.append("  </div>\n");
+                content.append("</div>\n");
+            }
+            
             // Explanation sections
             if (!explanation.getMainIdea().isEmpty()) {
-                content.append(buildExplanationSection("🎯", "Main Idea", explanation.getMainIdea()));
+                content.append(buildExplanationSection("🎯", "Main Idea & Purpose", explanation.getMainIdea()));
             }
             
             if (!explanation.getParagraphSummary().isEmpty()) {
-                content.append(buildExplanationSection("📋", "Paragraph Summary", explanation.getParagraphSummary()));
+                content.append(buildExplanationSection("📋", "Paragraph Summaries", explanation.getParagraphSummary()));
             }
             
             if (!explanation.getKeyVocabulary().isEmpty()) {
-                content.append(buildExplanationSection("📚", "Key Collocations", explanation.getKeyVocabulary()));
+                content.append(buildExplanationSection("📚", "Key Collocations & Vocabulary", explanation.getKeyVocabulary()));
             }
             
             if (!explanation.getImplicitExplicit().isEmpty()) {
@@ -356,19 +411,22 @@ public class IeltsReadingService {
         
         for (String paragraph : paragraphs) {
             if (!paragraph.trim().isEmpty()) {
-                formatted.append("<p>").append(paragraph.trim()).append("</p>\n");
+                // Format single asterisk words (*word*) as bold for passage text
+                String formattedParagraph = paragraph.trim().replaceAll("\\*(.*?)\\*", "<strong>$1</strong>");
+                formatted.append("<p>").append(formattedParagraph).append("</p>\n");
             }
         }
         
         return formatted.toString();
     }
     
-    private String formatQuestions(String questions) {
+    private String[] formatQuestionsAndAnswers(String questions) {
         if (questions == null || questions.trim().isEmpty()) {
-            return "";
+            return new String[]{"", ""};
         }
         
-        StringBuilder formatted = new StringBuilder();
+        StringBuilder formattedQuestions = new StringBuilder();
+        StringBuilder formattedAnswers = new StringBuilder();
         String[] lines = questions.split("\\n");
         String currentQuestion = "";
         boolean inAnswerKey = false;
@@ -380,12 +438,10 @@ public class IeltsReadingService {
             if (line.toLowerCase().contains("answer key")) {
                 inAnswerKey = true;
                 if (!currentQuestion.isEmpty()) {
-                    formatted.append("</div>\n");
+                    formattedQuestions.append("    </div>\n");
+                    formattedQuestions.append("  </div>\n");
                     currentQuestion = "";
                 }
-                formatted.append("<div class=\"answer-key\">\n");
-                formatted.append("  <div class=\"answer-key-title\">Answer Key</div>\n");
-                formatted.append("  <div class=\"answers\">\n");
                 continue;
             }
             
@@ -393,8 +449,8 @@ public class IeltsReadingService {
                 if (line.matches("\\d+\\.\\s*[A-D].*")) {
                     String[] parts = line.split("\\.", 2);
                     if (parts.length == 2) {
-                        formatted.append("    <div class=\"answer-item\">")
-                                .append(parts[0].trim()).append(". ")
+                        formattedAnswers.append("    <div class=\"answer-item\">")
+                                .append("<strong>").append(parts[0].trim()).append(".</strong> ")
                                 .append(parts[1].trim()).append("</div>\n");
                     }
                 }
@@ -402,28 +458,26 @@ public class IeltsReadingService {
                 if (line.matches("\\d+\\..*")) {
                     // New question
                     if (!currentQuestion.isEmpty()) {
-                        formatted.append("</div>\n");
+                        formattedQuestions.append("    </div>\n");
+                        formattedQuestions.append("  </div>\n");
                     }
-                    formatted.append("<div class=\"question-item\">\n");
-                    formatted.append("  <div class=\"question-text\">").append(line).append("</div>\n");
-                    formatted.append("  <div class=\"question-options\">\n");
+                    formattedQuestions.append("  <div class=\"question-item\">\n");
+                    formattedQuestions.append("    <div class=\"question-text\">").append(line).append("</div>\n");
+                    formattedQuestions.append("    <div class=\"question-options\">\n");
                     currentQuestion = line;
                 } else if (line.matches("[A-D]\\..*")) {
                     // Option
-                    formatted.append("    <div class=\"option\">").append(line).append("</div>\n");
+                    formattedQuestions.append("      <div class=\"option\">").append(line).append("</div>\n");
                 }
             }
         }
         
-        if (inAnswerKey) {
-            formatted.append("  </div>\n");
-            formatted.append("</div>\n");
-        } else if (!currentQuestion.isEmpty()) {
-            formatted.append("  </div>\n");
-            formatted.append("</div>\n");
+        if (!currentQuestion.isEmpty()) {
+            formattedQuestions.append("    </div>\n");
+            formattedQuestions.append("  </div>\n");
         }
         
-        return formatted.toString();
+        return new String[]{formattedQuestions.toString(), formattedAnswers.toString()};
     }
     
     private String buildExplanationSection(String icon, String title, String content) {
@@ -452,27 +506,56 @@ public class IeltsReadingService {
             return "";
         }
         
-        StringBuilder formatted = new StringBuilder();
-        String[] paragraphs = content.split("\\n\\s*\\n");
-        
-        for (String paragraph : paragraphs) {
-            if (!paragraph.trim().isEmpty()) {
-                // Process bold formatting and bullet points
-                String processedParagraph = processBoldTextAndBullets(paragraph.trim());
-                formatted.append("      <p>").append(processedParagraph).append("</p>\n");
+        // Handle special sections differently based on their type
+        if (content.contains("**Paragraph") && content.contains(":**")) {
+            // This is paragraph summaries - handle them specially
+            return formatParagraphSummaries(content);
+        } else if (content.matches(".*\\d+\\.\\s+\\*\\*.*\\*\\*:.*")) {
+            // This is collocations with numbered format
+            return formatCollocations(content);
+        } else if (content.contains("**Explicit Information:**") || content.contains("**Implicit Information:**")) {
+            // This is implicit vs explicit section
+            return formatImplicitExplicit(content);
+        } else if (content.contains("**Strategy")) {
+            // This is question strategy section
+            return formatQuestionStrategies(content);
+        } else {
+            // Default formatting for main idea and other sections
+            StringBuilder formatted = new StringBuilder();
+            String[] paragraphs = content.split("\\n\\s*\\n");
+            
+            for (String paragraph : paragraphs) {
+                if (!paragraph.trim().isEmpty()) {
+                    String processedParagraph = processBoldTextAndBullets(paragraph.trim());
+                    formatted.append("      <p>").append(processedParagraph).append("</p>\n");
+                }
             }
+            
+            return formatted.toString();
         }
-        
-        return formatted.toString();
     }
     
     private String processBoldTextAndBullets(String text) {
-        // Convert **text** to <strong>text</strong>
+        // Convert **text** to <strong>text</strong> (double asterisk)
         text = text.replaceAll("\\*\\*(.*?)\\*\\*", "<strong>$1</strong>");
+        
+        // Convert *text* to <strong>text</strong> (single asterisk, but not if it's part of formatting like *Example:*)
+        // Use negative lookbehind and lookahead to avoid matching formatting markers
+        text = text.replaceAll("(?<!\\*)\\*([^*]+?)\\*(?!\\*)", "<strong>$1</strong>");
         
         // Handle collocations formatting - look for specific patterns
         if (text.contains("*Example:*") || text.contains("*Academic usage:*")) {
             return processCollocationFormat(text);
+        }
+        
+        // Handle strategy formatting
+        if (text.contains("**Strategy") && text.contains(":**")) {
+            return processStrategyFormat(text);
+        }
+        
+        // Handle paragraph summaries with special formatting
+        if (text.contains("**Paragraph") && text.contains(":**")) {
+            return processParagraphSummaryFormat(text);
         }
         
         // Convert bullet points (•) to HTML list items
@@ -510,7 +593,7 @@ public class IeltsReadingService {
         return text;
     }
     
-    private String processCollocationFormat(String text) {
+    private String processStrategyFormat(String text) {
         StringBuilder result = new StringBuilder();
         String[] lines = text.split("\\n");
         
@@ -518,38 +601,281 @@ public class IeltsReadingService {
             line = line.trim();
             if (line.isEmpty()) continue;
             
-            // Check if this is a collocation definition line (starts with **)
-            if (line.startsWith("<strong>") && line.contains(":</strong>")) {
-                // This is a collocation term and definition
-                result.append("<div class=\"collocation-item\">\n");
-                
-                // Extract term and definition
-                int colonIndex = line.indexOf(":</strong>");
+            if (line.contains("**Strategy") && line.contains(":**")) {
+                // Extract strategy number and content
+                int colonIndex = line.indexOf(":**");
                 if (colonIndex != -1) {
-                    String term = line.substring(8, colonIndex); // Remove <strong>
-                    String definition = line.substring(colonIndex + 10).trim(); // Remove :</strong>
+                    String strategyHeader = line.substring(0, colonIndex + 3);
+                    String strategyContent = line.substring(colonIndex + 3).trim();
                     
-                    result.append("  <div class=\"collocation-term\">").append(term).append("</div>\n");
-                    result.append("  <div class=\"collocation-definition\">").append(definition).append("</div>\n");
+                    result.append("<div class=\"strategy-item\">\n");
+                    result.append("  <div class=\"strategy-number\">").append(strategyHeader).append("</div>\n");
+                    result.append("  <div>").append(strategyContent).append("</div>\n");
+                    result.append("</div>\n");
                 }
-            } else if (line.startsWith("*Example:*")) {
-                // Example sentence
-                String example = line.replace("*Example:*", "").trim();
-                result.append("  <div class=\"collocation-example\"><strong>Example:</strong> ").append(example).append("</div>\n");
-            } else if (line.startsWith("*Academic usage:*")) {
-                // Academic usage explanation
-                String usage = line.replace("*Academic usage:*", "").trim();
-                result.append("  <div class=\"collocation-usage\"><strong>Academic usage:</strong> ").append(usage).append("</div>\n");
-                result.append("</div>\n"); // Close collocation-item
             } else {
-                // Regular text
-                if (!line.startsWith("<div class=\"collocation-item\">") && !line.startsWith("</div>")) {
-                    result.append(line).append(" ");
-                }
+                result.append(line).append(" ");
             }
         }
         
         return result.toString().trim();
+    }
+    
+    private String processParagraphSummaryFormat(String text) {
+        StringBuilder result = new StringBuilder();
+        String[] lines = text.split("\\n");
+        
+        for (String line : lines) {
+            line = line.trim();
+            if (line.isEmpty()) continue;
+            
+            if (line.contains("**Paragraph") && line.contains(":**")) {
+                // This is a paragraph header with summary
+                result.append("<div class=\"paragraph-summary\">\n");
+                result.append("  ").append(line).append("\n");
+                result.append("</div>\n");
+            } else {
+                result.append(line).append(" ");
+            }
+        }
+        
+        return result.toString().trim();
+    }
+    
+    private String processCollocationFormat(String text) {
+        StringBuilder result = new StringBuilder();
+        String[] lines = text.split("\\n");
+        boolean inCollocationItem = false;
+        
+        for (String line : lines) {
+            line = line.trim();
+            if (line.isEmpty()) continue;
+            
+            // Check for numbered collocation items (e.g., "1. **sustainable urban infrastructure:**")
+            if (line.matches("\\d+\\.\\s+\\*\\*.*?\\*\\*:.*")) {
+                if (inCollocationItem) {
+                    result.append("</div>\n"); // Close previous collocation item
+                }
+                
+                // Extract number, term, and definition
+                String[] parts = line.split("\\*\\*", 3);
+                if (parts.length >= 3) {
+                    String number = parts[0].trim();
+                    String term = parts[1].trim();
+                    String definition = parts[2].replace(":", "").trim();
+                    
+                    result.append("<div class=\"collocation-item\">\n");
+                    result.append("  <div class=\"collocation-term\">").append(number).append(" ").append(term).append("</div>\n");
+                    result.append("  <div class=\"collocation-definition\">").append(definition).append("</div>\n");
+                    inCollocationItem = true;
+                }
+            } else if (line.contains("*Definition & Meaning in Context:*")) {
+                // Definition line
+                String definition = line.replace("*Definition & Meaning in Context:*", "").trim();
+                if (!definition.isEmpty()) {
+                    result.append("  <div class=\"collocation-definition\">").append(definition).append("</div>\n");
+                }
+            } else if (line.contains("*Example:*")) {
+                // Example sentence
+                String example = line.replace("*Example:*", "").trim();
+                result.append("  <div class=\"collocation-example\"><strong>Example:</strong> ").append(example).append("</div>\n");
+            } else if (line.contains("*Academic usage:*")) {
+                // Academic usage explanation
+                String usage = line.replace("*Academic usage:*", "").trim();
+                result.append("  <div class=\"collocation-usage\"><strong>Academic usage:</strong> ").append(usage).append("</div>\n");
+            } else if (!line.startsWith("<div") && !line.equals("</div>")) {
+                // Regular content line
+                result.append("  <div>").append(line).append("</div>\n");
+            }
+        }
+        
+        if (inCollocationItem) {
+            result.append("</div>\n"); // Close last collocation item
+        }
+        
+        return result.toString().trim();
+    }
+    
+    private String formatParagraphSummaries(String content) {
+        StringBuilder result = new StringBuilder();
+        String[] lines = content.split("\\n");
+        
+        for (String line : lines) {
+            line = line.trim();
+            if (line.isEmpty()) continue;
+            
+            if (line.contains("**Paragraph") && line.contains(":**")) {
+                // Convert **text** to <strong>text</strong>
+                line = line.replaceAll("\\*\\*(.*?)\\*\\*", "<strong>$1</strong>");
+                result.append("      <div class=\"paragraph-summary\">").append(line).append("</div>\n");
+            } else {
+                // Regular content
+                line = line.replaceAll("\\*\\*(.*?)\\*\\*", "<strong>$1</strong>");
+                result.append("      <p>").append(line).append("</p>\n");
+            }
+        }
+        
+        return result.toString();
+    }
+    
+    private String formatCollocations(String content) {
+        StringBuilder result = new StringBuilder();
+        String[] lines = content.split("\\n");
+        boolean inCollocationItem = false;
+        
+        for (String line : lines) {
+            line = line.trim();
+            if (line.isEmpty()) continue;
+            
+            // Check for numbered collocation items (e.g., "1. **sustainable urban infrastructure:**")
+            if (line.matches("\\d+\\.\\s+\\*\\*.*?\\*\\*:.*")) {
+                if (inCollocationItem) {
+                    result.append("      </div>\n"); // Close previous collocation item
+                }
+                
+                // Extract number, term, and definition
+                String[] parts = line.split("\\*\\*", 3);
+                if (parts.length >= 3) {
+                    String number = parts[0].trim();
+                    String term = parts[1].trim();
+                    String definition = parts[2].replace(":", "").trim();
+                    
+                    result.append("      <div class=\"collocation-item\">\n");
+                    result.append("        <div class=\"collocation-term\">").append(number).append(" ").append(term).append("</div>\n");
+                    result.append("        <div class=\"collocation-definition\">").append(definition).append("</div>\n");
+                    inCollocationItem = true;
+                }
+            } else if (line.contains("*Definition & Meaning in Context:*")) {
+                // Definition line
+                String definition = line.replace("*Definition & Meaning in Context:*", "").trim();
+                if (!definition.isEmpty()) {
+                    result.append("        <div class=\"collocation-definition\">").append(definition).append("</div>\n");
+                }
+            } else if (line.contains("*Example:*")) {
+                // Example sentence
+                String example = line.replace("*Example:*", "").trim();
+                result.append("        <div class=\"collocation-example\"><strong>Example:</strong> ").append(example).append("</div>\n");
+            } else if (line.contains("*Academic usage:*")) {
+                // Academic usage explanation
+                String usage = line.replace("*Academic usage:*", "").trim();
+                result.append("        <div class=\"collocation-usage\"><strong>Academic usage:</strong> ").append(usage).append("</div>\n");
+            } else if (!line.startsWith("<div") && !line.equals("</div>")) {
+                // Regular content line - could be continuation of definition
+                if (inCollocationItem) {
+                    result.append("        <div class=\"collocation-definition\">").append(line).append("</div>\n");
+                } else {
+                    result.append("      <p>").append(line).append("</p>\n");
+                }
+            }
+        }
+        
+        if (inCollocationItem) {
+            result.append("      </div>\n"); // Close last collocation item
+        }
+        
+        return result.toString();
+    }
+    
+    private String formatImplicitExplicit(String content) {
+        StringBuilder result = new StringBuilder();
+        String[] sections = content.split("(?=\\*\\*(?:Explicit|Implicit) Information:\\*\\*)");
+        
+        for (String section : sections) {
+            section = section.trim();
+            if (section.isEmpty()) continue;
+            
+            if (section.contains("**Explicit Information:**")) {
+                result.append("      <div class=\"info-section\">\n");
+                result.append("        <h4 class=\"info-title\">Explicit Information</h4>\n");
+                result.append("        <ul class=\"info-list\">\n");
+                
+                String[] lines = section.split("\\n");
+                for (String line : lines) {
+                    line = line.trim();
+                    if (line.startsWith("*") && !line.startsWith("**Explicit")) {
+                        result.append("          <li>").append(line.substring(1).trim()).append("</li>\n");
+                    } else if (line.startsWith("•")) {
+                        result.append("          <li>").append(line.substring(1).trim()).append("</li>\n");
+                    } else if (!line.startsWith("**Explicit") && !line.isEmpty()) {
+                        result.append("          <li>").append(line).append("</li>\n");
+                    }
+                }
+                result.append("        </ul>\n");
+                result.append("      </div>\n");
+            } else if (section.contains("**Implicit Information:**")) {
+                result.append("      <div class=\"info-section\">\n");
+                result.append("        <h4 class=\"info-title\">Implicit Information</h4>\n");
+                result.append("        <ul class=\"info-list\">\n");
+                
+                String[] lines = section.split("\\n");
+                for (String line : lines) {
+                    line = line.trim();
+                    if (line.startsWith("*") && !line.startsWith("**Implicit")) {
+                        result.append("          <li>").append(line.substring(1).trim()).append("</li>\n");
+                    } else if (line.startsWith("•")) {
+                        result.append("          <li>").append(line.substring(1).trim()).append("</li>\n");
+                    } else if (!line.startsWith("**Implicit") && !line.isEmpty()) {
+                        result.append("          <li>").append(line).append("</li>\n");
+                    }
+                }
+                result.append("        </ul>\n");
+                result.append("      </div>\n");
+            }
+        }
+        
+        return result.toString();
+    }
+    
+    private String formatQuestionStrategies(String content) {
+        StringBuilder result = new StringBuilder();
+        String[] lines = content.split("\\n");
+        boolean inStrategy = false;
+        
+        for (String line : lines) {
+            line = line.trim();
+            if (line.isEmpty()) continue;
+            
+            if (line.contains("**Strategy") && line.contains(":**")) {
+                if (inStrategy) {
+                    result.append("      </div>\n"); // Close previous strategy
+                }
+                
+                // Extract strategy number and content
+                int colonIndex = line.indexOf(":**");
+                if (colonIndex != -1) {
+                    String strategyHeader = line.substring(0, colonIndex + 3).replace("**", "<strong>").replace("**", "</strong>");
+                    String strategyContent = line.substring(colonIndex + 3).trim();
+                    
+                    result.append("      <div class=\"strategy-item\">\n");
+                    result.append("        <div class=\"strategy-number\">").append(strategyHeader).append("</div>\n");
+                    if (!strategyContent.isEmpty()) {
+                        result.append("        <div class=\"strategy-content\">").append(strategyContent).append("</div>\n");
+                    }
+                    inStrategy = true;
+                }
+            } else if (line.contains("*Tip:*")) {
+                // Tip content
+                String tip = line.replace("*Tip:*", "").trim();
+                result.append("        <div class=\"strategy-tip\"><strong>Tip:</strong> ").append(tip).append("</div>\n");
+            } else if (line.contains("*Process:*")) {
+                // Process content
+                String process = line.replace("*Process:*", "").trim();
+                result.append("        <div class=\"strategy-process\"><strong>Process:</strong> ").append(process).append("</div>\n");
+            } else if (!line.startsWith("<div") && !line.equals("</div>")) {
+                // Regular content
+                if (inStrategy) {
+                    result.append("        <div class=\"strategy-content\">").append(line).append("</div>\n");
+                } else {
+                    result.append("      <p>").append(line).append("</p>\n");
+                }
+            }
+        }
+        
+        if (inStrategy) {
+            result.append("      </div>\n"); // Close last strategy
+        }
+        
+        return result.toString();
     }
     
     private String buildSimpleIeltsContent(IeltsPassage passage, IeltsExplanation explanation) {
