@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.regex.Pattern;
 
 @Service
 public class IeltsReadingService {
@@ -246,42 +247,12 @@ public class IeltsReadingService {
         String questionStrategy = "";
 
         try {
-            // Find section positions
-            int mainIdeaStart = findSectionStart(response, "Main Idea & Purpose:");
-            int paragraphSummaryStart = findSectionStart(response, "Paragraph Summaries:");
-            int keyVocabularyStart = findSectionStart(response, "Key Collocations & Vocabulary:");
-            int implicitExplicitStart = findSectionStart(response, "Implicit vs Explicit Information:");
-            int questionStrategyStart = findSectionStart(response, "Question Strategy:");
-
-            // Extract main idea
-            if (mainIdeaStart != -1 && paragraphSummaryStart != -1) {
-                mainIdea = response.substring(mainIdeaStart, paragraphSummaryStart)
-                    .replaceAll("(?i)^.*?Main Idea & Purpose:\\s*", "").trim();
-            }
-
-            // Extract paragraph summaries
-            if (paragraphSummaryStart != -1 && keyVocabularyStart != -1) {
-                paragraphSummary = response.substring(paragraphSummaryStart, keyVocabularyStart)
-                    .replaceAll("(?i)^.*?Paragraph Summaries:\\s*", "").trim();
-            }
-
-            // Extract key vocabulary/collocations
-            if (keyVocabularyStart != -1 && implicitExplicitStart != -1) {
-                keyVocabulary = response.substring(keyVocabularyStart, implicitExplicitStart)
-                    .replaceAll("(?i)^.*?Key Collocations & Vocabulary:\\s*", "").trim();
-            }
-
-            // Extract implicit vs explicit information
-            if (implicitExplicitStart != -1 && questionStrategyStart != -1) {
-                implicitExplicit = response.substring(implicitExplicitStart, questionStrategyStart)
-                    .replaceAll("(?i)^.*?Implicit vs Explicit Information:\\s*", "").trim();
-            }
-
-            // Extract question strategy
-            if (questionStrategyStart != -1) {
-                questionStrategy = response.substring(questionStrategyStart)
-                    .replaceAll("(?i)^.*?Question Strategy:\\s*", "").trim();
-            }
+            // Use more robust section extraction method
+            mainIdea = extractSection(response, "Main Idea & Purpose:", new String[]{"Paragraph Summaries:"});
+            paragraphSummary = extractSection(response, "Paragraph Summaries:", new String[]{"Key Collocations & Vocabulary:"});
+            keyVocabulary = extractSection(response, "Key Collocations & Vocabulary:", new String[]{"Implicit vs Explicit Information:"});
+            implicitExplicit = extractSection(response, "Implicit vs Explicit Information:", new String[]{"Question Strategy:"});
+            questionStrategy = extractSection(response, "Question Strategy:", new String[]{});
 
             // Fallback logic if sections not found properly
             if (mainIdea.isEmpty() && paragraphSummary.isEmpty() && keyVocabulary.isEmpty()) {
@@ -297,6 +268,29 @@ public class IeltsReadingService {
         }
 
         return new IeltsExplanation(mainIdea, paragraphSummary, keyVocabulary, implicitExplicit, questionStrategy);
+    }
+
+    private String extractSection(String response, String sectionHeader, String[] nextSectionHeaders) {
+        int sectionStart = findSectionStart(response, sectionHeader);
+        if (sectionStart == -1) {
+            return "";
+        }
+
+        // Find the start of the next section
+        int sectionEnd = response.length();
+        for (String nextHeader : nextSectionHeaders) {
+            int nextStart = findSectionStart(response, nextHeader);
+            if (nextStart != -1 && nextStart > sectionStart) {
+                sectionEnd = Math.min(sectionEnd, nextStart);
+            }
+        }
+
+        // Extract content and clean it
+        String content = response.substring(sectionStart, sectionEnd);
+        // Remove the section header
+        content = content.replaceAll("(?i)^.*?" + Pattern.quote(sectionHeader) + "\\s*", "").trim();
+        
+        return content;
     }
 
     private int findSectionStart(String text, String sectionHeader) {
@@ -526,8 +520,12 @@ public class IeltsReadingService {
             
             for (String paragraph : paragraphs) {
                 if (!paragraph.trim().isEmpty()) {
-                    String processedParagraph = processBoldTextAndBullets(paragraph.trim());
-                    formatted.append("      <p>").append(processedParagraph).append("</p>\n");
+                    // Remove markdown headers from paragraph
+                    String cleanParagraph = paragraph.replaceAll("^#+\\s*", "").trim();
+                    if (!cleanParagraph.isEmpty()) {
+                        String processedParagraph = processBoldTextAndBullets(cleanParagraph);
+                        formatted.append("      <p>").append(processedParagraph).append("</p>\n");
+                    }
                 }
             }
             
@@ -536,25 +534,28 @@ public class IeltsReadingService {
     }
     
     private String processBoldTextAndBullets(String text) {
+        // Remove markdown headers (###, ##, etc.)
+        text = text.replaceAll("^#+\\s*", "");
+        
         // Convert **text** to <strong>text</strong> (double asterisk)
         text = text.replaceAll("\\*\\*(.*?)\\*\\*", "<strong>$1</strong>");
         
-        // Convert *text* to <strong>text</strong> (single asterisk, but not if it's part of formatting like *Example:*)
-        // Use negative lookbehind and lookahead to avoid matching formatting markers
-        text = text.replaceAll("(?<!\\*)\\*([^*]+?)\\*(?!\\*)", "<strong>$1</strong>");
+        // Convert *text* to <strong>text</strong> (single asterisk) - but be more careful about context
+        // Only apply to lines that look like formatting, not content with asterisks
+        text = text.replaceAll("(?<!\\*)\\*([^*\\n]+?)\\*(?!\\*)", "<strong>$1</strong>");
         
         // Handle collocations formatting - look for specific patterns
-        if (text.contains("*Example:*") || text.contains("*Academic usage:*")) {
+        if (text.contains("Example:") || text.contains("Academic usage:")) {
             return processCollocationFormat(text);
         }
         
         // Handle strategy formatting
-        if (text.contains("**Strategy") && text.contains(":**")) {
+        if (text.contains("Strategy") && text.contains(":")) {
             return processStrategyFormat(text);
         }
         
         // Handle paragraph summaries with special formatting
-        if (text.contains("**Paragraph") && text.contains(":**")) {
+        if (text.contains("Paragraph") && text.contains(":")) {
             return processParagraphSummaryFormat(text);
         }
         
@@ -704,14 +705,21 @@ public class IeltsReadingService {
             line = line.trim();
             if (line.isEmpty()) continue;
             
-            if (line.contains("**Paragraph") && line.contains(":**")) {
-                // Convert **text** to <strong>text</strong>
+            // Remove markdown headers
+            if (line.matches("^#+\\s*.*")) {
+                continue; // Skip markdown headers
+            }
+            
+            if (line.contains("Paragraph") && line.contains(":")) {
+                // Convert **text** to <strong>text</strong> and handle paragraph headers
                 line = line.replaceAll("\\*\\*(.*?)\\*\\*", "<strong>$1</strong>");
                 result.append("      <div class=\"paragraph-summary\">").append(line).append("</div>\n");
             } else {
                 // Regular content
                 line = line.replaceAll("\\*\\*(.*?)\\*\\*", "<strong>$1</strong>");
-                result.append("      <p>").append(line).append("</p>\n");
+                if (!line.isEmpty()) {
+                    result.append("      <p>").append(line).append("</p>\n");
+                }
             }
         }
         
@@ -727,43 +735,61 @@ public class IeltsReadingService {
             line = line.trim();
             if (line.isEmpty()) continue;
             
-            // Check for numbered collocation items (e.g., "1. **sustainable urban infrastructure:**")
-            if (line.matches("\\d+\\.\\s+\\*\\*.*?\\*\\*:.*")) {
+            // Remove markdown headers
+            if (line.matches("^#+\\s*.*")) {
+                continue; // Skip markdown headers
+            }
+            
+            // Check for numbered collocation items (e.g., "1. captivating natural phenomenon:")
+            if (line.matches("\\d+\\.\\s+.*?:.*")) {
                 if (inCollocationItem) {
                     result.append("      </div>\n"); // Close previous collocation item
                 }
                 
                 // Extract number, term, and definition
-                String[] parts = line.split("\\*\\*", 3);
-                if (parts.length >= 3) {
-                    String number = parts[0].trim();
-                    String term = parts[1].trim();
-                    String definition = parts[2].replace(":", "").trim();
+                int colonIndex = line.indexOf(":");
+                if (colonIndex != -1) {
+                    String termPart = line.substring(0, colonIndex).trim();
+                    String definition = line.substring(colonIndex + 1).trim();
+                    
+                    // Remove number and format term
+                    String term = termPart.replaceFirst("^\\d+\\.\\s*", "");
+                    // Apply bold formatting
+                    term = term.replaceAll("\\*\\*(.*?)\\*\\*", "<strong>$1</strong>");
                     
                     result.append("      <div class=\"collocation-item\">\n");
-                    result.append("        <div class=\"collocation-term\">").append(number).append(" ").append(term).append("</div>\n");
-                    result.append("        <div class=\"collocation-definition\">").append(definition).append("</div>\n");
+                    result.append("        <div class=\"collocation-term\">").append(term).append("</div>\n");
+                    if (!definition.isEmpty()) {
+                        result.append("        <div class=\"collocation-definition\">").append(definition).append("</div>\n");
+                    }
                     inCollocationItem = true;
                 }
-            } else if (line.contains("*Definition & Meaning in Context:*")) {
+            } else if (line.contains("Definition & Meaning in Context:") || line.contains("*Definition & Meaning in Context:*")) {
                 // Definition line
-                String definition = line.replace("*Definition & Meaning in Context:*", "").trim();
-                if (!definition.isEmpty()) {
+                String definition = line.replaceAll("\\*?Definition & Meaning in Context:\\*?", "").trim();
+                if (!definition.isEmpty() && inCollocationItem) {
                     result.append("        <div class=\"collocation-definition\">").append(definition).append("</div>\n");
                 }
-            } else if (line.contains("*Example:*")) {
+            } else if (line.contains("Example:") || line.contains("*Example:*")) {
                 // Example sentence
-                String example = line.replace("*Example:*", "").trim();
-                result.append("        <div class=\"collocation-example\"><strong>Example:</strong> ").append(example).append("</div>\n");
-            } else if (line.contains("*Academic usage:*")) {
+                String example = line.replaceAll("\\*?Example:\\*?", "").trim();
+                if (!example.isEmpty() && inCollocationItem) {
+                    result.append("        <div class=\"collocation-example\"><strong>Example:</strong> ").append(example).append("</div>\n");
+                }
+            } else if (line.contains("Academic usage:") || line.contains("*Academic usage:*")) {
                 // Academic usage explanation
-                String usage = line.replace("*Academic usage:*", "").trim();
-                result.append("        <div class=\"collocation-usage\"><strong>Academic usage:</strong> ").append(usage).append("</div>\n");
+                String usage = line.replaceAll("\\*?Academic usage:\\*?", "").trim();
+                if (!usage.isEmpty() && inCollocationItem) {
+                    result.append("        <div class=\"collocation-usage\"><strong>Academic usage:</strong> ").append(usage).append("</div>\n");
+                }
             } else if (!line.startsWith("<div") && !line.equals("</div>")) {
                 // Regular content line - could be continuation of definition
-                if (inCollocationItem) {
+                if (inCollocationItem && !line.matches("\\d+\\.\\s+.*")) {
+                    // Apply formatting and add as continuation
+                    line = line.replaceAll("\\*\\*(.*?)\\*\\*", "<strong>$1</strong>");
                     result.append("        <div class=\"collocation-definition\">").append(line).append("</div>\n");
-                } else {
+                } else if (!inCollocationItem) {
+                    line = line.replaceAll("\\*\\*(.*?)\\*\\*", "<strong>$1</strong>");
                     result.append("      <p>").append(line).append("</p>\n");
                 }
             }
@@ -778,49 +804,64 @@ public class IeltsReadingService {
     
     private String formatImplicitExplicit(String content) {
         StringBuilder result = new StringBuilder();
-        String[] sections = content.split("(?=\\*\\*(?:Explicit|Implicit) Information:\\*\\*)");
         
-        for (String section : sections) {
-            section = section.trim();
-            if (section.isEmpty()) continue;
+        // Split content by section headers, handling various formats
+        String[] lines = content.split("\\n");
+        boolean inExplicitSection = false;
+        boolean inImplicitSection = false;
+        
+        for (String line : lines) {
+            line = line.trim();
+            if (line.isEmpty()) continue;
             
-            if (section.contains("**Explicit Information:**")) {
+            // Check for section headers (with or without asterisks)
+            if (line.toLowerCase().contains("explicit information")) {
+                if (inImplicitSection) {
+                    result.append("        </ul>\n");
+                    result.append("      </div>\n");
+                    inImplicitSection = false;
+                }
+                
                 result.append("      <div class=\"info-section\">\n");
                 result.append("        <h4 class=\"info-title\">Explicit Information</h4>\n");
                 result.append("        <ul class=\"info-list\">\n");
-                
-                String[] lines = section.split("\\n");
-                for (String line : lines) {
-                    line = line.trim();
-                    if (line.startsWith("*") && !line.startsWith("**Explicit")) {
-                        result.append("          <li>").append(line.substring(1).trim()).append("</li>\n");
-                    } else if (line.startsWith("•")) {
-                        result.append("          <li>").append(line.substring(1).trim()).append("</li>\n");
-                    } else if (!line.startsWith("**Explicit") && !line.isEmpty()) {
-                        result.append("          <li>").append(line).append("</li>\n");
-                    }
+                inExplicitSection = true;
+                continue;
+            } else if (line.toLowerCase().contains("implicit information")) {
+                if (inExplicitSection) {
+                    result.append("        </ul>\n");
+                    result.append("      </div>\n");
+                    inExplicitSection = false;
                 }
-                result.append("        </ul>\n");
-                result.append("      </div>\n");
-            } else if (section.contains("**Implicit Information:**")) {
+                
                 result.append("      <div class=\"info-section\">\n");
                 result.append("        <h4 class=\"info-title\">Implicit Information</h4>\n");
                 result.append("        <ul class=\"info-list\">\n");
-                
-                String[] lines = section.split("\\n");
-                for (String line : lines) {
-                    line = line.trim();
-                    if (line.startsWith("*") && !line.startsWith("**Implicit")) {
-                        result.append("          <li>").append(line.substring(1).trim()).append("</li>\n");
-                    } else if (line.startsWith("•")) {
-                        result.append("          <li>").append(line.substring(1).trim()).append("</li>\n");
-                    } else if (!line.startsWith("**Implicit") && !line.isEmpty()) {
-                        result.append("          <li>").append(line).append("</li>\n");
-                    }
-                }
-                result.append("        </ul>\n");
-                result.append("      </div>\n");
+                inImplicitSection = true;
+                continue;
             }
+            
+            // Process content lines
+            if (inExplicitSection || inImplicitSection) {
+                // Format bold text **text** to <strong>text</strong>
+                String formattedLine = line.replaceAll("\\*\\*(.*?)\\*\\*", "<strong>$1</strong>");
+                
+                // Handle bullet points or list items
+                if (line.startsWith("•") || line.startsWith("*") || line.startsWith("-")) {
+                    // Remove bullet and add as list item
+                    String contentText = formattedLine.replaceFirst("^[•*-]\\s*", "");
+                    result.append("          <li>").append(contentText).append("</li>\n");
+                } else {
+                    // Regular content line
+                    result.append("          <li>").append(formattedLine).append("</li>\n");
+                }
+            }
+        }
+        
+        // Close any open section
+        if (inExplicitSection || inImplicitSection) {
+            result.append("        </ul>\n");
+            result.append("      </div>\n");
         }
         
         return result.toString();
@@ -830,39 +871,62 @@ public class IeltsReadingService {
         StringBuilder result = new StringBuilder();
         String[] lines = content.split("\\n");
         boolean inStrategy = false;
+        boolean inBulletList = false;
         
         for (String line : lines) {
             line = line.trim();
             if (line.isEmpty()) continue;
             
-            if (line.contains("**Strategy") && line.contains(":**")) {
+            // Remove markdown headers
+            if (line.matches("^#+\\s*.*")) {
+                continue; // Skip markdown headers
+            }
+            
+            // Apply bold formatting to the line first
+            line = line.replaceAll("\\*\\*(.*?)\\*\\*", "<strong>$1</strong>");
+            
+            // Check for strategy headers (e.g., "Strategy 1:" or "**Strategy 1:**")
+            if (line.toLowerCase().matches(".*strategy\\s+\\d+.*:.*")) {
+                // Close previous strategy or list
+                if (inBulletList) {
+                    result.append("        </ul>\n");
+                    inBulletList = false;
+                }
                 if (inStrategy) {
-                    result.append("      </div>\n"); // Close previous strategy
+                    result.append("      </div>\n");
                 }
                 
-                // Extract strategy number and content
-                int colonIndex = line.indexOf(":**");
+                // Extract strategy header and content
+                int colonIndex = line.indexOf(":");
                 if (colonIndex != -1) {
-                    String strategyHeader = line.substring(0, colonIndex + 3).replace("**", "<strong>").replace("**", "</strong>");
-                    String strategyContent = line.substring(colonIndex + 3).trim();
+                    String strategyHeader = line.substring(0, colonIndex + 1);
+                    String strategyContent = line.substring(colonIndex + 1).trim();
                     
                     result.append("      <div class=\"strategy-item\">\n");
-                    result.append("        <div class=\"strategy-number\">").append(strategyHeader).append("</div>\n");
+                    result.append("        <div class=\"strategy-header\">").append(strategyHeader).append("</div>\n");
                     if (!strategyContent.isEmpty()) {
                         result.append("        <div class=\"strategy-content\">").append(strategyContent).append("</div>\n");
                     }
                     inStrategy = true;
                 }
-            } else if (line.contains("*Tip:*")) {
-                // Tip content
-                String tip = line.replace("*Tip:*", "").trim();
-                result.append("        <div class=\"strategy-tip\"><strong>Tip:</strong> ").append(tip).append("</div>\n");
-            } else if (line.contains("*Process:*")) {
-                // Process content
-                String process = line.replace("*Process:*", "").trim();
-                result.append("        <div class=\"strategy-process\"><strong>Process:</strong> ").append(process).append("</div>\n");
+            } else if (line.startsWith("•") || line.startsWith("-") || line.startsWith("*")) {
+                // Bullet point with bullet symbol
+                if (!inBulletList && inStrategy) {
+                    result.append("        <ul class=\"strategy-list\">\n");
+                    inBulletList = true;
+                }
+                if (inBulletList) {
+                    String bulletContent = line.replaceFirst("^[•*-]\\s*", "");
+                    result.append("          <li>").append(bulletContent).append("</li>\n");
+                } else {
+                    result.append("      <p>").append(line).append("</p>\n");
+                }
             } else if (!line.startsWith("<div") && !line.equals("</div>")) {
                 // Regular content
+                if (inBulletList) {
+                    result.append("        </ul>\n");
+                    inBulletList = false;
+                }
                 if (inStrategy) {
                     result.append("        <div class=\"strategy-content\">").append(line).append("</div>\n");
                 } else {
@@ -871,8 +935,12 @@ public class IeltsReadingService {
             }
         }
         
+        // Close any open lists or strategies
+        if (inBulletList) {
+            result.append("        </ul>\n");
+        }
         if (inStrategy) {
-            result.append("      </div>\n"); // Close last strategy
+            result.append("      </div>\n");
         }
         
         return result.toString();
