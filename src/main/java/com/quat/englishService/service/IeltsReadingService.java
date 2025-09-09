@@ -37,6 +37,7 @@ public class IeltsReadingService {
 
             Ensure the topic is different each time the prompt is used, to create diverse passages for practice.
             Answer should be mixed in terms of difficulty, with some questions focusing on direct information and others requiring inference or understanding of vocabulary in context and random order.
+            Provide random answer A, B, C, D for each question.
             Output Format clearly with:
 
             Topic:
@@ -97,6 +98,7 @@ public class IeltsReadingService {
             - Identify 8–10 key academic collocations (word combinations) and important topic-specific vocabulary from the passage.  
             - For each collocation/vocabulary word, include:  
                 - **Definition & Meaning in Context:** Explain how it is used in the passage.  
+                - **Vietnamese Meaning:** Provide the Vietnamese translation and meaning.  
                 - **Example Sentence:** Provide a natural sentence using the word/collocation.  
                 - **Academic Usage:** Explain how it is typically used in academic or formal writing.  
             - Highlight bold words or phrases as they appear in the passage.
@@ -122,6 +124,7 @@ public class IeltsReadingService {
 
             Key Collocations & Vocabulary:
             **collocation or word:** definition & meaning in context  
+            *Vietnamese Meaning:* Vietnamese translation and meaning  
             *Example:* natural sentence using it  
             *Academic usage:* typical academic use  
 
@@ -676,6 +679,12 @@ public class IeltsReadingService {
                 if (!definition.isEmpty()) {
                     result.append("  <div class=\"collocation-definition\">").append(definition).append("</div>\n");
                 }
+            } else if (line.contains("*Vietnamese Meaning:*")) {
+                // Vietnamese meaning line
+                String vietnamese = line.replace("*Vietnamese Meaning:*", "").trim();
+                if (!vietnamese.isEmpty()) {
+                    result.append("  <div class=\"collocation-vietnamese\"><strong>Vietnamese:</strong> ").append(vietnamese).append("</div>\n");
+                }
             } else if (line.contains("*Example:*")) {
                 // Example sentence
                 String example = line.replace("*Example:*", "").trim();
@@ -769,6 +778,12 @@ public class IeltsReadingService {
                 String definition = line.replaceAll("\\*?Definition & Meaning in Context:\\*?", "").trim();
                 if (!definition.isEmpty() && inCollocationItem) {
                     result.append("        <div class=\"collocation-definition\">").append(definition).append("</div>\n");
+                }
+            } else if (line.contains("Vietnamese Meaning:") || line.contains("*Vietnamese Meaning:*")) {
+                // Vietnamese meaning line
+                String vietnamese = line.replaceAll("\\*?Vietnamese Meaning:\\*?", "").trim();
+                if (!vietnamese.isEmpty() && inCollocationItem) {
+                    result.append("        <div class=\"collocation-vietnamese\"><strong>Vietnamese:</strong> ").append(vietnamese).append("</div>\n");
                 }
             } else if (line.contains("Example:") || line.contains("*Example:*")) {
                 // Example sentence
