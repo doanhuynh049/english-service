@@ -213,7 +213,7 @@ public class GeminiClient {
                 GeminiResponse geminiResponse = objectMapper.readValue(response.body(), GeminiResponse.class);
                 String result = extractTextFromResponse(geminiResponse);
                 logger.info("Generated content: {} characters", result.length());
-                logger.info("Full response: {}", response.body());
+                logger.info("Full response: {}", result);
                 return result;
             } else {
                 logger.error("Gemini API error for custom prompt: Status {}, Body: {}",

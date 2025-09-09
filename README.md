@@ -1,10 +1,11 @@
-# English Vocabulary & TOEIC Listening Service 📚🎧
+# English Learning Service Suite 📚🎧📖
 
-A Spring Boot application that automatically delivers comprehensive English learning content via email:
+A comprehensive Spring Boot application that automatically delivers three types of English learning content via email:
 - **Daily Vocabulary** (5:00 AM): 4 vocabulary words with AI explanations and audio
+- **IELTS Reading Practice** (11:00 AM): Academic reading passages with detailed explanations
 - **TOEIC Listening Practice** (6:00 PM): Business collocations with audio passages
 
-Both powered by Google's Gemini AI and Google Text-to-Speech for immersive learning.
+All powered by Google's Gemini AI and Google Text-to-Speech for immersive, multi-modal learning.
 
 ## 🌟 Features
 
@@ -19,6 +20,18 @@ Both powered by Google's Gemini AI and Google Text-to-Speech for immersive learn
   - AI-generated monologues for natural context
 - **Multi-Modal Content**: Text explanations + pronunciation audio + contextual audio
 
+### 📖 IELTS Reading Practice (11:00 AM)
+- **Academic Passages**: Authentic IELTS-style reading passages (250-300 words)
+- **Diverse Topics**: Science, technology, environment, education, history, health, culture
+- **Comprehensive Questions**: 5 multiple-choice questions testing comprehension and inference
+- **Detailed Explanations**: AI-generated breakdown including:
+  - Main idea and paragraph summaries
+  - Key vocabulary definitions with synonyms
+  - Implicit vs explicit information analysis
+  - Question-answering strategies
+  - Academic writing structure insights
+- **Professional Format**: Clean HTML email with academic styling
+
 ### 🎧 TOEIC Listening Practice (6:00 PM)  
 - **Business Collocations**: 10 common TOEIC collocations (score range 600-950)
 - **Authentic Practice**: 3 TOEIC Part 4 style listening passages
@@ -30,28 +43,48 @@ Both powered by Google's Gemini AI and Google Text-to-Speech for immersive learn
   - Professional HTML email template with orange/blue theme
 
 ### 🔧 System Features
-- **Automated Scheduling**: Two daily sessions with different content types
-- **Beautiful HTML Emails**: Professional templates for vocabulary and TOEIC content  
+- **Triple Automated Scheduling**: Three daily sessions with different content types and timings
+- **Beautiful HTML Emails**: Professional templates for vocabulary, IELTS, and TOEIC content  
 - **Audio Generation**: High-quality TTS with different speeds for learning
 - **Excel Logging**: Persistent tracking of all vocabulary and progress
 - **Manual Testing**: REST API endpoints for immediate testing
-- **Comprehensive Attachments**: Audio files and text documents in every email
+- **Comprehensive Attachments**: Audio files and text documents in relevant emails
 
 ## 🏗️ Architecture
 
 ```
 ├── VocabularyScheduler     → Daily vocabulary at 5:00 AM (4 words: 3 new + 1 review)
+├── IeltsScheduler         → Daily IELTS reading at 11:00 AM (academic passages + explanations)
 ├── ToeicScheduler         → Daily TOEIC listening at 6:00 PM (collocations + passages)
 ├── GeminiClient           → Google Gemini AI integration for content generation
-├── EmailService           → Dual HTML templates for vocabulary and TOEIC emails
+├── EmailService           → Triple HTML templates for vocabulary, IELTS, and TOEIC emails
 ├── AudioService           → TTS generation with Python/gTTS integration
 ├── ExcelService           → Progress tracking and word history management
 ├── VocabularyService      → Core vocabulary processing with AI monologues
+├── IeltsReadingService    → IELTS academic reading generation and processing
 ├── ToeicListeningService  → TOEIC content generation and audio processing
 ├── VocabularyController   → REST API for vocabulary testing
+├── IeltsController        → REST API for IELTS testing
 ├── ToeicController        → REST API for TOEIC testing
 └── AudioController        → Audio file serving and streaming
 ```
+
+## 📅 Complete Daily Learning Schedule
+
+The application provides a comprehensive English learning experience with three automated sessions throughout the day:
+
+| Time | Service | Content | Duration | Focus |
+|------|---------|---------|----------|-------|
+| **5:00 AM** | 📚 Vocabulary | 4 words (3 new + 1 review) | ~15 min | Basic → Advanced vocabulary |
+| **11:00 AM** | 📖 IELTS Reading | Academic passage + questions | ~20 min | Reading comprehension |
+| **6:00 PM** | 🎧 TOEIC Listening | Business collocations + audio | ~25 min | Listening skills |
+
+**Total Daily Learning Time**: ~60 minutes of structured English practice
+
+### Learning Progression
+- **Morning (5 AM)**: Start with vocabulary foundation building
+- **Midday (11 AM)**: Academic reading skills for IELTS preparation  
+- **Evening (6 PM)**: Business English listening for TOEIC preparation
 
 ## 🚀 Quick Start
 
@@ -103,6 +136,9 @@ java -jar target/english-service-0.0.1-SNAPSHOT.jar
 ```bash
 # Test vocabulary service (generates 4 words: 3 new + 1 review)
 curl -X POST http://localhost:8282/api/vocabulary/trigger-daily
+
+# Test IELTS reading service (generates academic passage + explanations)
+curl -X POST http://localhost:8282/api/ielts/send-reading
 
 # Test TOEIC listening service (generates collocations + 3 audio passages)
 curl -X POST http://localhost:8282/api/toeic/trigger-listening
@@ -161,7 +197,7 @@ The application automatically creates and maintains a `vocabulary_log.xlsx` file
 
 ## 🕐 Scheduling
 
-The application runs two automated daily sessions:
+The application runs three automated daily sessions:
 
 ### 📚 Vocabulary Session (5:00 AM)
 ```java
@@ -170,6 +206,17 @@ public void scheduledVocabularySession() {
     // Processes 4 vocabulary words (3 new + 1 review)
     // Generates AI explanations, monologues, and audio
     // Sends vocabulary email with attachments
+}
+```
+
+### 📖 IELTS Reading Session (11:00 AM)
+```java
+@Scheduled(cron = "0 0 11 * * ?") // 11:00 AM daily
+public void scheduledIeltsReadingSession() {
+    // Generates academic reading passage (250-300 words)
+    // Creates 5 multiple-choice comprehension questions
+    // Produces detailed explanations and analysis
+    // Sends IELTS email with complete study materials
 }
 ```
 
@@ -186,8 +233,9 @@ public void scheduledToeicListeningSession() {
 
 ### Cron Expression Guide
 - `0 0 5 * * ?` = Every day at 5:00:00 AM
+- `0 0 11 * * ?` = Every day at 11:00:00 AM
 - `0 0 18 * * ?` = Every day at 6:00:00 PM
-- Modify in `VocabularyScheduler.java` or `ToeicScheduler.java` to change times
+- Modify in respective scheduler files to change times
 
 ## 🔧 API Endpoints
 
@@ -214,6 +262,15 @@ Check vocabulary service health.
 
 ```bash
 curl http://localhost:8282/api/vocabulary/health
+```
+
+### IELTS Endpoints
+
+**POST** `/api/ielts/send-reading`
+Manually triggers IELTS reading practice generation.
+
+```bash
+curl -X POST http://localhost:8282/api/ielts/send-reading
 ```
 
 ### TOEIC Endpoints
@@ -265,6 +322,13 @@ Leave the application running for automated learning:
 - Monologue transcript document
 - Excel log updated with learning history
 
+**11:00 AM Daily:** IELTS Reading Email
+- Academic reading passage (250-300 words)
+- 5 multiple-choice comprehension questions with answers
+- Detailed explanations covering main ideas and vocabulary
+- Academic writing analysis and question strategies
+- Professional formatting for study focus
+
 **6:00 PM Daily:** TOEIC Listening Email  
 - 10 business collocations with explanations
 - 3 TOEIC Part 4 style audio passages
@@ -277,6 +341,9 @@ Leave the application running for automated learning:
 ```bash
 # Test vocabulary service immediately
 curl -X POST http://localhost:8282/api/vocabulary/trigger-daily
+
+# Test IELTS reading service immediately
+curl -X POST http://localhost:8282/api/ielts/send-reading
 
 # Test TOEIC listening service immediately  
 curl -X POST http://localhost:8282/api/toeic/trigger-listening
@@ -311,7 +378,7 @@ http://localhost:8282/audio/2025-09-08/
 
 ## 🎨 Email Templates
 
-The application sends two types of beautiful HTML emails:
+The application sends three types of beautiful HTML emails:
 
 ### 📚 Vocabulary Email Template (`email-template.html`)
 - **Header**: Date and vocabulary session title
@@ -319,6 +386,14 @@ The application sends two types of beautiful HTML emails:
 - **Audio Player Links**: Direct access to pronunciation and example audio
 - **Footer**: Motivational message and service attribution
 - **Styling**: Professional CSS with green theme and clean formatting
+
+### 📖 IELTS Email Template (`ielts-email-template.html`)
+- **Header**: IELTS Academic Reading title with date
+- **Passage Section**: Complete reading passage with topic introduction
+- **Questions Section**: 5 multiple-choice questions with clear formatting
+- **Explanations Section**: Detailed breakdown of main ideas, vocabulary, and strategies
+- **Answer Key**: Complete answers with reasoning
+- **Styling**: Academic blue theme with scholarly design
 
 ### 🎧 TOEIC Email Template (`toeic-email-template.html`)
 - **Header**: TOEIC Listening Practice title with date
@@ -347,6 +422,45 @@ Word 2: RESILIENT
 [Full Gemini AI explanation...]
 
 [...2 more words...]
+```
+
+### Sample IELTS Email Structure
+
+```
+📖 IELTS Academic Reading Practice
+Date: Monday, September 09, 2025
+
+📘 READING PASSAGE
+─────────────────────
+Topic: The Impact of Artificial Intelligence on Modern Healthcare
+
+[250-300 word academic passage about AI in healthcare...]
+
+📝 COMPREHENSION QUESTIONS
+─────────────────────────────
+1. According to the passage, what is the primary benefit of AI in medical diagnosis?
+   A. Reduced costs for patients
+   B. Faster and more accurate diagnosis
+   C. Elimination of human doctors
+   D. Simplified medical procedures
+
+[...4 more questions...]
+
+📚 DETAILED EXPLANATIONS
+───────────────────────
+Main Idea: The passage discusses how artificial intelligence is revolutionizing healthcare...
+
+Key Vocabulary:
+• sophisticated /səˈfɪstɪkeɪtɪd/ - advanced and complex
+• diagnostic /ˌdaɪəɡˈnɒstɪk/ - relating to medical diagnosis
+• algorithms /ˈælɡərɪðəmz/ - computer procedures for calculations
+
+[...detailed analysis and strategies...]
+
+✅ ANSWER KEY
+─────────────
+1. B - Faster and more accurate diagnosis
+[...explanations for each answer...]
 ```
 
 ### Sample TOEIC Email Structure
@@ -401,6 +515,7 @@ src/main/java/com/quat/englishService/
 ├── EnglishServiceApplication.java     # Main Spring Boot application
 ├── controller/
 │   ├── VocabularyController.java      # Vocabulary REST API endpoints
+│   ├── IeltsController.java           # IELTS REST API endpoints
 │   ├── ToeicController.java           # TOEIC REST API endpoints
 │   └── AudioController.java           # Audio streaming endpoints
 ├── dto/
@@ -411,18 +526,22 @@ src/main/java/com/quat/englishService/
 │   └── VocabularyWord.java           # Domain model
 ├── scheduler/
 │   ├── VocabularyScheduler.java      # Daily vocabulary scheduling (5:00 AM)
+│   ├── IeltsScheduler.java           # Daily IELTS scheduling (11:00 AM)
 │   └── ToeicScheduler.java           # Daily TOEIC scheduling (6:00 PM)
 └── service/
-    ├── EmailService.java             # Dual email handling (vocabulary + TOEIC)
+    ├── EmailService.java             # Triple email handling (vocabulary + IELTS + TOEIC)
     ├── ExcelService.java             # Excel file operations and logging
     ├── GeminiClient.java             # AI API client with custom prompts
     ├── AudioService.java             # TTS generation with Python/gTTS
     ├── VocabularyService.java        # Core vocabulary business logic
-    └── ToeicListeningService.java    # TOEIC content generation and processing
+    ├── IeltsReadingService.java      # IELTS academic reading generation and processing
+    ├── ToeicListeningService.java    # TOEIC content generation and processing
+    └── CollocationHistoryService.java # Smart collocation history management
 
 src/main/resources/
 ├── application.properties            # Main configuration
 ├── email-template.html              # Vocabulary email template
+├── ielts-email-template.html        # IELTS email template
 └── toeic-email-template.html        # TOEIC email template
 ```
 

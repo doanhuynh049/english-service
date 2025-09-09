@@ -114,6 +114,26 @@ public class EmailService {
         }
     }
 
+    @Retryable(value = {Exception.class}, maxAttempts = 3, backoff = @Backoff(delay = 2000))
+    public void sendIeltsReadingEmail(String htmlContent) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setFrom(fromEmail);
+            helper.setTo(toEmail);
+            helper.setSubject("📖 IELTS Reading Practice - " + LocalDate.now().format(DateTimeFormatter.ofPattern("MMM dd, yyyy")));
+            helper.setText(htmlContent, true);
+
+            mailSender.send(message);
+            logger.info("IELTS Reading email sent successfully to {}", toEmail);
+
+        } catch (Exception e) {
+            logger.error("Failed to send IELTS Reading email: {}", e.getMessage(), e);
+            throw new RuntimeException("IELTS Reading Email sending failed", e);
+        }
+    }
+
     private void attachAudioFiles(MimeMessageHelper helper, List<ParsedVocabularyWord> vocabularyWords) {
         for (ParsedVocabularyWord word : vocabularyWords) {
             try {

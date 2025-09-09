@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IELTS Reading Practice</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #2d3748;
+            background-color: #f7fafc;
+        }
+
+        .email-container {
+            max-width: 700px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .header .date {
+            font-size: 0.95rem;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+
+        .header .subtitle {
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+            opacity: 0.8;
+        }
+
+        /* Main Content */
+        .content {
+            padding: 2rem;
+        }
+
+        .section {
+            margin-bottom: 2rem;
+        }
+
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #3182ce;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .section-icon {
+            font-size: 1.2rem;
+        }
+
+        /* Topic Section */
+        .topic-badge {
+            background: linear-gradient(135deg, #4299e1, #3182ce);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            display: inline-block;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+        }
+
+        /* Passage Section */
+        .passage-content {
+            background-color: #f8fafc;
+            border-left: 4px solid #4299e1;
+            padding: 2rem;
+            border-radius: 0.5rem;
+            font-size: 1.05rem;
+            line-height: 1.8;
+            text-align: justify;
+            margin: 1rem 0;
+        }
+
+        .passage-content p {
+            margin-bottom: 1.5rem;
+            text-indent: 2rem;
+        }
+
+        .passage-content p:first-child {
+            text-indent: 0;
+        }
+
+        .passage-content p:last-child {
+            margin-bottom: 0;
+        }
+
+        /* Questions Section */
+        .questions-content {
+            background-color: #fff5f5;
+            border: 1px solid #fed7d7;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+        }
+
+        .question-item {
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .question-item:last-child {
+            margin-bottom: 0;
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .question-text {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #2d3748;
+        }
+
+        .question-options {
+            margin-left: 1rem;
+        }
+
+        .option {
+            margin: 0.25rem 0;
+            color: #4a5568;
+        }
+
+        /* Answer Key Section */
+        .answer-key {
+            background-color: #f0fff4;
+            border: 1px solid #9ae6b4;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+
+        .answer-key-title {
+            font-weight: 600;
+            color: #22543d;
+            margin-bottom: 0.5rem;
+        }
+
+        .answers {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 0.5rem;
+        }
+
+        .answer-item {
+            background-color: #c6f6d5;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            text-align: center;
+            font-weight: 600;
+            color: #22543d;
+        }
+
+        /* Explanation Sections */
+        .explanation-section {
+            background-color: #fefcbf;
+            border: 1px solid #f6e05e;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .explanation-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #744210;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .explanation-content {
+            color: #744210;
+            line-height: 1.6;
+        }
+
+        .explanation-content p {
+            margin-bottom: 0.75rem;
+        }
+
+        .explanation-content p:last-child {
+            margin-bottom: 0;
+        }
+
+        .explanation-content strong {
+            font-weight: 700;
+            color: #2c5282;
+            background-color: #bee3f8;
+            padding: 0.1rem 0.3rem;
+            border-radius: 0.2rem;
+        }
+
+        .explanation-content ul {
+            margin: 0.5rem 0;
+            padding-left: 1.5rem;
+        }
+
+        .explanation-content li {
+            margin-bottom: 0.5rem;
+            line-height: 1.5;
+        }
+
+        /* Vocabulary/Collocations Highlights */
+        .vocabulary-term {
+            background-color: #bee3f8;
+            color: #2c5282;
+            padding: 0.2rem 0.4rem;
+            border-radius: 0.25rem;
+            font-weight: 600;
+        }
+
+        .collocation-item {
+            margin-bottom: 1rem;
+            padding: 1rem;
+            background-color: #f0fff4;
+            border-left: 3px solid #4299e1;
+            border-radius: 0.25rem;
+        }
+
+        .collocation-term {
+            background-color: #4299e1;
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-weight: 700;
+            display: inline-block;
+            margin-bottom: 0.5rem;
+        }
+
+        .collocation-definition {
+            color: #2d3748;
+            margin-bottom: 0.5rem;
+            font-style: italic;
+        }
+
+        .collocation-example {
+            color: #4a5568;
+            font-size: 0.9rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .collocation-usage {
+            color: #2c7a7b;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        /* Tips Section */
+        .tips-section {
+            background-color: #e6fffa;
+            border: 1px solid #81e6d9;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+        }
+
+        .tip-item {
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.5rem;
+        }
+
+        .tip-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .tip-icon {
+            color: #2c7a7b;
+            font-weight: bold;
+            margin-top: 0.1rem;
+        }
+
+        .tip-text {
+            color: #2c7a7b;
+            line-height: 1.5;
+        }
+
+        /* Footer */
+        .footer {
+            background-color: #f7fafc;
+            padding: 1.5rem;
+            text-align: center;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .footer p {
+            font-size: 0.85rem;
+            color: #718096;
+            margin-bottom: 0.5rem;
+        }
+
+        .footer p:last-child {
+            margin-bottom: 0;
+        }
+
+        .generation-info {
+            font-size: 0.75rem;
+            color: #a0aec0;
+            font-style: italic;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 600px) {
+            .email-container {
+                margin: 0;
+                box-shadow: none;
+            }
+
+            .content {
+                padding: 1.5rem;
+            }
+
+            .header {
+                padding: 1.5rem;
+            }
+
+            .header h1 {
+                font-size: 1.5rem;
+            }
+
+            .answers {
+                grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+            }
+
+            .section-title {
+                font-size: 1.1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <!-- Header -->
+        <div class="header">
+            <h1>📖 IELTS Reading Practice</h1>
+            <div class="date">{{DATE}}</div>
+            <div class="subtitle">Academic Reading Comprehension</div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="content">
+            {{CONTENT}}
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p><strong>📚 Keep practicing!</strong> Reading comprehension improves with consistent daily practice.</p>
+            <p>💡 <strong>Pro Tip:</strong> Try to understand the main idea first, then focus on details.</p>
+            <div class="generation-info">Generated on {{GENERATION_DATE}}</div>
+        </div>
+    </div>
+</body>
+</html>
