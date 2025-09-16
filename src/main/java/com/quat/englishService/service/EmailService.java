@@ -22,6 +22,7 @@ public class EmailService {
     private static final Logger logger = LoggerFactory.getLogger(EmailService.class);
 
     private final JavaMailSender mailSender;
+    private final GeminiClient geminiClient;
 
     @Value("${app.mail-from}")
     private String fromEmail;
@@ -29,8 +30,9 @@ public class EmailService {
     @Value("${app.mail-to}")
     private String toEmail;
 
-    public EmailService(JavaMailSender mailSender) {
+    public EmailService(JavaMailSender mailSender, GeminiClient geminiClient) {
         this.mailSender = mailSender;
+        this.geminiClient = geminiClient;
     }
 
     @Retryable(value = {Exception.class}, maxAttempts = 3, backoff = @Backoff(delay = 2000))
@@ -230,6 +232,9 @@ public class EmailService {
             // Load the HTML template
             String template = loadEmailTemplate();
 
+            // Generate AI motivational subtitle
+            String subtitle = geminiClient.generateMotivationalSubtitle();
+
             // Build word sections
             StringBuilder wordSections = new StringBuilder();
             for (int i = 0; i < vocabularyWords.size(); i++) {
@@ -240,6 +245,7 @@ public class EmailService {
             // Replace placeholders
             String content = template
                 .replace("{{DATE}}", LocalDate.now().format(DateTimeFormatter.ofPattern("EEEE, MMMM dd, yyyy")))
+                .replace("{{SUBTITLE}}", subtitle)
                 .replace("{{WORD_SECTIONS}}", wordSections.toString())
                 .replace("{{GENERATION_DATE}}", LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
 

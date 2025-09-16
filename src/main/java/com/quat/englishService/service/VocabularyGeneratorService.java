@@ -187,7 +187,7 @@ public class VocabularyGeneratorService {
                 Requirements:
                 - Words should be at %s difficulty level
                 - Include a mix of nouns, verbs, adjectives, and adverbs
-                - Words should be practical and commonly used in academic/professional contexts
+                - Words should be practical and commonly used in professional, academic, or everyday high-level English, avoiding overly formal, obscure, or abstract terms
                 - Avoid very basic words (like "cat", "dog", "run")
                 - Avoid extremely obscure words that are rarely used
                 - Return ONLY the words, one per line, no definitions or explanations

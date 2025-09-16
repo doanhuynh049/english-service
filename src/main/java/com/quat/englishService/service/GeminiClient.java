@@ -226,4 +226,56 @@ public class GeminiClient {
             return "Error generating content: " + e.getMessage();
         }
     }
+
+    public String generateMotivationalSubtitle() {
+        try {
+            String prompt = """
+                Generate a short, inspiring motivational subtitle for a daily English vocabulary email.
+                The subtitle should be encouraging, educational, and related to vocabulary learning.
+                
+                Requirements:
+                - Maximum 8-10 words
+                - Should inspire daily learning
+                - Focus on vocabulary, words, or language improvement
+                - Positive and uplifting tone
+                - Suitable for daily email subscribers
+                
+                Examples of good subtitles:
+                - "Transform your communication, one word at a time"
+                - "Building bridges with every new word"
+                - "Unlock new possibilities through vocabulary"
+                - "Your daily dose of linguistic empowerment"
+                
+                Generate only the subtitle text, no quotes or additional formatting.
+                """;
+            
+            GeminiRequest request = new GeminiRequest(prompt);
+            String requestBody = objectMapper.writeValueAsString(request);
+
+            HttpRequest httpRequest = HttpRequest.newBuilder()
+                    .uri(URI.create(apiUrl + "?key=" + apiKey))
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(requestBody))
+                    .timeout(Duration.ofSeconds(30))
+                    .build();
+
+            HttpResponse<String> response = httpClient.send(httpRequest,
+                    HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() == 200) {
+                GeminiResponse geminiResponse = objectMapper.readValue(response.body(), GeminiResponse.class);
+                String subtitle = extractTextFromResponse(geminiResponse).trim();
+                logger.info("Generated motivational subtitle: '{}'", subtitle);
+                return subtitle;
+            } else {
+                logger.error("Gemini API error for motivational subtitle: Status {}, Body: {}",
+                        response.statusCode(), response.body());
+                return "Expand your vocabulary, one word at a time"; // Fallback
+            }
+
+        } catch (Exception e) {
+            logger.error("Exception generating motivational subtitle: {}", e.getMessage(), e);
+            return "Expand your vocabulary, one word at a time"; // Fallback
+        }
+    }
 }
