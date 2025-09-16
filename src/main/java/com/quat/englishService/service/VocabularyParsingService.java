@@ -447,24 +447,6 @@ public class VocabularyParsingService {
         return formatted.length() > 0 ? formatted.toString() : null;
     }
 
-    private String cleanFallbackContent(String content) {
-        if (content == null || content.trim().isEmpty()) {
-            return null;
-        }
-
-        // Clean up markdown formatting and return simple list
-        String cleaned = content.replaceAll("\\*\\*([^*]+)\\*\\*", "<strong>$1</strong>");
-        cleaned = cleaned.replaceAll("\\*([^*]+)\\*", "$1");
-        cleaned = cleaned.replaceAll("_([^_]+)_", "$1");
-        cleaned = cleaned.replaceAll("\\n\\s*", "<br>• ");
-
-        if (!cleaned.startsWith("• ")) {
-            cleaned = "• " + cleaned;
-        }
-
-        return cleaned;
-    }
-
     private String formatListContent(String content, String type) {
         StringBuilder formatted = new StringBuilder();
 
@@ -571,53 +553,6 @@ public class VocabularyParsingService {
             logger.error("Error parsing monologue: {}", e.getMessage(), e);
             return null;
         }
-    }
-
-    private String cleanMonologueText(String text) {
-        if (text == null || text.trim().isEmpty()) {
-            return "";
-        }
-
-        String cleaned = text.trim();
-
-        // Remove any remaining section markers
-        cleaned = cleaned.replaceAll("\\*\\*Monologue:\\*\\*", "");
-        cleaned = cleaned.replaceAll("\\*\\*Explanation:\\*\\*", "");
-        cleaned = cleaned.replaceAll("\\*\\*Pronunciation:\\*\\*", "");
-
-        // Remove markdown formatting but preserve structure
-        cleaned = cleaned.replaceAll("\\*\\*([^*]+?)\\*\\*", "$1"); // Remove bold **text**
-        cleaned = cleaned.replaceAll("\\*([^*]+?)\\*", "$1");       // Remove italic *text*
-        cleaned = cleaned.replaceAll("_([^_]+?)_", "$1");           // Remove italic _text_
-
-        // Remove stage directions and formatting artifacts
-        cleaned = cleaned.replaceAll("\\([^)]*\\)", "");            // Remove parenthetical directions like "(Sighs, looking out the window)"
-
-        // Clean up bullet points and list formatting
-        cleaned = cleaned.replaceAll("^\\s*[*•-]\\s*", "");         // Remove bullet points at start of lines
-        cleaned = cleaned.replaceAll("\\n\\s*[*•-]\\s*", "\n");     // Remove bullet points in middle
-
-        // Remove any stray markdown artifacts
-        cleaned = cleaned.replaceAll("#+\\s*", "");                 // Remove headers
-        cleaned = cleaned.replaceAll("```[^`]*```", "");            // Remove code blocks
-        cleaned = cleaned.replaceAll("`([^`]+)`", "$1");            // Remove inline code
-
-        // Normalize whitespace and line breaks
-        cleaned = cleaned.replaceAll("\\n\\s*\\n\\s*\\n", "\n\n");  // Reduce multiple line breaks to max 2
-        cleaned = cleaned.replaceAll("\\s+", " ");                  // Normalize spaces
-        cleaned = cleaned.replaceAll("\\n\\s*", "\n");              // Clean line starts
-
-        // Remove leading/trailing whitespace and ensure proper sentence structure
-        cleaned = cleaned.trim();
-
-        // Ensure sentences end properly for TTS
-        if (!cleaned.isEmpty() && !cleaned.matches(".*[.!?]\\s*$")) {
-            cleaned += ".";
-        }
-
-        logger.debug("Cleaned monologue text from {} chars to {} chars", text.length(), cleaned.length());
-
-        return cleaned;
     }
 
     public static class MonologueInfo {
