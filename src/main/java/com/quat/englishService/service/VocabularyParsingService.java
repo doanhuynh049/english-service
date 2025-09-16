@@ -108,8 +108,9 @@ public class VocabularyParsingService {
     private String[] extractExampleSentences(String text) {
         List<String> sentences = new ArrayList<>();
 
-        // Look for the Example Sentences section
-        Pattern sectionPattern = Pattern.compile("(?i)\\*\\s*Example Sentences:\\*\\*(.*?)(?=\\*\\s*\\w|$)", Pattern.DOTALL);
+        // Look for the Example Sentences section with improved pattern
+        // Updated pattern to look for section headers more specifically (e.g., ** Synonyms, ** Antonyms, etc.)
+        Pattern sectionPattern = Pattern.compile("(?i)\\*\\*\\s*Example Sentences:\\*\\*(.*?)(?=\\*\\*\\s*[A-Z][a-z]+\\s*[:\\s]|$)", Pattern.DOTALL);
         Matcher sectionMatcher = sectionPattern.matcher(text);
 
         if (sectionMatcher.find()) {
@@ -563,9 +564,6 @@ public class VocabularyParsingService {
 
             logger.debug("Parsed monologue - Length: {}, Has explanation: {}, Has pronunciation: {}",
                         monologue.length(), !explanation.isEmpty(), !pronunciation.isEmpty());
-
-            // Log the cleaned monologue for debugging
-            logger.info("Cleaned monologue text: {}", monologue.substring(0, Math.min(200, monologue.length())) + "...");
 
             return new MonologueInfo(monologue, explanation, pronunciation);
 
