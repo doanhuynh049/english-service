@@ -91,7 +91,10 @@ public class VocabularyParsingService {
         Pattern pattern = Pattern.compile("(?i)simple[:\\s]*\\*?\\s*([^\n]+)", Pattern.MULTILINE);
         Matcher matcher = pattern.matcher(text);
         if (matcher.find()) {
-            return matcher.group(1).trim().replaceAll("[*_]", "");
+            String definition = matcher.group(1).trim().replaceAll("[*_]", "");
+            // Remove redundant "Definition: " prefix if present
+            definition = definition.replaceAll("(?i)^definition:\\s*", "");
+            return definition;
         }
         return null;
     }
@@ -100,7 +103,10 @@ public class VocabularyParsingService {
         Pattern pattern = Pattern.compile("(?i)advanced[:\\s]*\\*?\\s*([^\n]+(?:\n\\s*[^\n*]+)*)", Pattern.MULTILINE);
         Matcher matcher = pattern.matcher(text);
         if (matcher.find()) {
-            return matcher.group(1).trim().replaceAll("[*_]", "");
+            String definition = matcher.group(1).trim().replaceAll("[*_]", "");
+            // Remove redundant "Definition: " prefix if present
+            definition = definition.replaceAll("(?i)^definition:\\s*", "");
+            return definition;
         }
         return null;
     }
