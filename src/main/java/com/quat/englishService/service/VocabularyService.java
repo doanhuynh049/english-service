@@ -210,7 +210,7 @@ public class VocabularyService {
 
             // Step 1: Get detailed AI explanation using the existing method
             String aiResponse = geminiClient.getWordExplanation(word);
-            logger.info("Received AI response for word: {}", word);
+            logger.info("Received AI response for word: {}", aiResponse);
 
             // Step 2: Parse the AI response into structured data
             ParsedVocabularyWord parsedWord = parsingService.parseAIResponse(word, aiResponse);

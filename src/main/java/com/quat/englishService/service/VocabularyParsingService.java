@@ -115,8 +115,8 @@ public class VocabularyParsingService {
         List<String> sentences = new ArrayList<>();
 
         // Look for the Example Sentences section with improved pattern
-        // Updated pattern to look for section headers more specifically (e.g., ** Synonyms, ** Antonyms, etc.)
-        Pattern sectionPattern = Pattern.compile("(?i)\\*\\*\\s*Example Sentences:\\*\\*(.*?)(?=\\*\\*\\s*[A-Z][a-z]+\\s*[:\\s]|$)", Pattern.DOTALL);
+        // Updated pattern to look for specific section headers only (Synonyms, Antonyms, etc.)
+        Pattern sectionPattern = Pattern.compile("(?i)\\*\\*\\s*Example Sentences:\\*\\*(.*?)(?=\\*\\*\\s*(?:Synonyms|Antonyms|Collocations|Commonly Confused Words|Word Family|Vietnamese Translation?)\\s*:|$)", Pattern.DOTALL);
         Matcher sectionMatcher = sectionPattern.matcher(text);
 
         if (sectionMatcher.find()) {
