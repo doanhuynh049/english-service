@@ -284,23 +284,6 @@ public class VocabularyService {
         }
     }
 
-    private String buildDetailedPrompt(String word) {
-        return String.format("""
-                Teach me the word "%s" in detail. Include:
-                - IPA pronunciation
-                - Part of speech
-                - English definition (simple + advanced if available)
-                - 2–3 example sentences in natural English
-                - Common collocations and fixed expressions with this word
-                - Synonyms & antonyms (with slight differences explained)
-                - Commonly confused words and how to distinguish them
-                - Word family (noun, verb, adjective forms)
-                - Vietnamese translation with nuance
-                
-                Please format your response clearly with labeled sections for easy parsing.
-                """, word);
-    }
-
     private String getFirstExampleSentence(ParsedVocabularyWord word) {
         if (word.getExampleSentences() != null && word.getExampleSentences().length > 0) {
             return word.getExampleSentences()[0];
@@ -353,6 +336,37 @@ public class VocabularyService {
     public List<ParsedVocabularyWord> processSpecificWords(List<String> words) {
         logger.info("Processing {} specific words manually", words.size());
         return processWordsComprehensively(words);
+    }
+
+    // Manual processing method with email sending
+    public List<ParsedVocabularyWord> processSpecificWordsWithEmail(List<String> words) {
+        logger.info("Processing {} specific words manually with email sending", words.size());
+        
+        try {
+            // Process words with AI, audio generation, and parsing
+            List<ParsedVocabularyWord> processedWords = processWordsComprehensively(words);
+
+            if (!processedWords.isEmpty()) {
+                // Generate monologue document for email attachment
+                String documentPath = monologueDocumentService.generateMonologueDocument(processedWords);
+
+                // Send enhanced HTML email with audio links and monologue transcript
+                emailService.sendVocabularyEmailWithDocument(processedWords, documentPath);
+
+                // Log to Excel with all details including audio paths
+                logWordsToExcel(processedWords);
+
+                logger.info("Manual vocabulary processing with email completed successfully with {} words", processedWords.size());
+            } else {
+                logger.error("No words were successfully processed");
+            }
+
+            return processedWords;
+
+        } catch (Exception e) {
+            logger.error("Error during manual vocabulary processing with email: {}", e.getMessage(), e);
+            throw new RuntimeException("Manual vocabulary processing with email failed", e);
+        }
     }
 
     private String formatMonologueForStorage(String rawMonologue) {

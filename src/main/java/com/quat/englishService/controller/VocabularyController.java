@@ -56,6 +56,29 @@ public class VocabularyController {
         }
     }
 
+    @PostMapping("/process-words-with-email")
+    public ResponseEntity<Map<String, Object>> processSpecificWordsWithEmail(
+            @RequestBody List<String> words) {
+        try {
+            logger.info("Processing specific words with email: {}", words);
+            List<ParsedVocabularyWord> processedWords = vocabularyService.processSpecificWordsWithEmail(words);
+
+            logger.info("Successfully processed {} words with email", processedWords.size());
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "Words processed and email sent successfully",
+                "wordsProcessed", processedWords.size(),
+                "words", processedWords
+            ));
+        } catch (Exception e) {
+            logger.error("Error processing specific words with email: {}", e.getMessage(), e);
+            return ResponseEntity.internalServerError().body(Map.of(
+                "success", false,
+                "error", e.getMessage()
+            ));
+        }
+    }
+
     @GetMapping("/health")
     public ResponseEntity<Map<String, Object>> healthCheck() {
         return ResponseEntity.ok(Map.of(
