@@ -79,6 +79,71 @@ public class VocabularyController {
         }
     }
 
+    @PostMapping("/generate-toeic-words")
+    public ResponseEntity<Map<String, Object>> generateToeicWords(
+            @RequestParam(defaultValue = "10") int count) {
+        try {
+            logger.info("Generating {} TOEIC vocabulary words with weighted categories", count);
+            List<String> toeicWords = vocabularyService.generateToeicVocabulary(count);
+
+            logger.info("Successfully generated {} TOEIC words", toeicWords.size());
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "TOEIC vocabulary words generated successfully",
+                "count", toeicWords.size(),
+                "words", toeicWords,
+                "categoryWeights", Map.of(
+                    "BUSINESS", "45%",
+                    "GENERAL", "25%", 
+                    "ACADEMIC", "20%",
+                    "SCIENTIFIC", "10%"
+                )
+            ));
+        } catch (Exception e) {
+            logger.error("Error generating TOEIC words: {}", e.getMessage(), e);
+            return ResponseEntity.internalServerError().body(Map.of(
+                "success", false,
+                "error", e.getMessage()
+            ));
+        }
+    }
+
+    @PostMapping("/process-toeic-words-with-email")
+    public ResponseEntity<Map<String, Object>> processToeicWordsWithEmail(
+            @RequestParam(defaultValue = "4") int count) {
+        try {
+            logger.info("Generating and processing {} TOEIC words with email", count);
+            
+            // Generate TOEIC-specific vocabulary
+            List<String> toeicWords = vocabularyService.generateToeicVocabulary(count);
+            logger.info("Generated TOEIC words: {}", toeicWords);
+            
+            // Process the words and send email
+            List<ParsedVocabularyWord> processedWords = vocabularyService.processSpecificWordsWithEmail(toeicWords);
+
+            logger.info("Successfully processed {} TOEIC words with email", processedWords.size());
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "TOEIC vocabulary words generated, processed and email sent successfully",
+                "wordsProcessed", processedWords.size(),
+                "originalWords", toeicWords,
+                "processedWords", processedWords,
+                "categoryWeights", Map.of(
+                    "BUSINESS", "45%",
+                    "GENERAL", "25%", 
+                    "ACADEMIC", "20%",
+                    "SCIENTIFIC", "10%"
+                )
+            ));
+        } catch (Exception e) {
+            logger.error("Error processing TOEIC words with email: {}", e.getMessage(), e);
+            return ResponseEntity.internalServerError().body(Map.of(
+                "success", false,
+                "error", e.getMessage()
+            ));
+        }
+    }
+
     @GetMapping("/health")
     public ResponseEntity<Map<String, Object>> healthCheck() {
         return ResponseEntity.ok(Map.of(

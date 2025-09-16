@@ -55,7 +55,7 @@ public class VocabularyService {
 
             if (selectedWords.isEmpty()) {
                 logger.warn("No fresh words generated, using fallback vocabulary");
-                selectedWords = vocabularyGenerator.getRandomMixedVocabulary(3);
+                selectedWords = vocabularyGenerator.getRandomToeicVocabulary(3);
             }
 
             // Process words with AI, audio generation, and parsing
@@ -94,7 +94,7 @@ public class VocabularyService {
 
             // Get mixed vocabulary from different categories and levels
             int wordsNeeded = Math.max(count * 2, 20); // Generate more than needed to filter duplicates
-            List<String> candidateWords = vocabularyGenerator.getRandomMixedVocabulary(wordsNeeded);
+            List<String> candidateWords = vocabularyGenerator.getRandomToeicVocabulary(wordsNeeded);
 
             // Filter out used words and add to fresh list
             for (String word : candidateWords) {
@@ -367,6 +367,14 @@ public class VocabularyService {
             logger.error("Error during manual vocabulary processing with email: {}", e.getMessage(), e);
             throw new RuntimeException("Manual vocabulary processing with email failed", e);
         }
+    }
+
+    /**
+     * Generate TOEIC vocabulary words using weighted categories
+     */
+    public List<String> generateToeicVocabulary(int count) {
+        logger.info("Generating {} TOEIC vocabulary words with weighted categories", count);
+        return vocabularyGenerator.getRandomToeicVocabulary(count);
     }
 
     private String formatMonologueForStorage(String rawMonologue) {

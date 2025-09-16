@@ -45,7 +45,7 @@ public class VocabularyGeneratorService {
         }
 
         try {
-            logger.info("Generating {} {} vocabulary words from Gemini AI", count, level);
+            logger.info("Generating {} {} {} vocabulary words from Gemini AI", count, level, category);
 
             String prompt = buildVocabularyPrompt(level, category, count);
             String response = geminiClient.getWordExplanation(prompt);
@@ -100,6 +100,83 @@ public class VocabularyGeneratorService {
             logger.error("Error getting mixed vocabulary: {}", e.getMessage(), e);
             return getFallbackWords(count);
         }
+    }
+
+    /**
+     * Get random vocabulary words specifically tailored for TOEIC test preparation
+     * TOEIC focuses on business and workplace vocabulary with weighted category selection
+     */
+    public List<String> getRandomToeicVocabulary(int count) {
+        List<String> allWords = new ArrayList<>();
+
+        try {
+            // Define TOEIC categories with weights (BUSINESS gets highest priority)
+            Map<VocabularyCategory, Double> categoryWeights = new LinkedHashMap<>();
+            categoryWeights.put(VocabularyCategory.BUSINESS, 0.45);    // 45% - Most important for TOEIC
+            categoryWeights.put(VocabularyCategory.GENERAL, 0.25);     // 25% - Common workplace/daily situations
+            categoryWeights.put(VocabularyCategory.ACADEMIC, 0.20);    // 20% - Professional contexts
+            categoryWeights.put(VocabularyCategory.SCIENTIFIC, 0.10);  // 10% - Technology/technical contexts
+
+            // Calculate words per category based on weights
+            for (Map.Entry<VocabularyCategory, Double> entry : categoryWeights.entrySet()) {
+                VocabularyCategory category = entry.getKey();
+                double weight = entry.getValue();
+                
+                // Calculate number of words for this category (minimum 1 if count > 0)
+                int wordsForCategory = Math.max(1, (int) Math.round(count * weight));
+                
+                // Randomly select level for variety (INTERMEDIATE/ADVANCED are most suitable for TOEIC)
+                VocabularyLevel randomLevel = getRandomToeicLevel();
+                
+                // Get words from this category
+                List<String> categoryWords = getVocabularyWords(randomLevel, category, wordsForCategory);
+                allWords.addAll(categoryWords);
+                
+                logger.debug("Added {} words from {} {} category (weight: {:.1%})", 
+                           categoryWords.size(), randomLevel, category, weight);
+            }
+
+            // If we have too many words, trim to exact count
+            // If we have too few, add more from BUSINESS category (most important)
+            if (allWords.size() > count) {
+                Collections.shuffle(allWords);
+                allWords = allWords.subList(0, count);
+            } else if (allWords.size() < count) {
+                int needed = count - allWords.size();
+                VocabularyLevel randomLevel = getRandomToeicLevel();
+                List<String> additionalWords = getVocabularyWords(randomLevel, VocabularyCategory.BUSINESS, needed);
+                allWords.addAll(additionalWords);
+                logger.debug("Added {} additional BUSINESS words to reach target count", additionalWords.size());
+            }
+
+            // Remove duplicates and shuffle final result
+            Set<String> uniqueWords = new LinkedHashSet<>(allWords);
+            List<String> result = new ArrayList<>(uniqueWords);
+            Collections.shuffle(result);
+
+            logger.info("Generated {} TOEIC vocabulary words with weighted categories (Business: 45%, General: 25%, Academic: 20%, Scientific: 10%)", result.size());
+            return result.subList(0, Math.min(count, result.size()));
+
+        } catch (Exception e) {
+            logger.error("Error getting TOEIC vocabulary: {}", e.getMessage(), e);
+            return getFallbackWords(count);
+        }
+    }
+
+    /**
+     * Get random level appropriate for TOEIC (focuses on INTERMEDIATE and ADVANCED)
+     */
+    private VocabularyLevel getRandomToeicLevel() {
+        // TOEIC typically uses intermediate to advanced vocabulary
+        // Weighted towards INTERMEDIATE (60%) and ADVANCED (40%) as EXPERT might be too difficult
+        VocabularyLevel[] toeicLevels = {
+            VocabularyLevel.INTERMEDIATE,
+            VocabularyLevel.INTERMEDIATE, // Higher weight
+            VocabularyLevel.ADVANCED
+        };
+        
+        Random random = new Random();
+        return toeicLevels[random.nextInt(toeicLevels.length)];
     }
 
     private String buildVocabularyPrompt(VocabularyLevel level, VocabularyCategory category, int count) {
