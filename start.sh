@@ -121,18 +121,44 @@ cleanup() {
     echo ""
     echo "🛑 Shutting down English Vocabulary Service..."
 
-    # Find the Java process for this application
+    # Stop the Maven process gracefully
+    if [ ! -z "$MAVEN_PID" ] && kill -0 $MAVEN_PID 2>/dev/null; then
+        echo "🔪 Stopping Maven process (PID: $MAVEN_PID)..."
+        kill -TERM $MAVEN_PID 2>/dev/null
+        
+        # Give Maven some time to shut down gracefully
+        local timeout=5
+        while [ $timeout -gt 0 ] && kill -0 $MAVEN_PID 2>/dev/null; do
+            sleep 1
+            ((timeout--))
+        done
+        
+        # Force kill Maven if still running
+        if kill -0 $MAVEN_PID 2>/dev/null; then
+            echo "🔪 Force stopping Maven process..."
+            kill -9 $MAVEN_PID 2>/dev/null
+        fi
+    fi
+
+    # Also clean up any remaining Java processes for this application
     JAVA_PID=$(ps aux | grep "englishService" | grep -v grep | awk '{print $2}')
     if [ ! -z "$JAVA_PID" ]; then
-        echo "🔪 Stopping application (PID: $JAVA_PID)..."
+        echo "🔪 Stopping Java application (PID: $JAVA_PID)..."
         kill -TERM $JAVA_PID 2>/dev/null
-        sleep 3
+        sleep 2
 
         # Force kill if still running
         if kill -0 $JAVA_PID 2>/dev/null; then
-            echo "🔪 Force stopping application..."
+            echo "🔪 Force stopping Java application..."
             kill -9 $JAVA_PID 2>/dev/null
         fi
+    fi
+
+    # Clean up any remaining processes on the configured port
+    REMAINING_PID=$(lsof -ti:$APP_PORT 2>/dev/null)
+    if [ ! -z "$REMAINING_PID" ]; then
+        echo "🔪 Cleaning up remaining processes on port $APP_PORT..."
+        kill -9 $REMAINING_PID 2>/dev/null
     fi
 
     echo "✅ English Vocabulary Service stopped successfully"
@@ -143,7 +169,8 @@ cleanup() {
 # Set up signal handlers for graceful shutdown
 trap cleanup SIGINT SIGTERM
 
-# Start the application
+# Start the application in the background
+echo "🚀 Launching English Vocabulary Service..."
 mvn spring-boot:run &
 
 # Get the Maven process ID
@@ -151,7 +178,41 @@ MAVEN_PID=$!
 
 # Wait for the application to start
 echo "⏳ Waiting for application to start..."
-sleep 10
+sleep 8
 
-# Wait for the Maven process to complete
-wait $MAVEN_PID
+# Check if the application started successfully
+if ! kill -0 $MAVEN_PID 2>/dev/null; then
+    echo "❌ Application failed to start. Check logs for errors."
+    exit 1
+fi
+
+# Check if the port is actually listening
+sleep 2
+if ! lsof -i:$APP_PORT >/dev/null 2>&1; then
+    echo "⚠️  Application may not be listening on port $APP_PORT yet. Please wait a moment..."
+    sleep 3
+    if ! lsof -i:$APP_PORT >/dev/null 2>&1; then
+        echo "❌ Application is not listening on port $APP_PORT. Check configuration."
+    else
+        echo "✅ Application is now listening on port $APP_PORT"
+    fi
+else
+    echo "✅ Application is listening on port $APP_PORT"
+fi
+
+echo ""
+echo "🎉 English Vocabulary Service is now running!"
+echo "🌐 Access the service at: http://localhost:$APP_PORT"
+echo "📚 API endpoints:"
+echo "   • POST /api/vocabulary/trigger-daily - Trigger daily vocabulary"
+echo "   • POST /api/vocabulary/process-words-with-email - Process specific words with email"
+echo "   • GET  /api/vocabulary/health - Health check"
+echo ""
+echo "Press Ctrl+C to stop the service gracefully"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+# Keep the script running and wait for signals
+wait $MAVEN_PID 2>/dev/null
+
+# If we reach here, Maven has exited
+echo "📝 Maven process has completed"
