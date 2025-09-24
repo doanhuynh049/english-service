@@ -163,7 +163,7 @@ spring.mail.host=smtp.gmail.com
 spring.mail.port=587
 spring.mail.properties.mail.smtp.auth=true
 spring.mail.properties.mail.smtp.starttls.enable=true
-```
+curl -X POST http://localhost:8282/api/toeic/trigger-part7
 
 ## 🤖 Gemini AI Setup
 
@@ -346,7 +346,7 @@ curl -X POST http://localhost:8282/api/vocabulary/trigger-daily
 curl -X POST http://localhost:8282/api/ielts/send-reading
 
 # Test TOEIC listening service immediately  
-curl -X POST http://localhost:8282/api/toeic/trigger-listening
+curl -X POST http://localhost:8282/api/toeic/trigger-part7
 
 # Process custom vocabulary words
 curl -X POST http://localhost:8282/api/vocabulary/process-words \
