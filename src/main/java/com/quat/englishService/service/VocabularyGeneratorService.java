@@ -40,7 +40,7 @@ public class VocabularyGeneratorService {
         // Check cache first
         if (vocabularyCache.containsKey(cacheKey)) {
             List<String> cached = vocabularyCache.get(cacheKey);
-            logger.debug("Returning {} cached vocabulary words for {}/{}", cached.size(), level, category);
+            logger.info("Returning {} cached vocabulary words for {}/{}", cached.size(), level, category);
             return new ArrayList<>(cached);
         }
 
@@ -186,13 +186,13 @@ public class VocabularyGeneratorService {
                 
                 Requirements:
                 - Words should be at %s difficulty level
-                - Include a mix of nouns, verbs, adjectives, and adverbs
+                - Include a natural mix of nouns, verbs, adjectives, and adverbs, but do not mention grammar categories (e.g., "noun", "verb", "adjective", "adverb") or word relations (e.g., "antonym", "synonym") in the output
                 - Words should be practical and commonly used in professional, academic, or everyday high-level English, avoiding overly formal, obscure, or abstract terms
                 - Avoid very basic words (like "cat", "dog", "run")
                 - Avoid extremely obscure words that are rarely used
                 - Return ONLY the words, one per line, no definitions or explanations
                 - No numbering or bullet points, just the words
-                - Focus on target 900+ or IELTS 6.5+ level words
+                - Focus on target 900+ or IELTS 6.5+ level words, vocabulary in part 6, 7 of TOEIC, or academic/business contexts
                 Example format:
                 eloquent
                 meticulous
