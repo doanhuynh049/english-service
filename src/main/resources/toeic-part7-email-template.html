@@ -128,6 +128,7 @@
             white-space: pre-wrap;
             margin: 0;
             padding-left: 15px;
+            font-family: 'Georgia', 'Times New Roman', serif;
         }
 
         .questions-container {
@@ -157,6 +158,7 @@
             white-space: pre-wrap;
             margin: 0;
             padding-left: 15px;
+            font-family: 'Georgia', 'Times New Roman', serif;
         }
 
         .vocabulary-container {
@@ -186,6 +188,27 @@
             white-space: pre-wrap;
             margin: 0;
             padding-left: 15px;
+            font-family: 'Georgia', 'Times New Roman', serif;
+        }
+
+        /* Bold formatting for words between ** markers */
+        .bold-word {
+            font-weight: 700;
+            color: #2c3e50;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: 1.02em;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+
+        /* Fallback for browsers that don't support background-clip */
+        @supports not (-webkit-background-clip: text) {
+            .bold-word {
+                color: #667eea;
+                font-weight: 700;
+            }
         }
 
         .study-tips {
@@ -297,7 +320,7 @@
                     <h2 class="section-title">Reading Comprehension Passage</h2>
                 </div>
                 <div class="passage-container">
-                    <pre class="passage-text">{{PASSAGE_CONTENT}}</pre>
+                    <pre class="passage-text content-text">{{PASSAGE_CONTENT}}</pre>
                 </div>
             </div>
 
@@ -307,7 +330,7 @@
                     <h2 class="section-title">Comprehension Questions</h2>
                 </div>
                 <div class="questions-container">
-                    <pre class="questions-text">{{QUESTIONS_CONTENT}}</pre>
+                    <pre class="questions-text content-text">{{QUESTIONS_CONTENT}}</pre>
                 </div>
             </div>
 
@@ -317,7 +340,7 @@
                     <h2 class="section-title">Vocabulary Learning Guide</h2>
                 </div>
                 <div class="vocabulary-container">
-                    <pre class="vocabulary-text">{{VOCABULARY_CONTENT}}</pre>
+                    <pre class="vocabulary-text content-text">{{VOCABULARY_CONTENT}}</pre>
                 </div>
             </div>
 
@@ -343,6 +366,24 @@
             </div>
         </div>
     </div>
+
+    <script>
+        // Function to format text with ** markers as bold
+        function formatBoldText() {
+            const contentElements = document.querySelectorAll('.content-text');
+
+            contentElements.forEach(element => {
+                let content = element.innerHTML;
+
+                // Replace **text** with <span class="bold-word">text</span>
+                content = content.replace(/\*\*(.*?)\*\*/g, '<span class="bold-word">$1</span>');
+
+                element.innerHTML = content;
+            });
+        }
+
+        // Run the formatting when the page loads
+        document.addEventListener('DOMContentLoaded', formatBoldText);
+    </script>
 </body>
 </html>
-

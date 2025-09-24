@@ -16,98 +16,98 @@ public class ToeicPart7Service {
     private final EmailService emailService;
 
     private static final String PART7_PASSAGE_PROMPT = """
-            Create a TOEIC Part 7 Reading Comprehension passage. The passage should:
+        Create a TOEIC Part 7 Reading Comprehension passage. The passage must:
 
-            Be between 300-400 words long (suitable for advanced level, targeting 900+ TOEIC score).
+        • Length: 300–400 words, realistic business/professional tone.  
+        • Level: Advanced (targeting TOEIC 900+).  
+        • Document Type: Randomly choose ONE from the following authentic TOEIC formats:  
+          - Business correspondence (emails, memos, letters)  
+          - Advertisements and promotional materials  
+          - Articles and reports (news, business, research)  
+          - Notices, announcements, and instructions  
+          - Forms, applications, and questionnaires  
+          - Text message chains or instant messaging conversations  
 
-            Use one of these realistic TOEIC Part 7 formats randomly:
-            - Business correspondence (emails, memos, letters)
-            - Advertisements and promotional materials
-            - Articles and reports (news, business, research)
-            - Notices, announcements, and instructions
-            - Forms, applications, and questionnaires
-            - Text message chains or instant messaging conversations
+        • Language: Include 15–20 advanced vocabulary words, idiomatic expressions, and sophisticated sentence structures that would challenge high-level test takers.  
+        • Content: Contain implicit information requiring inference, not just direct facts.  
+        • Realism: Context must be plausible for professional or workplace settings.  
 
-            Include challenging vocabulary and complex sentence structures appropriate for 900+ TOEIC level.
+        At the end of the passage, create exactly 5 multiple-choice comprehension questions with 4 options each (A–D). Questions must test:  
+          1. Main idea / overall purpose  
+          2. Specific detail recall  
+          3. Inference / implication  
+          4. Vocabulary-in-context  
+          5. Tone, organization, or author’s purpose  
 
-            Contain at least 15-20 advanced vocabulary words and sophisticated expressions that would challenge high-level test takers.
+        • Difficulty: Make questions progressively more challenging, mixing direct factual questions with inferential and critical-thinking ones.  
+        • Answer Randomization: Distribute correct answers across A, B, C, D (not always the same letter).  
 
-            Include implicit information that requires inference and detailed comprehension.
+        Output format exactly as follows:
 
-            Maintain authentic business/professional tone and realistic context.
+        Document Type:
+        <Insert chosen document type here>
 
-            End with 5 multiple-choice comprehension questions with 4 options each (A-D), testing:
-            - Main ideas and specific details
-            - Inference and implication
-            - Vocabulary in context
-            - Author's purpose and tone
-            - Text organization and relationships
+        Passage:
+        <Insert passage text here>
 
-            Make questions progressively challenging, mixing direct factual questions with complex inferential ones.
+        Questions:
+        1. <Question 1>
+        A. <Option A>
+        B. <Option B>
+        C. <Option C>
+        D. <Option D>
 
-            Randomize correct answers across A, B, C, D options.
+        2. <Question 2>
+        A. <Option A>
+        B. <Option B>
+        C. <Option C>
+        D. <Option D>
 
-            Output Format clearly with:
+        3. <Question 3>
+        A. <Option A>
+        B. <Option B>
+        C. <Option C>
+        D. <Option D>
 
-            Document Type:
-            <Insert chosen document type here>
+        4. <Question 4>
+        A. <Option A>
+        B. <Option B>
+        C. <Option C>
+        D. <Option D>
 
-            Passage:
-            <Insert passage text here>
+        5. <Question 5>
+        A. <Option A>
+        B. <Option B>
+        C. <Option C>
+        D. <Option D>
 
-            Questions:
-            1. <Question 1>
-            A. <Option A>
-            B. <Option B>
-            C. <Option C>
-            D. <Option D>
-
-            2. <Question 2>
-            A. <Option A>
-            B. <Option B>
-            C. <Option C>
-            D. <Option D>
-
-            3. <Question 3>
-            A. <Option A>
-            B. <Option B>
-            C. <Option C>
-            D. <Option D>
-
-            4. <Question 4>
-            A. <Option A>
-            B. <Option B>
-            C. <Option C>
-            D. <Option D>
-
-            5. <Question 5>
-            A. <Option A>
-            B. <Option B>
-            C. <Option C>
-            D. <Option D>
-
-            Answer Key:
-            1. <Correct answer>
-            2. <Correct answer>
-            3. <Correct answer>
-            4. <Correct answer>
-            5. <Correct answer>
-            """;
+        Answer Key:
+        1. <Correct answer>
+        2. <Correct answer>
+        3. <Correct answer>
+        4. <Correct answer>
+        5. <Correct answer>
+        """;
 
     private static final String VOCABULARY_EXPLANATION_PROMPT = """
             From the following TOEIC Part 7 passage, identify and explain the most challenging vocabulary words and expressions that would be important for achieving a 900+ TOEIC score.
 
             Please provide:
-            1. Extract 10-15 of the most advanced/challenging words and phrases from the passage
+            1. Extract 10-15 of the most advanced/challenging words and phrases from the passage.
             2. For each word/phrase, provide:
-               - Definition in context
-               - Part of speech
+               - Word/Phrase
+               - IPA Pronunciation
+               - Part of Speech
+               - Definition in context (clear and concise)
                - Example sentence (different from the passage)
                - Common collocations or related expressions
-               - TOEIC frequency level (Common/Frequent/Advanced)
-               - Any usage notes or nuances
+               - Synonyms and commonly confused words
+               - Word family (noun/verb/adjective/adverb forms if applicable)
+               - TOEIC frequency level (Common / Frequent / Advanced)
+               - Notes: usage tips, nuances, or common mistakes
+               - (Optional) Vietnamese Translation
 
-            Format the response as a structured vocabulary study guide that would help someone prepare for high-level TOEIC reading.
+            Format the response as a structured vocabulary study guide suitable for high-level TOEIC preparation.
 
             Passage to analyze:
             %s
@@ -117,12 +117,16 @@ public class ToeicPart7Service {
             =====================================
 
             Word/Phrase: [word]
+            IPA: [pronunciation]
             Part of Speech: [noun/verb/adjective/etc.]
             Definition: [clear definition in context]
             Example: [new example sentence]
             Collocations: [related word combinations]
+            Synonyms/Confused Words: [list]
+            Word Family: [noun/verb/adj/adv forms]
             TOEIC Level: [Common/Frequent/Advanced]
             Notes: [usage tips, nuances, or common mistakes]
+            Vietnamese: [translation]
 
             ---
 

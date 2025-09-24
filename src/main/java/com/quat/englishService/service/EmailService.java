@@ -136,6 +136,29 @@ public class EmailService {
         }
     }
 
+    @Retryable(value = {Exception.class}, maxAttempts = 3, backoff = @Backoff(delay = 2000))
+    public void sendToeicEmail(String subject, String content) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setFrom(fromEmail);
+            helper.setTo(toEmail);
+            helper.setSubject(subject);
+
+            String htmlContent = buildToeicPart7EmailContent(content);
+            // Format content as HTML for better readability
+            helper.setText(htmlContent, true);
+
+            mailSender.send(message);
+            logger.info("TOEIC Part 7 email sent successfully to {}", toEmail);
+
+        } catch (Exception e) {
+            logger.error("Failed to send TOEIC Part 7 email: {}", e.getMessage(), e);
+            throw new RuntimeException("TOEIC Part 7 Email sending failed", e);
+        }
+    }
+
     private void attachAudioFiles(MimeMessageHelper helper, List<ParsedVocabularyWord> vocabularyWords) {
         for (ParsedVocabularyWord word : vocabularyWords) {
             try {
@@ -471,6 +494,83 @@ public class EmailService {
         try (var inputStream = getClass().getResourceAsStream("/toeic-email-template.html")) {
             if (inputStream == null) {
                 throw new RuntimeException("TOEIC email template not found");
+            }
+            return new String(inputStream.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
+        }
+    }
+
+    private String buildToeicPart7EmailContent(String content) {
+        try {
+            // Load the TOEIC Part 7 HTML template
+            String template = loadToeicPart7EmailTemplate();
+
+            String passageContent = extractSection(content, "Passage:", "Questions:");
+            String questionsContent = extractSection(content, "Questions:", "VOCABULARY LEARNING SECTION");
+            String vocabularyContent = extractSection(content, "VOCABULARY LEARNING SECTION", null);
+
+            // If parsing fails, use the entire content as passage
+            if (passageContent.isEmpty() && questionsContent.isEmpty() && vocabularyContent.isEmpty()) {
+                passageContent = content;
+                questionsContent = "Questions will be provided with the passage.";
+                vocabularyContent = "Vocabulary explanations included in the content above.";
+            }
+
+            // Replace placeholders in the template
+            String emailContent = template
+                    .replace("{{DATE}}", LocalDate.now().format(DateTimeFormatter.ofPattern("EEEE, MMMM dd, yyyy")))
+                    .replace("{{PASSAGE_CONTENT}}", escapeHtml(passageContent))
+                    .replace("{{QUESTIONS_CONTENT}}", escapeHtml(questionsContent))
+                    .replace("{{VOCABULARY_CONTENT}}", escapeHtml(vocabularyContent))
+                    .replace("{{GENERATION_DATE}}", LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+            return emailContent;
+
+        } catch (Exception e) {
+            logger.error("Failed to build TOEIC Part 7 email content", e);
+            // Fallback to simple HTML format
+            return String.format("""
+                    <html><body>
+                    <h1>TOEIC Part 7 Reading Practice</h1>
+                    <pre>%s</pre>
+                    </body></html>
+                    """, escapeHtml(content));
+        }
+    }
+
+    private String extractSection(String content, String startMarker, String endMarker) {
+        try {
+            int startIndex = content.indexOf(startMarker);
+            if (startIndex == -1) return "";
+
+            startIndex += startMarker.length();
+
+            int endIndex;
+            if (endMarker == null) {
+                endIndex = content.length();
+            } else {
+                endIndex = content.indexOf(endMarker, startIndex);
+                if (endIndex == -1) endIndex = content.length();
+            }
+
+            return content.substring(startIndex, endIndex).trim();
+        } catch (Exception e) {
+            logger.warn("Error extracting section from {} to {}: {}", startMarker, endMarker, e.getMessage());
+            return "";
+        }
+    }
+
+    private String escapeHtml(String text) {
+        if (text == null) return "";
+        return text.replace("&", "&amp;")
+                  .replace("<", "&lt;")
+                  .replace(">", "&gt;")
+                  .replace("\"", "&quot;")
+                  .replace("'", "&#39;");
+    }
+
+    private String loadToeicPart7EmailTemplate() throws Exception {
+        try (var inputStream = getClass().getResourceAsStream("/toeic-part7-email-template.html")) {
+            if (inputStream == null) {
+                throw new RuntimeException("TOEIC Part 7 email template not found");
             }
             return new String(inputStream.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
         }
