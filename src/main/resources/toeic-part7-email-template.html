@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TOEIC Part 7 Reading Practice - {{DATE}}</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+
+        .email-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+            position: relative;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 100" fill="rgba(255,255,255,0.1)"><path d="M0,0 C150,100 350,0 500,50 C650,100 850,0 1000,50 L1000,100 L0,100 Z"/></svg>') no-repeat bottom center;
+            background-size: cover;
+        }
+
+        .header h1 {
+            margin: 0 0 10px 0;
+            font-size: 2.5em;
+            font-weight: 700;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            position: relative;
+            z-index: 1;
+        }
+
+        .header .subtitle {
+            font-size: 1.1em;
+            opacity: 0.95;
+            margin: 0;
+            position: relative;
+            z-index: 1;
+        }
+
+        .date-badge {
+            background: rgba(255,255,255,0.2);
+            padding: 8px 16px;
+            border-radius: 20px;
+            display: inline-block;
+            margin-top: 15px;
+            font-weight: 500;
+            position: relative;
+            z-index: 1;
+        }
+
+        .content-wrapper {
+            padding: 40px;
+        }
+
+        .section {
+            margin-bottom: 30px;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .section-icon {
+            font-size: 1.5em;
+            margin-right: 12px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .section-title {
+            font-size: 1.4em;
+            font-weight: 600;
+            color: #2c3e50;
+            margin: 0;
+        }
+
+        .passage-container {
+            background: linear-gradient(135deg, #f8f9ff 0%, #fff 100%);
+            border: 1px solid #e3e8ff;
+            border-radius: 10px;
+            padding: 25px;
+            margin: 20px 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .passage-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+        }
+
+        .passage-text {
+            font-size: 1.05em;
+            line-height: 1.8;
+            color: #34495e;
+            white-space: pre-wrap;
+            margin: 0;
+            padding-left: 15px;
+        }
+
+        .questions-container {
+            background: linear-gradient(135deg, #fff8f0 0%, #fff 100%);
+            border: 1px solid #ffe4cc;
+            border-radius: 10px;
+            padding: 25px;
+            margin: 20px 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .questions-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+        }
+
+        .questions-text {
+            font-size: 1.05em;
+            line-height: 1.8;
+            color: #34495e;
+            white-space: pre-wrap;
+            margin: 0;
+            padding-left: 15px;
+        }
+
+        .vocabulary-container {
+            background: linear-gradient(135deg, #f0fff8 0%, #fff 100%);
+            border: 1px solid #ccffe4;
+            border-radius: 10px;
+            padding: 25px;
+            margin: 20px 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .vocabulary-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(135deg, #27ae60, #2ecc71);
+        }
+
+        .vocabulary-text {
+            font-size: 1.05em;
+            line-height: 1.8;
+            color: #34495e;
+            white-space: pre-wrap;
+            margin: 0;
+            padding-left: 15px;
+        }
+
+        .study-tips {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 10px;
+            margin: 30px 0;
+        }
+
+        .study-tips h3 {
+            margin: 0 0 15px 0;
+            font-size: 1.3em;
+            font-weight: 600;
+        }
+
+        .tips-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .tips-list li {
+            padding: 8px 0;
+            padding-left: 25px;
+            position: relative;
+        }
+
+        .tips-list li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: #2ecc71;
+            font-weight: bold;
+            background: white;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8em;
+            top: 8px;
+        }
+
+        .footer {
+            background: #34495e;
+            color: white;
+            text-align: center;
+            padding: 25px;
+            font-size: 0.9em;
+        }
+
+        .footer p {
+            margin: 5px 0;
+        }
+
+        .footer .generation-info {
+            opacity: 0.7;
+            font-size: 0.85em;
+            margin-top: 15px;
+        }
+
+        .score-target {
+            background: rgba(255,255,255,0.15);
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.9em;
+            font-weight: 600;
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+
+            .header {
+                padding: 30px 20px;
+            }
+
+            .header h1 {
+                font-size: 2em;
+            }
+
+            .content-wrapper {
+                padding: 25px;
+            }
+
+            .passage-container,
+            .questions-container,
+            .vocabulary-container {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="header">
+            <h1>📖 TOEIC Part 7 Reading Practice</h1>
+            <p class="subtitle">Advanced Level • <span class="score-target">Target Score: 900+</span></p>
+            <div class="date-badge">{{DATE}}</div>
+        </div>
+
+        <div class="content-wrapper">
+            <div class="section">
+                <div class="section-header">
+                    <span class="section-icon">📚</span>
+                    <h2 class="section-title">Reading Comprehension Passage</h2>
+                </div>
+                <div class="passage-container">
+                    <pre class="passage-text">{{PASSAGE_CONTENT}}</pre>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-header">
+                    <span class="section-icon">❓</span>
+                    <h2 class="section-title">Comprehension Questions</h2>
+                </div>
+                <div class="questions-container">
+                    <pre class="questions-text">{{QUESTIONS_CONTENT}}</pre>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-header">
+                    <span class="section-icon">📖</span>
+                    <h2 class="section-title">Vocabulary Learning Guide</h2>
+                </div>
+                <div class="vocabulary-container">
+                    <pre class="vocabulary-text">{{VOCABULARY_CONTENT}}</pre>
+                </div>
+            </div>
+
+            <div class="study-tips">
+                <h3>🎯 Study Tips for TOEIC Success</h3>
+                <ul class="tips-list">
+                    <li>Practice active reading with strict time limits (10-12 minutes per passage)</li>
+                    <li>Focus on inference questions - they test your ability to read between the lines</li>
+                    <li>Build academic and business vocabulary systematically</li>
+                    <li>Review answer explanations to understand the reasoning process</li>
+                    <li>Practice identifying main ideas, details, and author's purpose</li>
+                    <li>Work on understanding text organization and relationships</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p><strong>Keep practicing consistently to achieve your target score!</strong></p>
+            <p>Remember: Regular practice with challenging materials is the key to TOEIC success.</p>
+            <div class="generation-info">
+                <p>Generated on {{GENERATION_DATE}} • Powered by AI Assistant</p>
+                <p>Continue your TOEIC journey with confidence! 🚀</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+
