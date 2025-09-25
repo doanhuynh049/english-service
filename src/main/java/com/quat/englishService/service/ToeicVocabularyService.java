@@ -23,11 +23,16 @@ public class ToeicVocabularyService {
     private final EmailService emailService;
     private final ObjectMapper objectMapper;
     private String toeicExcelFilePath = "toeic_vocabulary_log.xlsx";
+    
+    // Configurable parameters
+    private static final int TOTAL_WORDS_FOR_EMAIL = 15;
+    private static final int NEW_WORDS_COUNT = 10;
+    private static final int EXISTING_WORDS_COUNT = TOTAL_WORDS_FOR_EMAIL - NEW_WORDS_COUNT;
 
 
     private static final String GENERATE_EXPLANATIONS_PROMPT = """
             You are helping TOEIC learners aiming for a score of 800+. 
-            I will give you 15 vocabulary words (10 new + 5 random from past lists).
+            I will give you %d vocabulary words (%d new + %d random from past lists).""".formatted(TOTAL_WORDS_FOR_EMAIL, NEW_WORDS_COUNT, EXISTING_WORDS_COUNT) + """
 
             For each word, provide the following in JSON format:
             - word
@@ -101,10 +106,10 @@ public class ToeicVocabularyService {
     }
 
     /**
-     * Generate 10 new advanced TOEIC vocabulary words using AI
+     * Generate new advanced TOEIC vocabulary words using AI
      */
     public List<ToeicVocabularyWord> generateNewWords() {
-        logger.info("Generating 10 new advanced TOEIC vocabulary words...");
+        logger.info("Generating {} new advanced TOEIC vocabulary words...", NEW_WORDS_COUNT);
 
         try {
             // Get existing words to avoid duplicates
@@ -158,7 +163,7 @@ public class ToeicVocabularyService {
         StringBuilder promptBuilder = new StringBuilder();
         
         promptBuilder.append("""
-            Generate 10 new advanced TOEIC vocabulary words that are suitable for learners targeting a score of 800+, focusing on Part 6 (Text Completion) and Part 7 (Reading Comprehension).
+            Generate %d new advanced TOEIC vocabulary words that are suitable for learners targeting a score of 800+, focusing on Part 6 (Text Completion) and Part 7 (Reading Comprehension).""".formatted(NEW_WORDS_COUNT) + """
             
             For each word, provide:
             - Word
@@ -212,23 +217,27 @@ public class ToeicVocabularyService {
     }
 
     /**
-     * Select 15 words for email: 10 new + 5 random from existing
+     * Select words for email: configurable new + existing from Excel (total always 15)
      */
     public List<ToeicVocabularyWord> selectWordsForEmail(List<ToeicVocabularyWord> newWords) {
-        logger.info("Selecting words for email: {} new words provided", newWords.size());
+        logger.info("Selecting words for email: {} new words provided (target: {} new + {} existing = {} total)", 
+                   newWords.size(), NEW_WORDS_COUNT, EXISTING_WORDS_COUNT, TOTAL_WORDS_FOR_EMAIL);
         
         List<ToeicVocabularyWord> selectedWords = new ArrayList<>();
         
-        // Add all new words (up to 10)
-        selectedWords.addAll(newWords.stream().limit(10).collect(Collectors.toList()));
+        // Add all new words (up to configured count)
+        selectedWords.addAll(newWords.stream().limit(NEW_WORDS_COUNT).collect(Collectors.toList()));
         
-        // Get 5 random words from Excel
-        try {
-            List<ToeicVocabularyWord> existingWords = getRandomToeicWords(5);
-            selectedWords.addAll(existingWords);
-            logger.info("Added {} existing words from Excel", existingWords.size());
-        } catch (Exception e) {
-            logger.warn("Could not get existing words from Excel, continuing with new words only: {}", e.getMessage());
+        // Get remaining words from Excel to reach total of 15
+        int remainingWordsNeeded = TOTAL_WORDS_FOR_EMAIL - selectedWords.size();
+        if (remainingWordsNeeded > 0) {
+            try {
+                List<ToeicVocabularyWord> existingWords = getRandomToeicWords(remainingWordsNeeded);
+                selectedWords.addAll(existingWords);
+                logger.info("Added {} existing words from Excel", existingWords.size());
+            } catch (Exception e) {
+                logger.warn("Could not get existing words from Excel, continuing with {} words only: {}", selectedWords.size(), e.getMessage());
+            }
         }
         
         // Shuffle the final list
@@ -686,8 +695,8 @@ public class ToeicVocabularyService {
                 populateToeicRow(row, word);
             }
 
-            // Auto-size columns
-            for (int i = 0; i < 8; i++) {
+            // Auto-size columns (simplified format has 4 columns)
+            for (int i = 0; i < 4; i++) {
                 sheet.autoSizeColumn(i);
             }
 
@@ -725,7 +734,7 @@ public class ToeicVocabularyService {
 
     private void createToeicHeader(org.apache.poi.ss.usermodel.Sheet sheet) {
         org.apache.poi.ss.usermodel.Row headerRow = sheet.createRow(0);
-        String[] headers = {"Date", "Word", "Part of Speech", "Pronunciation (IPA)", "Definition", "Example", "Collocations", "Vietnamese Translation"};
+        String[] headers = {"Date", "Word", "Part of Speech", "Definition"};
         
         for (int i = 0; i < headers.length; i++) {
             org.apache.poi.ss.usermodel.Cell cell = headerRow.createCell(i);
@@ -756,37 +765,16 @@ public class ToeicVocabularyService {
         org.apache.poi.ss.usermodel.Cell posCell = row.createCell(2);
         posCell.setCellValue(word.getPartOfSpeech() != null ? word.getPartOfSpeech() : "");
         
-        // Pronunciation (IPA)
-        org.apache.poi.ss.usermodel.Cell pronunciationCell = row.createCell(3);
-        pronunciationCell.setCellValue(word.getPronunciation() != null ? word.getPronunciation() : "");
-        
         // Definition
-        org.apache.poi.ss.usermodel.Cell definitionCell = row.createCell(4);
+        org.apache.poi.ss.usermodel.Cell definitionCell = row.createCell(3);
         definitionCell.setCellValue(word.getDefinition() != null ? word.getDefinition() : "");
-        
-        // Example
-        org.apache.poi.ss.usermodel.Cell exampleCell = row.createCell(5);
-        exampleCell.setCellValue(word.getExample() != null ? word.getExample() : "");
-        
-        // Collocations
-        org.apache.poi.ss.usermodel.Cell collocationsCell = row.createCell(6);
-        if (word.getCollocations() != null && word.getCollocations().length > 0) {
-            String collocationsStr = String.join("; ", word.getCollocations());
-            collocationsCell.setCellValue(collocationsStr);
-        } else {
-            collocationsCell.setCellValue("");
-        }
-        
-        // Vietnamese Translation
-        org.apache.poi.ss.usermodel.Cell translationCell = row.createCell(7);
-        translationCell.setCellValue(word.getVietnameseTranslation() != null ? word.getVietnameseTranslation() : "");
     }
 
     private ToeicVocabularyWord extractToeicWordFromRow(org.apache.poi.ss.usermodel.Row row) {
         try {
             ToeicVocabularyWord word = new ToeicVocabularyWord();
             
-            // Extract data from cells
+            // Extract data from cells (simplified format: Date, Word, Part of Speech, Definition)
             org.apache.poi.ss.usermodel.Cell wordCell = row.getCell(1);
             if (wordCell != null && wordCell.getCellType() == org.apache.poi.ss.usermodel.CellType.STRING) {
                 word.setWord(wordCell.getStringCellValue().trim());
@@ -799,32 +787,9 @@ public class ToeicVocabularyService {
                 word.setPartOfSpeech(posCell.getStringCellValue().trim());
             }
             
-            org.apache.poi.ss.usermodel.Cell pronunciationCell = row.getCell(3);
-            if (pronunciationCell != null && pronunciationCell.getCellType() == org.apache.poi.ss.usermodel.CellType.STRING) {
-                word.setPronunciation(pronunciationCell.getStringCellValue().trim());
-            }
-            
-            org.apache.poi.ss.usermodel.Cell definitionCell = row.getCell(4);
+            org.apache.poi.ss.usermodel.Cell definitionCell = row.getCell(3);
             if (definitionCell != null && definitionCell.getCellType() == org.apache.poi.ss.usermodel.CellType.STRING) {
                 word.setDefinition(definitionCell.getStringCellValue().trim());
-            }
-            
-            org.apache.poi.ss.usermodel.Cell exampleCell = row.getCell(5);
-            if (exampleCell != null && exampleCell.getCellType() == org.apache.poi.ss.usermodel.CellType.STRING) {
-                word.setExample(exampleCell.getStringCellValue().trim());
-            }
-            
-            org.apache.poi.ss.usermodel.Cell collocationsCell = row.getCell(6);
-            if (collocationsCell != null && collocationsCell.getCellType() == org.apache.poi.ss.usermodel.CellType.STRING) {
-                String collocationsStr = collocationsCell.getStringCellValue().trim();
-                if (!collocationsStr.isEmpty()) {
-                    word.setCollocations(collocationsStr.split(";\\s*"));
-                }
-            }
-            
-            org.apache.poi.ss.usermodel.Cell translationCell = row.getCell(7);
-            if (translationCell != null && translationCell.getCellType() == org.apache.poi.ss.usermodel.CellType.STRING) {
-                word.setVietnameseTranslation(translationCell.getStringCellValue().trim());
             }
             
             return word;
