@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 public class ToeicVocabularyWord {
     private String word;
     private String partOfSpeech;
+    private String pronunciation;  // IPA pronunciation
     private String definition;
     private String example;
     private String[] collocations;
@@ -33,6 +34,9 @@ public class ToeicVocabularyWord {
 
     public String getPartOfSpeech() { return partOfSpeech; }
     public void setPartOfSpeech(String partOfSpeech) { this.partOfSpeech = partOfSpeech; }
+
+    public String getPronunciation() { return pronunciation; }
+    public void setPronunciation(String pronunciation) { this.pronunciation = pronunciation; }
 
     public String getDefinition() { return definition; }
     public void setDefinition(String definition) { this.definition = definition; }

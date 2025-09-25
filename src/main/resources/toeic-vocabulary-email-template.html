@@ -76,14 +76,14 @@
             display: inline-block;
         }
         
-        /* Stats Bar */
         .stats-bar {
             background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
             padding: 20px 30px;
-            display: flex;
-            justify-content: space-around;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr); /* Equal spacing across full width */
+            gap: 20px;
             align-items: center;
-            flex-wrap: wrap;
+            text-align: center;
         }
         
         .stat-item {
@@ -210,7 +210,34 @@
             font-weight: 600;
         }
         
+        .pronunciation {
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            color: #2c3e50;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 0.5px;
+        }
+        
         /* Content Sections */
+        .pronunciation-section {
+            background: linear-gradient(135deg, #f8f9ff 0%, #fff5f5 100%);
+            border-left: 4px solid #9c88ff;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+        
+        .pronunciation-text {
+            color: #2c3e50;
+            font-size: 1.2em;
+            font-weight: 600;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 1px;
+        }
+        
         .definition-section {
             margin-bottom: 20px;
         }

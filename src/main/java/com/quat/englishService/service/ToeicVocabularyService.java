@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.quat.englishService.dto.ToeicVocabularyWord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -27,28 +26,31 @@ public class ToeicVocabularyService {
 
 
     private static final String GENERATE_EXPLANATIONS_PROMPT = """
-            You are helping TOEIC learners aiming for a score of 800+. I will give you 15 vocabulary words (10 new + 5 random from past lists).
-            
+            You are helping TOEIC learners aiming for a score of 800+. 
+            I will give you 15 vocabulary words (10 new + 5 random from past lists).
+
             For each word, provide the following in JSON format:
-            - Word
-            - Part of Speech (POS)
-            - Definition (concise but clear)
-            - Example sentence (formal/business context, TOEIC style)
-            - Common collocations (3–4 useful ones)
-            - Vietnamese translation
-            
+            - word
+            - pos (Part of Speech)
+            - ipa (pronunciation in IPA)
+            - definition (concise but clear)
+            - example (formal/business context, TOEIC style)
+            - collocations (3–4 useful ones)
+            - translation (Vietnamese)
+
             Example output format:
             [
               {
                 "word": "alleviate",
                 "pos": "verb",
+                "ipa": "/əˈliːvieɪt/",
                 "definition": "to make a problem or situation less severe",
                 "example": "The new software was designed to alleviate workload for office staff.",
                 "collocations": ["alleviate pressure", "alleviate concerns", "alleviate difficulties"],
                 "translation": "giảm bớt, làm nhẹ"
               }
             ]
-            
+
             Words to process: %s
             """;
 
@@ -281,6 +283,7 @@ public class ToeicVocabularyService {
                     ToeicVocabularyWord toeicWord = wordMap.get(word.toLowerCase());
                     toeicWord.setDefinition((String) explanationMap.get("definition"));
                     toeicWord.setExample((String) explanationMap.get("example"));
+                    toeicWord.setPronunciation((String) explanationMap.get("ipa"));
                     toeicWord.setVietnameseTranslation((String) explanationMap.get("translation"));
                     
                     // Handle collocations array
@@ -362,10 +365,29 @@ public class ToeicVocabularyService {
                 """, word.getPartOfSpeech()));
         }
         
+        if (word.getPronunciation() != null) {
+            card.append(String.format("""
+                    <span class="pronunciation">/%s/</span>
+                """, escapeHtml(word.getPronunciation())));
+        }
+        
         card.append("""
                     <span class="toeic-level">Advanced</span>
                 </div>
             """);
+        
+        // Pronunciation section
+        if (word.getPronunciation() != null) {
+            card.append(String.format("""
+                <div class="pronunciation-section">
+                    <div class="section-header">
+                        <span class="section-icon">🔊</span>
+                        <span class="section-title">Pronunciation</span>
+                    </div>
+                    <div class="pronunciation-text">%s</div>
+                </div>
+                """, escapeHtml(word.getPronunciation())));
+        }
         
         // Definition section
         if (word.getDefinition() != null) {
@@ -630,7 +652,7 @@ public class ToeicVocabularyService {
             }
 
             // Auto-size columns
-            for (int i = 0; i < 7; i++) {
+            for (int i = 0; i < 8; i++) {
                 sheet.autoSizeColumn(i);
             }
 
@@ -668,7 +690,7 @@ public class ToeicVocabularyService {
 
     private void createToeicHeader(org.apache.poi.ss.usermodel.Sheet sheet) {
         org.apache.poi.ss.usermodel.Row headerRow = sheet.createRow(0);
-        String[] headers = {"Date", "Word", "Part of Speech", "Definition", "Example", "Collocations", "Vietnamese Translation"};
+        String[] headers = {"Date", "Word", "Part of Speech", "Pronunciation (IPA)", "Definition", "Example", "Collocations", "Vietnamese Translation"};
         
         for (int i = 0; i < headers.length; i++) {
             org.apache.poi.ss.usermodel.Cell cell = headerRow.createCell(i);
@@ -699,16 +721,20 @@ public class ToeicVocabularyService {
         org.apache.poi.ss.usermodel.Cell posCell = row.createCell(2);
         posCell.setCellValue(word.getPartOfSpeech() != null ? word.getPartOfSpeech() : "");
         
+        // Pronunciation (IPA)
+        org.apache.poi.ss.usermodel.Cell pronunciationCell = row.createCell(3);
+        pronunciationCell.setCellValue(word.getPronunciation() != null ? word.getPronunciation() : "");
+        
         // Definition
-        org.apache.poi.ss.usermodel.Cell definitionCell = row.createCell(3);
+        org.apache.poi.ss.usermodel.Cell definitionCell = row.createCell(4);
         definitionCell.setCellValue(word.getDefinition() != null ? word.getDefinition() : "");
         
         // Example
-        org.apache.poi.ss.usermodel.Cell exampleCell = row.createCell(4);
+        org.apache.poi.ss.usermodel.Cell exampleCell = row.createCell(5);
         exampleCell.setCellValue(word.getExample() != null ? word.getExample() : "");
         
         // Collocations
-        org.apache.poi.ss.usermodel.Cell collocationsCell = row.createCell(5);
+        org.apache.poi.ss.usermodel.Cell collocationsCell = row.createCell(6);
         if (word.getCollocations() != null && word.getCollocations().length > 0) {
             String collocationsStr = String.join("; ", word.getCollocations());
             collocationsCell.setCellValue(collocationsStr);
@@ -717,7 +743,7 @@ public class ToeicVocabularyService {
         }
         
         // Vietnamese Translation
-        org.apache.poi.ss.usermodel.Cell translationCell = row.createCell(6);
+        org.apache.poi.ss.usermodel.Cell translationCell = row.createCell(7);
         translationCell.setCellValue(word.getVietnameseTranslation() != null ? word.getVietnameseTranslation() : "");
     }
 
@@ -738,17 +764,22 @@ public class ToeicVocabularyService {
                 word.setPartOfSpeech(posCell.getStringCellValue().trim());
             }
             
-            org.apache.poi.ss.usermodel.Cell definitionCell = row.getCell(3);
+            org.apache.poi.ss.usermodel.Cell pronunciationCell = row.getCell(3);
+            if (pronunciationCell != null && pronunciationCell.getCellType() == org.apache.poi.ss.usermodel.CellType.STRING) {
+                word.setPronunciation(pronunciationCell.getStringCellValue().trim());
+            }
+            
+            org.apache.poi.ss.usermodel.Cell definitionCell = row.getCell(4);
             if (definitionCell != null && definitionCell.getCellType() == org.apache.poi.ss.usermodel.CellType.STRING) {
                 word.setDefinition(definitionCell.getStringCellValue().trim());
             }
             
-            org.apache.poi.ss.usermodel.Cell exampleCell = row.getCell(4);
+            org.apache.poi.ss.usermodel.Cell exampleCell = row.getCell(5);
             if (exampleCell != null && exampleCell.getCellType() == org.apache.poi.ss.usermodel.CellType.STRING) {
                 word.setExample(exampleCell.getStringCellValue().trim());
             }
             
-            org.apache.poi.ss.usermodel.Cell collocationsCell = row.getCell(5);
+            org.apache.poi.ss.usermodel.Cell collocationsCell = row.getCell(6);
             if (collocationsCell != null && collocationsCell.getCellType() == org.apache.poi.ss.usermodel.CellType.STRING) {
                 String collocationsStr = collocationsCell.getStringCellValue().trim();
                 if (!collocationsStr.isEmpty()) {
@@ -756,7 +787,7 @@ public class ToeicVocabularyService {
                 }
             }
             
-            org.apache.poi.ss.usermodel.Cell translationCell = row.getCell(6);
+            org.apache.poi.ss.usermodel.Cell translationCell = row.getCell(7);
             if (translationCell != null && translationCell.getCellType() == org.apache.poi.ss.usermodel.CellType.STRING) {
                 word.setVietnameseTranslation(translationCell.getStringCellValue().trim());
             }
