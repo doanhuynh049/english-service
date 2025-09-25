@@ -2,6 +2,7 @@ package com.quat.englishService.service;
 
 import com.quat.englishService.model.VocabularyWord;
 import com.quat.englishService.dto.ParsedVocabularyWord;
+import com.quat.englishService.dto.ToeicVocabularyWord;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
@@ -95,6 +96,92 @@ public class ExcelService {
         }
     }
 
+    public void saveToeicVocabularyWords(List<ToeicVocabularyWord> words) {
+        try {
+            String toeicExcelFilePath = "toeic_vocabulary_log.xlsx";
+            Workbook workbook = getToeicWorkbook(toeicExcelFilePath);
+            Sheet sheet = getOrCreateSheet(workbook, "TOEIC Vocabulary");
+
+            // Create header if sheet is empty
+            if (sheet.getPhysicalNumberOfRows() == 0) {
+                createToeicHeader(sheet);
+            }
+
+            // Add TOEIC vocabulary words
+            int rowNum = sheet.getLastRowNum() + 1;
+            for (ToeicVocabularyWord word : words) {
+                Row row = sheet.createRow(rowNum++);
+                populateToeicRow(row, word);
+            }
+
+            // Auto-size columns
+            for (int i = 0; i < 7; i++) {
+                sheet.autoSizeColumn(i);
+            }
+
+            // Save the workbook
+            try (FileOutputStream outputStream = new FileOutputStream(toeicExcelFilePath)) {
+                workbook.write(outputStream);
+            }
+
+            workbook.close();
+            logger.info("Successfully saved {} TOEIC vocabulary words to Excel", words.size());
+
+        } catch (Exception e) {
+            logger.error("Failed to save TOEIC vocabulary words to Excel: {}", e.getMessage(), e);
+        }
+    }
+
+    public List<ToeicVocabularyWord> getRandomToeicWords(int count) {
+        List<ToeicVocabularyWord> randomWords = new ArrayList<>();
+        
+        try {
+            String toeicExcelFilePath = "toeic_vocabulary_log.xlsx";
+            File file = new File(toeicExcelFilePath);
+            if (!file.exists()) {
+                logger.info("TOEIC Excel file doesn't exist yet, returning empty list");
+                return randomWords;
+            }
+
+            Workbook workbook = getToeicWorkbook(toeicExcelFilePath);
+            Sheet sheet = workbook.getSheet("TOEIC Vocabulary");
+            
+            if (sheet == null || sheet.getPhysicalNumberOfRows() <= 1) {
+                logger.info("No TOEIC vocabulary words found in Excel");
+                workbook.close();
+                return randomWords;
+            }
+
+            // Collect all rows (skip header)
+            List<Row> dataRows = new ArrayList<>();
+            for (Row row : sheet) {
+                if (row.getRowNum() > 0) { // Skip header
+                    dataRows.add(row);
+                }
+            }
+
+            // Shuffle and take requested count
+            Collections.shuffle(dataRows);
+            int takeCount = Math.min(count, dataRows.size());
+
+            for (int i = 0; i < takeCount; i++) {
+                Row row = dataRows.get(i);
+                ToeicVocabularyWord word = extractToeicWordFromRow(row);
+                if (word != null) {
+                    randomWords.add(word);
+                }
+            }
+
+            workbook.close();
+            logger.info("Retrieved {} random TOEIC words from Excel", randomWords.size());
+
+        } catch (Exception e) {
+            logger.error("Error getting random TOEIC words from Excel: {}", e.getMessage(), e);
+        }
+
+        return randomWords;
+    }
+
     public Set<String> getUsedWords() {
         Set<String> usedWords = new HashSet<>();
 
@@ -148,6 +235,16 @@ public class ExcelService {
         } catch (IOException e) {
             // File doesn't exist, create a new workbook
             logger.info("Creating new Excel workbook: {}", excelFilePath);
+            return new XSSFWorkbook();
+        }
+    }
+
+    private Workbook getToeicWorkbook(String filePath) throws IOException {
+        try (FileInputStream inputStream = new FileInputStream(filePath)) {
+            return new XSSFWorkbook(inputStream);
+        } catch (IOException e) {
+            // File doesn't exist, create a new workbook
+            logger.info("Creating new TOEIC Excel workbook: {}", filePath);
             return new XSSFWorkbook();
         }
     }
@@ -210,6 +307,24 @@ public class ExcelService {
         for (int i = 0; i < headers.length; i++) {
             Cell cell = headerRow.createCell(i);
             cell.setCellValue(headers[i]);
+            cell.setCellStyle(headerStyle);
+        }
+    }
+
+    private void createToeicHeader(Sheet sheet) {
+        Row headerRow = sheet.createRow(0);
+        String[] headers = {"Date", "Word", "Part of Speech", "Definition", "Example", "Collocations", "Vietnamese Translation"};
+        
+        for (int i = 0; i < headers.length; i++) {
+            Cell cell = headerRow.createCell(i);
+            cell.setCellValue(headers[i]);
+            
+            // Create bold style for headers
+            Workbook workbook = sheet.getWorkbook();
+            CellStyle headerStyle = workbook.createCellStyle();
+            Font font = workbook.createFont();
+            font.setBold(true);
+            headerStyle.setFont(font);
             cell.setCellStyle(headerStyle);
         }
     }
@@ -286,6 +401,91 @@ public class ExcelService {
 
         // Example Audio Path
         setCellValue(row, colIndex++, word.getExampleAudioPath());
+    }
+
+    private void populateToeicRow(Row row, ToeicVocabularyWord word) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        
+        // Date
+        Cell dateCell = row.createCell(0);
+        dateCell.setCellValue(word.getCreatedAt().format(formatter));
+        
+        // Word
+        Cell wordCell = row.createCell(1);
+        wordCell.setCellValue(word.getWord());
+        
+        // Part of Speech
+        Cell posCell = row.createCell(2);
+        posCell.setCellValue(word.getPartOfSpeech() != null ? word.getPartOfSpeech() : "");
+        
+        // Definition
+        Cell definitionCell = row.createCell(3);
+        definitionCell.setCellValue(word.getDefinition() != null ? word.getDefinition() : "");
+        
+        // Example
+        Cell exampleCell = row.createCell(4);
+        exampleCell.setCellValue(word.getExample() != null ? word.getExample() : "");
+        
+        // Collocations
+        Cell collocationsCell = row.createCell(5);
+        if (word.getCollocations() != null && word.getCollocations().length > 0) {
+            String collocationsStr = String.join("; ", word.getCollocations());
+            collocationsCell.setCellValue(collocationsStr);
+        } else {
+            collocationsCell.setCellValue("");
+        }
+        
+        // Vietnamese Translation
+        Cell translationCell = row.createCell(6);
+        translationCell.setCellValue(word.getVietnameseTranslation() != null ? word.getVietnameseTranslation() : "");
+    }
+
+    private ToeicVocabularyWord extractToeicWordFromRow(Row row) {
+        try {
+            ToeicVocabularyWord word = new ToeicVocabularyWord();
+            
+            // Extract data from cells
+            Cell wordCell = row.getCell(1);
+            if (wordCell != null && wordCell.getCellType() == CellType.STRING) {
+                word.setWord(wordCell.getStringCellValue().trim());
+            } else {
+                return null; // Skip if no word
+            }
+            
+            Cell posCell = row.getCell(2);
+            if (posCell != null && posCell.getCellType() == CellType.STRING) {
+                word.setPartOfSpeech(posCell.getStringCellValue().trim());
+            }
+            
+            Cell definitionCell = row.getCell(3);
+            if (definitionCell != null && definitionCell.getCellType() == CellType.STRING) {
+                word.setDefinition(definitionCell.getStringCellValue().trim());
+            }
+            
+            Cell exampleCell = row.getCell(4);
+            if (exampleCell != null && exampleCell.getCellType() == CellType.STRING) {
+                word.setExample(exampleCell.getStringCellValue().trim());
+            }
+            
+            Cell collocationsCell = row.getCell(5);
+            if (collocationsCell != null && collocationsCell.getCellType() == CellType.STRING) {
+                String collocationsStr = collocationsCell.getStringCellValue().trim();
+                if (!collocationsStr.isEmpty()) {
+                    word.setCollocations(collocationsStr.split(";\\s*"));
+                }
+            }
+            
+            Cell translationCell = row.getCell(6);
+            if (translationCell != null && translationCell.getCellType() == CellType.STRING) {
+                word.setVietnameseTranslation(translationCell.getStringCellValue().trim());
+            }
+            
+            return word;
+            
+        } catch (Exception e) {
+            logger.error("Error extracting TOEIC word from row: {}", e.getMessage(), e);
+            return null;
+        }
     }
 
     private void setCellValue(Row row, int columnIndex, String value) {
