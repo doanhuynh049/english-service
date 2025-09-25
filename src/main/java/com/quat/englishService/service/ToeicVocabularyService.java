@@ -77,15 +77,16 @@ public class ToeicVocabularyService {
             List<ToeicVocabularyWord> newWords = generateNewWords();
             logger.info("Generated {} new TOEIC words", newWords.size());
 
-            // Step 2: Save new words to Excel
+            // Step 2: Select 15 words for email BEFORE saving (10 new + 5 random old)
+            // This prevents newly saved words from being included in the same email
+            List<ToeicVocabularyWord> selectedWords = selectWordsForEmail(newWords);
+            logger.info("Selected {} words for email", selectedWords.size());
+
+            // Step 3: Save new words to Excel (after email selection to avoid duplicates)
             if (!newWords.isEmpty()) {
                 saveWordsToExcel(newWords);
                 logger.info("Saved {} new words to Excel", newWords.size());
             }
-
-            // Step 3: Select 15 words for email (10 new + 5 random old)
-            List<ToeicVocabularyWord> selectedWords = selectWordsForEmail(newWords);
-            logger.info("Selected {} words for email", selectedWords.size());
 
             // Step 4: Get detailed explanations from AI
             List<ToeicVocabularyWord> enrichedWords = getExplanationsFromAPI(selectedWords);
