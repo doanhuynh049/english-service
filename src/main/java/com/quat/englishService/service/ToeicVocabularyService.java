@@ -322,10 +322,18 @@ public class ToeicVocabularyService {
                 wordSections.append(buildWordCard(word, i + 1));
             }
 
+            // Build summary table rows
+            StringBuilder summaryRows = new StringBuilder();
+            for (int i = 0; i < words.size(); i++) {
+                ToeicVocabularyWord word = words.get(i);
+                summaryRows.append(buildSummaryTableRow(word, i + 1));
+            }
+
             // Replace placeholders
             String content = template
                 .replace("{{DATE}}", java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("EEEE, MMMM dd, yyyy")))
                 .replace("{{WORD_SECTIONS}}", wordSections.toString())
+                .replace("{{SUMMARY_ROWS}}", summaryRows.toString())
                 .replace("{{GENERATION_DATE}}", java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd")));
 
             logger.info("Successfully built HTML content with {} words using template", words.size());
@@ -461,6 +469,30 @@ public class ToeicVocabularyService {
         return card.toString();
     }
 
+    /**
+     * Build summary table row for vocabulary overview
+     */
+    private String buildSummaryTableRow(ToeicVocabularyWord word, int index) {
+        return String.format("""
+            <tr>
+                <td>%d</td>
+                <td><span class="summary-word">%s</span></td>
+                <td><span class="summary-pos">%s</span></td>
+                <td><span class="summary-pronunciation">%s</span></td>
+                <td><span class="summary-definition">%s</span></td>
+            </tr>
+            """, 
+            index,
+            escapeHtml(word.getWord() != null ? word.getWord() : ""),
+            escapeHtml(word.getPartOfSpeech() != null ? word.getPartOfSpeech() : ""),
+            escapeHtml(word.getPronunciation() != null ? "/" + word.getPronunciation() + "/" : ""),
+            escapeHtml(word.getDefinition() != null ? 
+                (word.getDefinition().length() > 80 ? 
+                    word.getDefinition().substring(0, 77) + "..." : 
+                    word.getDefinition()) : "")
+        );
+    }
+
     private String escapeHtml(String text) {
         if (text == null) return "";
         return text.replace("&", "&amp;")
@@ -470,7 +502,7 @@ public class ToeicVocabularyService {
                   .replace("'", "&#39;");
     }
     /**
-     * Send email with HTML content
+     * Send email with HTML content and Excel attachment
      */
     public void sendEmail(String htmlContent) {
         logger.info("Sending TOEIC vocabulary email...");
@@ -480,8 +512,11 @@ public class ToeicVocabularyService {
                            java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("MMM d, yyyy")) +
                            " (Target: 800+)";
             
-            emailService.sendToeicVocabularyEmail(subject, htmlContent);
-            logger.info("Successfully sent TOEIC vocabulary email");
+            // Use absolute path for Excel file
+            String absoluteExcelPath = new java.io.File(toeicExcelFilePath).getAbsolutePath();
+            
+            emailService.sendToeicVocabularyEmailWithAttachment(subject, htmlContent, absoluteExcelPath);
+            logger.info("Successfully sent TOEIC vocabulary email with Excel attachment");
             
         } catch (Exception e) {
             logger.error("Error sending TOEIC vocabulary email: {}", e.getMessage(), e);
