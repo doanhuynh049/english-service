@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily TOEIC Vocabulary - Target Score 800+</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f7fa;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .email-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        /* Header Section */
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+            position: relative;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="75" cy="75" r="1" fill="rgba(255,255,255,0.05)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+            opacity: 0.3;
+        }
+        
+        .header-content {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+        
+        .header .subtitle {
+            font-size: 1.1em;
+            opacity: 0.9;
+            margin-bottom: 15px;
+        }
+        
+        .header .date {
+            font-size: 0.95em;
+            opacity: 0.8;
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 25px;
+            padding: 8px 20px;
+            display: inline-block;
+        }
+        
+        /* Stats Bar */
+        .stats-bar {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .stat-item {
+            text-align: center;
+            color: white;
+            margin: 5px;
+        }
+        
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            display: block;
+        }
+        
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        /* Content Area */
+        .content {
+            padding: 40px 30px;
+        }
+        
+        .intro-text {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: 1.1em;
+            text-align: center;
+            margin-bottom: 40px;
+            font-weight: 600;
+            line-height: 1.8;
+        }
+        
+        /* Word Cards */
+        .words-grid {
+            display: grid;
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+        
+        .word-card {
+            background: #ffffff;
+            border: 1px solid #e1e8ed;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .word-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .word-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .word-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .word-title {
+            font-size: 1.8em;
+            font-weight: 700;
+            color: #2c3e50;
+            margin: 0;
+        }
+        
+        .word-number {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+        
+        .word-meta {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .part-of-speech {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .toeic-level {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+        
+        /* Content Sections */
+        .definition-section {
+            margin-bottom: 20px;
+        }
+        
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+        
+        .section-icon {
+            font-size: 1.2em;
+        }
+        
+        .section-title {
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 1em;
+        }
+        
+        .definition-text {
+            color: #34495e;
+            font-size: 1.05em;
+            line-height: 1.6;
+            padding-left: 30px;
+        }
+        
+        .example-section {
+            background: linear-gradient(135deg, #e8f5e8 0%, #f0f8f0 100%);
+            border-left: 4px solid #27ae60;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+        
+        .example-text {
+            font-style: italic;
+            color: #2c3e50;
+            font-size: 1.05em;
+            line-height: 1.6;
+        }
+        
+        .collocations-section {
+            background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+            border-left: 4px solid #f39c12;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+        
+        .collocations-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 8px;
+            margin-top: 10px;
+        }
+        
+        .collocation-item {
+            background: rgba(255, 255, 255, 0.8);
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.95em;
+            color: #2c3e50;
+            border: 1px solid rgba(243, 156, 18, 0.2);
+        }
+        
+        .translation-section {
+            background: linear-gradient(135deg, #e8f4f8 0%, #f0f8ff 100%);
+            border-left: 4px solid #3498db;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+        
+        .vietnamese-text {
+            color: #2c3e50;
+            font-size: 1.05em;
+            font-weight: 500;
+        }
+        
+        /* Divider */
+        .word-divider {
+            height: 3px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 40px 0;
+            border-radius: 2px;
+            opacity: 0.3;
+        }
+        
+        /* Footer */
+        .footer {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+        }
+        
+        .footer-content {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .study-tips {
+            margin-bottom: 30px;
+        }
+        
+        .tips-title {
+            font-size: 1.3em;
+            margin-bottom: 15px;
+            color: #ecf0f1;
+        }
+        
+        .tips-list {
+            text-align: left;
+            display: inline-block;
+        }
+        
+        .tip-item {
+            margin: 8px 0;
+            padding-left: 20px;
+            position: relative;
+            color: #bdc3c7;
+        }
+        
+        .tip-item::before {
+            content: '💡';
+            position: absolute;
+            left: 0;
+        }
+        
+        .footer-message {
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #ecf0f1;
+            margin-top: 20px;
+        }
+        
+        .footer-meta {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: #95a5a6;
+            font-size: 0.9em;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+            
+            .header {
+                padding: 30px 20px;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .content {
+                padding: 30px 20px;
+            }
+            
+            .stats-bar {
+                padding: 20px;
+            }
+            
+            .word-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            
+            .word-meta {
+                flex-direction: column;
+                gap: 8px;
+            }
+            
+            .collocations-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-content">
+                <h1>🎯 TOEIC Vocabulary Mastery</h1>
+                <div class="subtitle">Advanced Vocabulary for Score 800+ • Part 6 & 7 Focus</div>
+                <div class="date">{{DATE}}</div>
+            </div>
+        </div>
+        
+        <!-- Stats Bar -->
+        <div class="stats-bar">
+            <div class="stat-item">
+                <span class="stat-number">15</span>
+                <span class="stat-label">Words Today</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number">800+</span>
+                <span class="stat-label">Target Score</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number">10+5</span>
+                <span class="stat-label">New + Review</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number">Part 6&7</span>
+                <span class="stat-label">TOEIC Focus</span>
+            </div>
+        </div>
+        
+        <!-- Content -->
+        <div class="content">
+            <div class="intro-text">
+                Master advanced business and academic vocabulary essential for TOEIC Part 6 (Text Completion) and Part 7 (Reading Comprehension). These carefully selected words will boost your score to 800+ through contextual understanding and practical application.
+            </div>
+            
+            <div class="words-grid">
+                {{WORD_SECTIONS}}
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <div class="footer">
+            <div class="footer-content">
+                <div class="study-tips">
+                    <div class="tips-title">🚀 Study Tips for TOEIC Success</div>
+                    <div class="tips-list">
+                        <div class="tip-item">Focus on business and formal contexts in your practice</div>
+                        <div class="tip-item">Practice collocations in complete sentences</div>
+                        <div class="tip-item">Review words from previous days regularly</div>
+                        <div class="tip-item">Use these words in TOEIC practice tests</div>
+                        <div class="tip-item">Pay attention to word families and variations</div>
+                    </div>
+                </div>
+                
+                <div class="footer-message">
+                    Keep up the excellent work! Your dedication to daily vocabulary practice is the key to achieving your TOEIC 800+ goal. 🌟
+                </div>
+                
+                <div class="footer-meta">
+                    Generated on {{GENERATION_DATE}} • Powered by AI for personalized learning
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

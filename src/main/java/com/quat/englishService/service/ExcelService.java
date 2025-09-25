@@ -132,56 +132,6 @@ public class ExcelService {
         }
     }
 
-    public List<ToeicVocabularyWord> getRandomToeicWords(int count) {
-        List<ToeicVocabularyWord> randomWords = new ArrayList<>();
-        
-        try {
-            String toeicExcelFilePath = "toeic_vocabulary_log.xlsx";
-            File file = new File(toeicExcelFilePath);
-            if (!file.exists()) {
-                logger.info("TOEIC Excel file doesn't exist yet, returning empty list");
-                return randomWords;
-            }
-
-            Workbook workbook = getToeicWorkbook(toeicExcelFilePath);
-            Sheet sheet = workbook.getSheet("TOEIC Vocabulary");
-            
-            if (sheet == null || sheet.getPhysicalNumberOfRows() <= 1) {
-                logger.info("No TOEIC vocabulary words found in Excel");
-                workbook.close();
-                return randomWords;
-            }
-
-            // Collect all rows (skip header)
-            List<Row> dataRows = new ArrayList<>();
-            for (Row row : sheet) {
-                if (row.getRowNum() > 0) { // Skip header
-                    dataRows.add(row);
-                }
-            }
-
-            // Shuffle and take requested count
-            Collections.shuffle(dataRows);
-            int takeCount = Math.min(count, dataRows.size());
-
-            for (int i = 0; i < takeCount; i++) {
-                Row row = dataRows.get(i);
-                ToeicVocabularyWord word = extractToeicWordFromRow(row);
-                if (word != null) {
-                    randomWords.add(word);
-                }
-            }
-
-            workbook.close();
-            logger.info("Retrieved {} random TOEIC words from Excel", randomWords.size());
-
-        } catch (Exception e) {
-            logger.error("Error getting random TOEIC words from Excel: {}", e.getMessage(), e);
-        }
-
-        return randomWords;
-    }
-
     public Set<String> getUsedWords() {
         Set<String> usedWords = new HashSet<>();
 

@@ -42,6 +42,20 @@ All powered by Google's Gemini AI and Google Text-to-Speech for immersive, multi
   - Practice instructions and listening strategies
   - Professional HTML email template with orange/blue theme
 
+### 🎯 TOEIC Vocabulary Practice (9:00 AM)
+- **Advanced Vocabulary**: 15 TOEIC words daily (10 new + 5 review) targeting score 800+
+- **Part 6 & 7 Focus**: Words specifically chosen for Text Completion and Reading Comprehension
+- **AI-Generated Content**:
+  - Business and academic context definitions
+  - Professional example sentences in TOEIC style
+  - Common collocations for business communication
+  - Vietnamese translations for better understanding
+- **Smart Learning System**:
+  - Excel logging with automatic word history tracking
+  - Intelligent word selection avoiding recent duplicates
+  - Progressive difficulty based on TOEIC score targets
+- **Professional Email**: Beautiful HTML template with modern design and clear structure
+
 ### 🔧 System Features
 - **Triple Automated Scheduling**: Three daily sessions with different content types and timings
 - **Beautiful HTML Emails**: Professional templates for vocabulary, IELTS, and TOEIC content  
@@ -53,20 +67,23 @@ All powered by Google's Gemini AI and Google Text-to-Speech for immersive, multi
 ## 🏗️ Architecture
 
 ```
-├── VocabularyScheduler     → Daily vocabulary at 5:00 AM (4 words: 3 new + 1 review)
-├── IeltsScheduler         → Daily IELTS reading at 11:00 AM (academic passages + explanations)
-├── ToeicScheduler         → Daily TOEIC listening at 6:00 PM (collocations + passages)
-├── GeminiClient           → Google Gemini AI integration for content generation
-├── EmailService           → Triple HTML templates for vocabulary, IELTS, and TOEIC emails
-├── AudioService           → TTS generation with Python/gTTS integration
-├── ExcelService           → Progress tracking and word history management
-├── VocabularyService      → Core vocabulary processing with AI monologues
-├── IeltsReadingService    → IELTS academic reading generation and processing
-├── ToeicListeningService  → TOEIC content generation and audio processing
-├── VocabularyController   → REST API for vocabulary testing
-├── IeltsController        → REST API for IELTS testing
-├── ToeicController        → REST API for TOEIC testing
-└── AudioController        → Audio file serving and streaming
+├── VocabularyScheduler       → Daily vocabulary at 5:00 AM (4 words: 3 new + 1 review)
+├── IeltsScheduler           → Daily IELTS reading at 11:00 AM (academic passages + explanations)
+├── ToeicVocabularyScheduler → Daily TOEIC vocabulary at 9:00 AM (15 words: 10 new + 5 review)
+├── ToeicScheduler           → Daily TOEIC listening at 6:00 PM (collocations + passages)
+├── GeminiClient             → Google Gemini AI integration for content generation
+├── EmailService             → Quad HTML templates for vocabulary, IELTS, TOEIC vocab, and TOEIC audio
+├── AudioService             → TTS generation with Python/gTTS integration
+├── ExcelService             → Progress tracking and word history management
+├── VocabularyService        → Core vocabulary processing with AI monologues
+├── IeltsReadingService      → IELTS academic reading generation and processing
+├── ToeicVocabularyService   → Advanced TOEIC vocabulary for score 800+ (Part 6 & 7)
+├── ToeicListeningService    → TOEIC content generation and audio processing
+├── VocabularyController     → REST API for vocabulary testing
+├── IeltsController          → REST API for IELTS testing
+├── ToeicVocabularyController → REST API for TOEIC vocabulary testing
+├── ToeicController          → REST API for TOEIC testing
+└── AudioController          → Audio file serving and streaming
 ```
 
 ## 📅 Complete Daily Learning Schedule
@@ -76,13 +93,15 @@ The application provides a comprehensive English learning experience with three 
 | Time | Service | Content | Duration | Focus |
 |------|---------|---------|----------|-------|
 | **5:00 AM** | 📚 Vocabulary | 4 words (3 new + 1 review) | ~15 min | Basic → Advanced vocabulary |
+| **9:00 AM** | 🎯 TOEIC Vocabulary | 15 words (10 new + 5 review) | ~20 min | Advanced TOEIC vocabulary (800+) |
 | **11:00 AM** | 📖 IELTS Reading | Academic passage + questions | ~20 min | Reading comprehension |
 | **6:00 PM** | 🎧 TOEIC Listening | Business collocations + audio | ~25 min | Listening skills |
 
-**Total Daily Learning Time**: ~60 minutes of structured English practice
+**Total Daily Learning Time**: ~80 minutes of structured English practice
 
 ### Learning Progression
-- **Morning (5 AM)**: Start with vocabulary foundation building
+- **Early Morning (5 AM)**: Start with vocabulary foundation building
+- **Morning (9 AM)**: Advanced TOEIC vocabulary for business contexts
 - **Midday (11 AM)**: Academic reading skills for IELTS preparation  
 - **Evening (6 PM)**: Business English listening for TOEIC preparation
 
@@ -136,6 +155,9 @@ java -jar target/english-service-0.0.1-SNAPSHOT.jar
 ```bash
 # Test vocabulary service (generates 4 words: 3 new + 1 review)
 curl -X POST http://localhost:8282/api/vocabulary/trigger-daily
+
+# Test TOEIC vocabulary service (generates 15 words: 10 new + 5 review for TOEIC 800+)
+curl -X POST http://localhost:8282/api/toeic-vocabulary/trigger-daily
 
 # Test IELTS reading service (generates academic passage + explanations)
 curl -X POST http://localhost:8282/api/ielts/send-reading
