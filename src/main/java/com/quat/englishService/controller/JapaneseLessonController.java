@@ -58,6 +58,7 @@ public class JapaneseLessonController {
             String topic = (String) lessonData.get("topic");
             String description = (String) lessonData.get("description");
             Integer day = (Integer) lessonData.get("day");
+            String phase = (String) lessonData.getOrDefault("phase", "Manual Test");
 
             if (topic == null || description == null || day == null) {
                 return ResponseEntity.badRequest().body(Map.of(
@@ -66,7 +67,7 @@ public class JapaneseLessonController {
                 ));
             }
 
-            logger.info("Processing specific Japanese lesson: {}", topic);
+            logger.info("Processing specific Japanese lesson: {} - {}", phase, topic);
             JapaneseLesson lesson = japaneseLessonService.processSpecificLesson(topic, description, day);
 
             return ResponseEntity.ok(Map.of(
@@ -107,9 +108,16 @@ public class JapaneseLessonController {
                     "status", "GET - Get service status"
                 ),
                 "excelFormat", Map.of(
-                    "columns", java.util.List.of("Topic (A)", "Description (B)", "Day (C)", "Status (D)"),
+                    "columns", java.util.List.of("Day (A)", "Phase (B)", "Topic (C)", "Description (D)", "Status (E)"),
                     "statusValues", java.util.List.of("Open", "Done"),
-                    "filename", "Japanese_Foundation.xlsx"
+                    "filename", "Japanese_Foundation.xlsx",
+                    "example", Map.of(
+                        "day", 1,
+                        "phase", "Month 1: Hiragana + Basics",
+                        "topic", "Hiragana 1",
+                        "description", "Learn Hiragana: あ, い, う. Practice writing, reading, and 2 example words.",
+                        "status", "Open"
+                    )
                 )
             ));
         } catch (Exception e) {

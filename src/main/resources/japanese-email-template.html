@@ -45,6 +45,16 @@
             font-weight: 300;
         }
 
+        .header .phase {
+            font-size: 0.85rem;
+            margin-top: 0.3rem;
+            opacity: 0.85;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 0.3rem 0.8rem;
+            border-radius: 15px;
+            display: inline-block;
+        }
+
         .header .day-topic {
             font-size: 1rem;
             margin-top: 0.5rem;
@@ -278,6 +288,7 @@
         <div class="header">
             <h1>🇯🇵 Daily Japanese Lesson</h1>
             <div class="date">{{DATE}}</div>
+            <div class="phase">{{PHASE}}</div>
             <div class="day-topic">Day {{DAY}}: {{TOPIC}}</div>
         </div>
 

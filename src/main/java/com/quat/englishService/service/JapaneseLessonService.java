@@ -130,23 +130,27 @@ public class JapaneseLessonService {
                 }
 
                 // Find the first row with Status = "Open"
+                // New format: Day(A), Phase(B), Topic(C), Description(D), Status(E)
                 for (Row row : sheet) {
                     if (row.getRowNum() == 0) continue; // Skip header row
 
-                    Cell statusCell = row.getCell(3); // Assuming Status is in column D (index 3)
+                    Cell statusCell = row.getCell(4); // Status is now in column E (index 4)
                     if (statusCell != null && "Open".equalsIgnoreCase(statusCell.getStringCellValue().trim())) {
                         // Extract lesson data
-                        Cell topicCell = row.getCell(0); // Column A
-                        Cell descriptionCell = row.getCell(1); // Column B
-                        Cell dayCell = row.getCell(2); // Column C
+                        Cell dayCell = row.getCell(0); // Column A - Day
+                        Cell phaseCell = row.getCell(1); // Column B - Phase
+                        Cell topicCell = row.getCell(2); // Column C - Topic
+                        Cell descriptionCell = row.getCell(3); // Column D - Description
 
-                        if (topicCell != null && descriptionCell != null && dayCell != null) {
+                        if (dayCell != null && phaseCell != null && topicCell != null && descriptionCell != null) {
                             JapaneseLesson lesson = new JapaneseLesson();
+                            lesson.setDay((int) dayCell.getNumericCellValue());
+                            lesson.setPhase(phaseCell.getStringCellValue().trim());
                             lesson.setTopic(topicCell.getStringCellValue().trim());
                             lesson.setDescription(descriptionCell.getStringCellValue().trim());
-                            lesson.setDay((int) dayCell.getNumericCellValue());
+                            lesson.setStatus("Open");
 
-                            logger.info("Found open lesson: Day {} - {}", lesson.getDay(), lesson.getTopic());
+                            logger.info("Found open lesson: Day {} - {} - {}", lesson.getDay(), lesson.getPhase(), lesson.getTopic());
                             return lesson;
                         }
                     }
@@ -273,6 +277,7 @@ public class JapaneseLessonService {
             String content = template
                 .replace("{{DATE}}", LocalDate.now().format(DateTimeFormatter.ofPattern("EEEE, MMMM dd, yyyy")))
                 .replace("{{DAY}}", String.valueOf(lesson.getDay()))
+                .replace("{{PHASE}}", escapeHtml(lesson.getPhase() != null ? lesson.getPhase() : ""))
                 .replace("{{TOPIC}}", escapeHtml(lesson.getTopic()))
                 .replace("{{LESSON_TITLE}}", escapeHtml(lesson.getLessonTitle()))
                 .replace("{{CONTENT_HTML}}", lesson.getContentHtml())
@@ -316,6 +321,7 @@ public class JapaneseLessonService {
                 <div style="background: #e74c3c; color: white; padding: 20px; text-align: center; border-radius: 8px; margin-bottom: 20px;">
                     <h1>🇯🇵 Daily Japanese Lesson</h1>
                     <p>Day %d: %s</p>
+                    <p>%s: %s</p>
                     <p>%s</p>
                 </div>
                 
@@ -325,6 +331,8 @@ public class JapaneseLessonService {
                 </div>
             """.formatted(
                 lesson.getDay(),
+                escapeHtml(lesson.getTopic()),
+                escapeHtml(lesson.getPhase() != null ? lesson.getPhase() : "Japanese Foundation"),
                 escapeHtml(lesson.getTopic()),
                 LocalDate.now().format(DateTimeFormatter.ofPattern("EEEE, MMMM dd, yyyy")),
                 escapeHtml(lesson.getLessonTitle() != null ? lesson.getLessonTitle() : "Japanese Lesson"),
@@ -387,21 +395,22 @@ public class JapaneseLessonService {
                 if (sheet == null) return;
 
                 // Find the row with matching topic and day
+                // New format: Day(A), Phase(B), Topic(C), Description(D), Status(E)
                 for (Row row : sheet) {
                     if (row.getRowNum() == 0) continue; // Skip header row
 
-                    Cell topicCell = row.getCell(0);
-                    Cell dayCell = row.getCell(2);
-                    Cell statusCell = row.getCell(3);
+                    Cell dayCell = row.getCell(0); // Column A - Day
+                    Cell topicCell = row.getCell(2); // Column C - Topic
+                    Cell statusCell = row.getCell(4); // Column E - Status
 
-                    if (topicCell != null && dayCell != null && statusCell != null) {
-                        String rowTopic = topicCell.getStringCellValue().trim();
+                    if (dayCell != null && topicCell != null && statusCell != null) {
                         int rowDay = (int) dayCell.getNumericCellValue();
+                        String rowTopic = topicCell.getStringCellValue().trim();
 
-                        if (rowTopic.equals(lesson.getTopic()) && rowDay == lesson.getDay()) {
+                        if (rowDay == lesson.getDay() && rowTopic.equals(lesson.getTopic())) {
                             // Update status to "Done"
                             statusCell.setCellValue("Done");
-                            logger.info("Updated lesson status to Done: Day {} - {}", lesson.getDay(), lesson.getTopic());
+                            logger.info("Updated lesson status to Done: Day {} - {} - {}", lesson.getDay(), lesson.getPhase(), lesson.getTopic());
                             break;
                         }
                     }
@@ -437,7 +446,12 @@ public class JapaneseLessonService {
         logger.info("Processing specific Japanese lesson: {}", topic);
         
         try {
-            JapaneseLesson lesson = new JapaneseLesson(topic, description, day);
+            JapaneseLesson lesson = new JapaneseLesson();
+            lesson.setDay(day);
+            lesson.setPhase("Manual Test");
+            lesson.setTopic(topic);
+            lesson.setDescription(description);
+            lesson.setStatus("Open");
             
             // Build AI prompt
             String prompt = buildLessonPrompt(lesson);
