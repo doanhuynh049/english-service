@@ -48,14 +48,15 @@ public class JapaneseLessonService {
             {
               "lessonTitle": "string",
               "contentHtml": "<p>...</p>",
-              "examples": ["string", "string"],
+              "examples": ["<strong>私はご飯を食べる。</strong><br/>(わたしは ごはんを たべる。 - Watashi wa gohan o taberu.)<br/>I eat rice.", "<strong>今日は暑いです。</strong><br/>(きょうは あついです。 - Kyou wa atsui desu.)<br/>Today is hot."],
               "practiceTasks": ["<strong>Task 1:</strong> Write 3 sentences using hiragana characters you learned today.", "<strong>Task 2:</strong> Practice pronunciation by reading aloud: <br/>• おはよう (ohayou) - Good morning<br/>• ありがとう (arigatou) - Thank you"]
             }
 
-            IMPORTANT for practiceTasks:
-            - Each task should be a single string that can contain HTML formatting
-            - Use <strong> tags for task titles/numbers  
-            - Use <br/> for line breaks within tasks
+            IMPORTANT formatting guidelines:
+            - For examples: Each should contain Japanese text in <strong> tags, followed by romaji/pronunciation in parentheses, then English translation
+            - For practiceTasks: Each task should be a single string that can contain HTML formatting
+            - Use <strong> tags for emphasis and task titles/numbers  
+            - Use <br/> for line breaks within examples and tasks
             - Use bullet points (•) and <br/> for lists instead of <ul>/<li> tags
             - Keep HTML simple and email-compatible
             - Make sure contentHtml contains well-structured HTML suitable for email display
@@ -259,12 +260,13 @@ public class JapaneseLessonService {
             StringBuilder examplesHtml = new StringBuilder();
             if (lesson.getExamples() != null) {
                 for (String example : lesson.getExamples()) {
+                    // Don't escape HTML for examples as they contain formatted content
                     examplesHtml.append(String.format("""
                         <div class="example-item">
                             <span class="example-bullet">📝</span>
                             <span class="example-text">%s</span>
                         </div>
-                        """, escapeHtml(example)));
+                        """, example));
                 }
             }
 
