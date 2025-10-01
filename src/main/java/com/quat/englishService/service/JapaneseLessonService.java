@@ -3,6 +3,7 @@ package com.quat.englishService.service;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.quat.englishService.dto.JapaneseLesson;
+import org.springframework.beans.factory.annotation.Value;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
@@ -29,7 +30,8 @@ public class JapaneseLessonService {
     private final EmailService emailService;
     private final ObjectMapper objectMapper;
     
-    private String japaneseExcelFilePath = "Japanese_Foundation.xlsx";
+    @Value("${app.japanese-excel-file-path}")
+    private String japaneseExcelFilePath;
 
     private static final String LESSON_PROMPT_TEMPLATE = """
             You are a Japanese language tutor.  
@@ -47,10 +49,16 @@ public class JapaneseLessonService {
               "lessonTitle": "string",
               "contentHtml": "<p>...</p>",
               "examples": ["string", "string"],
-              "practiceTasks": ["string", "string"]
+              "practiceTasks": ["<strong>Task 1:</strong> Write 3 sentences using hiragana characters you learned today.", "<strong>Task 2:</strong> Practice pronunciation by reading aloud: <br/>• おはよう (ohayou) - Good morning<br/>• ありがとう (arigatou) - Thank you"]
             }
 
-            Make sure contentHtml contains well-structured HTML suitable for email display.
+            IMPORTANT for practiceTasks:
+            - Each task should be a single string that can contain HTML formatting
+            - Use <strong> tags for task titles/numbers  
+            - Use <br/> for line breaks within tasks
+            - Use bullet points (•) and <br/> for lists instead of <ul>/<li> tags
+            - Keep HTML simple and email-compatible
+            - Make sure contentHtml contains well-structured HTML suitable for email display
             """;
 
     public JapaneseLessonService(GeminiClient geminiClient, EmailService emailService, ObjectMapper objectMapper) {
@@ -264,12 +272,13 @@ public class JapaneseLessonService {
             StringBuilder tasksHtml = new StringBuilder();
             if (lesson.getPracticeTasks() != null) {
                 for (String task : lesson.getPracticeTasks()) {
+                    // Don't escape HTML for practice tasks as they contain formatted content
                     tasksHtml.append(String.format("""
                         <div class="task-item">
                             <span class="task-bullet">🎯</span>
                             <span class="task-text">%s</span>
                         </div>
-                        """, escapeHtml(task)));
+                        """, task));
                 }
             }
 
@@ -280,7 +289,7 @@ public class JapaneseLessonService {
                 .replace("{{PHASE}}", escapeHtml(lesson.getPhase() != null ? lesson.getPhase() : ""))
                 .replace("{{TOPIC}}", escapeHtml(lesson.getTopic()))
                 .replace("{{LESSON_TITLE}}", escapeHtml(lesson.getLessonTitle()))
-                .replace("{{CONTENT_HTML}}", lesson.getContentHtml())
+                .replace("{{CONTENT_HTML}}", lesson.getContentHtml() != null ? lesson.getContentHtml() : "")
                 .replace("{{EXAMPLES}}", examplesHtml.toString())
                 .replace("{{PRACTICE_TASKS}}", tasksHtml.toString())
                 .replace("{{GENERATION_DATE}}", LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
