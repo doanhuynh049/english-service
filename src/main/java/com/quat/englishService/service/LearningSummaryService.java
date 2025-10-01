@@ -3,6 +3,7 @@ package com.quat.englishService.service;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.quat.englishService.dto.LearningSummary;
+import com.quat.englishService.dto.JapaneseVocabulary;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -16,7 +17,8 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Service for managing learning summaries and Excel generation
@@ -61,6 +63,53 @@ public class LearningSummaryService {
             - Keep summaries concise to fit in Excel cells
             - Focus on the most important learning points
             """;
+
+    // AI prompt template for generating vocabulary
+    private static final String VOCABULARY_PROMPT_TEMPLATE = """
+        You are a Japanese language tutor. Extract and create beginner-friendly vocabulary entries from today's lesson content.
+
+        Lesson content:
+        Topic: {Topic}
+        Description: {Description}
+        Content: {Content}
+
+        Requirements:
+        1. Extract 8-12 important vocabulary words suitable for a beginner
+        2. For each word, provide complete information in the specified format
+        3. Include a mix of different parts of speech (verbs, nouns, adjectives, etc.)
+        4. Focus on words essential for understanding the lesson topic
+        5. Use simple example sentences appropriate for beginners
+        6. Provide romaji to help with pronunciation
+        7. Include both English and Vietnamese translations
+
+        Format your output strictly as a JSON array:
+        {
+        "vocabulary": [
+            {
+            "wordKanji": "食べる",
+            "wordKana": "たべる", 
+            "romaji": "taberu",
+            "partOfSpeech": "verb",
+            "definition": "to eat",
+            "vietnamese": "ăn",
+            "exampleSentenceJp": "私は寿司を食べる。",
+            "exampleSentenceEn": "I eat sushi.",
+            "collocations": "食べに行く (go to eat), 食べ物 (food)",
+            "synonyms": "なし (none)",
+            "confusableWords": "飲む (nomu – to drink)",
+            "notes": "Ichidan verb, beginner-friendly"
+            }
+        ]
+        }
+
+        Important:
+        - JSON must be valid for automatic parsing
+        - Include both kanji and kana readings when applicable
+        - Provide simple and practical example sentences
+        - List relevant collocations and confusable words
+        - Keep notes concise but informative
+    """;
+
 
     public LearningSummaryService(GeminiClient geminiClient, ObjectMapper objectMapper) {
         this.geminiClient = geminiClient;
@@ -194,6 +243,10 @@ public class LearningSummaryService {
                 workbook = new XSSFWorkbook();
                 sheet = workbook.createSheet("Learning Summary");
                 createHeaderRow(workbook, sheet);
+                
+                // Create vocabulary sheet
+                Sheet vocabSheet = workbook.createSheet("Japanese Vocabulary");
+                createVocabularyHeaderRow(workbook, vocabSheet);
             }
 
             // Find or create row for this day and service
@@ -362,5 +415,272 @@ public class LearningSummaryService {
      */
     public boolean excelFileExists() {
         return new File(learningExcelPath).exists();
+    }
+
+    /**
+     * Generate vocabulary from lesson content using AI
+     */
+    public List<JapaneseVocabulary> generateVocabulary(String topic, String description, String content, int lessonDay) {
+        try {
+            logger.info("Generating vocabulary for lesson: {}", topic);
+
+            String prompt = VOCABULARY_PROMPT_TEMPLATE
+                    .replace("{Topic}", topic)
+                    .replace("{Description}", description != null ? description : "")
+                    .replace("{Content}", content != null ? content : "");
+
+            String aiResponse = geminiClient.generateContent(prompt);
+            if (aiResponse == null || aiResponse.trim().isEmpty()) {
+                logger.warn("Empty vocabulary response from AI");
+                return new ArrayList<>();
+            }
+
+            // Parse AI response
+            String cleanedResponse = cleanJsonResponse(aiResponse);
+            Map<String, Object> responseMap = objectMapper.readValue(
+                cleanedResponse, new TypeReference<Map<String, Object>>() {}
+            );
+
+            List<JapaneseVocabulary> vocabularyList = new ArrayList<>();
+            Object vocabObj = responseMap.get("vocabulary");
+            if (vocabObj instanceof List) {
+                @SuppressWarnings("unchecked")
+                List<Map<String, Object>> vocabMapList = (List<Map<String, Object>>) vocabObj;
+                
+                for (Map<String, Object> vocabMap : vocabMapList) {
+                    JapaneseVocabulary vocab = new JapaneseVocabulary();
+                    vocab.setWordKanji((String) vocabMap.get("wordKanji"));
+                    vocab.setWordKana((String) vocabMap.get("wordKana"));
+                    vocab.setRomaji((String) vocabMap.get("romaji"));
+                    vocab.setPartOfSpeech((String) vocabMap.get("partOfSpeech"));
+                    vocab.setDefinition((String) vocabMap.get("definition"));
+                    vocab.setVietnamese((String) vocabMap.get("vietnamese"));
+                    vocab.setExampleSentenceJp((String) vocabMap.get("exampleSentenceJp"));
+                    vocab.setExampleSentenceEn((String) vocabMap.get("exampleSentenceEn"));
+                    vocab.setCollocations((String) vocabMap.get("collocations"));
+                    vocab.setSynonyms((String) vocabMap.get("synonyms"));
+                    vocab.setConfusableWords((String) vocabMap.get("confusableWords"));
+                    vocab.setNotes((String) vocabMap.get("notes"));
+                    vocab.setLessonDay(lessonDay);
+                    vocab.setLessonTopic(topic);
+                    
+                    vocabularyList.add(vocab);
+                }
+            }
+
+            logger.info("Generated {} vocabulary entries", vocabularyList.size());
+            return vocabularyList;
+
+        } catch (Exception e) {
+            logger.error("Error generating vocabulary: {}", e.getMessage(), e);
+            return new ArrayList<>();
+        }
+    }
+
+    /**
+     * Save vocabulary list to Excel vocabulary sheet
+     */
+    public void saveVocabularyToExcel(List<JapaneseVocabulary> vocabularyList) {
+        if (vocabularyList.isEmpty()) {
+            logger.info("No vocabulary to save");
+            return;
+        }
+
+        try {
+            File file = new File(learningExcelPath);
+            Workbook workbook;
+            Sheet vocabSheet;
+
+            // Open existing file or create new one
+            if (file.exists()) {
+                try (FileInputStream inputStream = new FileInputStream(file)) {
+                    workbook = new XSSFWorkbook(inputStream);
+                    if (workbook.getNumberOfSheets() < 2) {
+                        vocabSheet = workbook.createSheet("Japanese Vocabulary");
+                        createVocabularyHeaderRow(workbook, vocabSheet);
+                    } else {
+                        vocabSheet = workbook.getSheetAt(1); // Vocabulary sheet
+                    }
+                }
+            } else {
+                workbook = new XSSFWorkbook();
+                // Create summary sheet first
+                Sheet summarySheet = workbook.createSheet("Learning Summary");
+                createHeaderRow(workbook, summarySheet);
+                // Create vocabulary sheet
+                vocabSheet = workbook.createSheet("Japanese Vocabulary");
+                createVocabularyHeaderRow(workbook, vocabSheet);
+            }
+
+            // Add vocabulary entries
+            for (JapaneseVocabulary vocab : vocabularyList) {
+                addVocabularyRow(workbook, vocabSheet, vocab);
+            }
+
+            // Save the workbook
+            try (FileOutputStream outputStream = new FileOutputStream(file)) {
+                workbook.write(outputStream);
+            }
+
+            workbook.close();
+            logger.info("Saved {} vocabulary entries to Excel", vocabularyList.size());
+
+        } catch (Exception e) {
+            logger.error("Error saving vocabulary to Excel: {}", e.getMessage(), e);
+            throw new RuntimeException("Failed to save vocabulary to Excel", e);
+        }
+    }
+
+    /**
+     * Create header row for vocabulary sheet
+     */
+    private void createVocabularyHeaderRow(Workbook workbook, Sheet sheet) {
+        Row headerRow = sheet.createRow(0);
+        
+        // Create header style
+        CellStyle headerStyle = workbook.createCellStyle();
+        Font headerFont = workbook.createFont();
+        headerFont.setBold(true);
+        headerFont.setFontHeightInPoints((short) 11);
+        headerStyle.setFont(headerFont);
+        headerStyle.setWrapText(true);
+        headerStyle.setAlignment(HorizontalAlignment.CENTER);
+        headerStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+
+        // Create header cells
+        String[] headers = {"ID", "Word (Kanji)", "Word (Kana)", "Romaji", "Part of Speech", 
+                           "Definition", "Vietnamese", "Example Sentence (JP)", "Example Sentence (EN)", 
+                           "Collocations", "Synonyms", "Confusable Words", "Notes"};
+        
+        for (int i = 0; i < headers.length; i++) {
+            Cell cell = headerRow.createCell(i);
+            cell.setCellValue(headers[i]);
+            cell.setCellStyle(headerStyle);
+        }
+
+        // Set column widths for vocabulary sheet
+        sheet.setColumnWidth(0, 1000);   // ID
+        sheet.setColumnWidth(1, 3000);   // Word (Kanji)
+        sheet.setColumnWidth(2, 3000);   // Word (Kana)
+        sheet.setColumnWidth(3, 2500);   // Romaji
+        sheet.setColumnWidth(4, 3000);   // Part of Speech
+        sheet.setColumnWidth(5, 4000);   // Definition
+        sheet.setColumnWidth(6, 3000);   // Vietnamese
+        sheet.setColumnWidth(7, 5000);   // Example Sentence (JP)
+        sheet.setColumnWidth(8, 5000);   // Example Sentence (EN)
+        sheet.setColumnWidth(9, 4000);   // Collocations
+        sheet.setColumnWidth(10, 3000);  // Synonyms
+        sheet.setColumnWidth(11, 4000);  // Confusable Words
+        sheet.setColumnWidth(12, 3000);  // Notes
+    }
+
+    /**
+     * Add vocabulary row to the vocabulary sheet
+     */
+    private void addVocabularyRow(Workbook workbook, Sheet sheet, JapaneseVocabulary vocab) {
+        int nextRowNum = sheet.getLastRowNum() + 1;
+        Row row = sheet.createRow(nextRowNum);
+
+        // Create cell style for data
+        CellStyle dataStyle = workbook.createCellStyle();
+        dataStyle.setWrapText(true);
+        dataStyle.setVerticalAlignment(VerticalAlignment.TOP);
+
+        // Set auto-generated ID
+        vocab.setId(nextRowNum);
+
+        // Populate cells
+        createCell(row, 0, vocab.getId(), dataStyle);
+        createCell(row, 1, vocab.getWordKanji(), dataStyle);
+        createCell(row, 2, vocab.getWordKana(), dataStyle);
+        createCell(row, 3, vocab.getRomaji(), dataStyle);
+        createCell(row, 4, vocab.getPartOfSpeech(), dataStyle);
+        createCell(row, 5, vocab.getDefinition(), dataStyle);
+        createCell(row, 6, vocab.getVietnamese(), dataStyle);
+        createCell(row, 7, vocab.getExampleSentenceJp(), dataStyle);
+        createCell(row, 8, vocab.getExampleSentenceEn(), dataStyle);
+        createCell(row, 9, vocab.getCollocations(), dataStyle);
+        createCell(row, 10, vocab.getSynonyms(), dataStyle);
+        createCell(row, 11, vocab.getConfusableWords(), dataStyle);
+        createCell(row, 12, vocab.getNotes(), dataStyle);
+    }
+
+    /**
+     * Get random vocabulary entries for email
+     */
+    public List<JapaneseVocabulary> getRandomVocabularyForEmail(int count) {
+        try {
+            File file = new File(learningExcelPath);
+            if (!file.exists()) {
+                return new ArrayList<>();
+            }
+
+            List<JapaneseVocabulary> allVocab = new ArrayList<>();
+            
+            try (FileInputStream inputStream = new FileInputStream(file);
+                 Workbook workbook = new XSSFWorkbook(inputStream)) {
+                
+                if (workbook.getNumberOfSheets() < 2) {
+                    return new ArrayList<>();
+                }
+                
+                Sheet vocabSheet = workbook.getSheetAt(1);
+                
+                // Read vocabulary entries (skip header row)
+                for (int i = 1; i <= vocabSheet.getLastRowNum(); i++) {
+                    Row row = vocabSheet.getRow(i);
+                    if (row != null) {
+                        JapaneseVocabulary vocab = new JapaneseVocabulary();
+                        vocab.setId(getCellIntValue(row.getCell(0)));
+                        vocab.setWordKanji(getCellStringValue(row.getCell(1)));
+                        vocab.setWordKana(getCellStringValue(row.getCell(2)));
+                        vocab.setRomaji(getCellStringValue(row.getCell(3)));
+                        vocab.setPartOfSpeech(getCellStringValue(row.getCell(4)));
+                        vocab.setDefinition(getCellStringValue(row.getCell(5)));
+                        vocab.setVietnamese(getCellStringValue(row.getCell(6)));
+                        vocab.setExampleSentenceJp(getCellStringValue(row.getCell(7)));
+                        vocab.setExampleSentenceEn(getCellStringValue(row.getCell(8)));
+                        vocab.setCollocations(getCellStringValue(row.getCell(9)));
+                        vocab.setSynonyms(getCellStringValue(row.getCell(10)));
+                        vocab.setConfusableWords(getCellStringValue(row.getCell(11)));
+                        vocab.setNotes(getCellStringValue(row.getCell(12)));
+                        
+                        allVocab.add(vocab);
+                    }
+                }
+            }
+
+            // Return random selection
+            Collections.shuffle(allVocab);
+            return allVocab.stream().limit(count).collect(Collectors.toList());
+
+        } catch (Exception e) {
+            logger.error("Error getting random vocabulary: {}", e.getMessage(), e);
+            return new ArrayList<>();
+        }
+    }
+
+    /**
+     * Helper method to safely get string value from cell
+     */
+    private String getCellStringValue(Cell cell) {
+        if (cell == null) return "";
+        try {
+            return cell.getStringCellValue();
+        } catch (Exception e) {
+            return "";
+        }
+    }
+
+    /**
+     * Helper method to safely get int value from cell
+     */
+    private int getCellIntValue(Cell cell) {
+        if (cell == null) return 0;
+        try {
+            return (int) cell.getNumericCellValue();
+        } catch (Exception e) {
+            return 0;
+        }
     }
 }

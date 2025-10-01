@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.quat.englishService.dto.JapaneseLesson;
 import com.quat.englishService.dto.LearningSummary;
+import com.quat.englishService.dto.JapaneseVocabulary;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.apache.poi.ss.usermodel.*;
@@ -16,6 +17,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -134,6 +136,12 @@ public class JapaneseLessonService {
             LearningSummary summary = generateLearningSummary(lesson);
             String excelFilePath = learningSummaryService.saveLearningProgress("Japanese", summary);
             logger.info("Generated and saved learning summary to Excel: {}", excelFilePath);
+
+            // Step 5.5: Generate vocabulary and save to Excel
+            List<JapaneseVocabulary> vocabularyList = learningSummaryService.generateVocabulary(
+                lesson.getTopic(), lesson.getDescription(), lesson.getContentHtml(), lesson.getDay());
+            learningSummaryService.saveVocabularyToExcel(vocabularyList);
+            logger.info("Generated and saved {} vocabulary entries to Excel", vocabularyList.size());
 
             // Step 6: Generate email content
             String emailContent = buildEmailContent(lesson);
@@ -321,6 +329,9 @@ public class JapaneseLessonService {
                 }
             }
 
+            // Build vocabulary table section
+            String vocabularyTable = buildVocabularyTable();
+
             // Replace placeholders
             String content = template
                 .replace("{{DATE}}", LocalDate.now().format(DateTimeFormatter.ofPattern("EEEE, MMMM dd, yyyy")))
@@ -331,6 +342,7 @@ public class JapaneseLessonService {
                 .replace("{{CONTENT_HTML}}", lesson.getContentHtml() != null ? lesson.getContentHtml() : "")
                 .replace("{{EXAMPLES}}", examplesHtml.toString())
                 .replace("{{PRACTICE_TASKS}}", tasksHtml.toString())
+                .replace("{{VOCABULARY_TABLE}}", vocabularyTable)
                 .replace("{{GENERATION_DATE}}", LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
 
             return content;
@@ -551,6 +563,81 @@ public class JapaneseLessonService {
     private String stripHtmlTags(String html) {
         if (html == null) return "";
         return html.replaceAll("<[^>]*>", " ").replaceAll("\\s+", " ").trim();
+    }
+
+    /**
+     * Build vocabulary table HTML for email
+     */
+    private String buildVocabularyTable() {
+        try {
+            List<JapaneseVocabulary> randomVocab = learningSummaryService.getRandomVocabularyForEmail(5);
+            
+            if (randomVocab.isEmpty()) {
+                return "<p>No vocabulary entries available yet. Vocabulary will appear after more lessons.</p>";
+            }
+
+            StringBuilder tableHtml = new StringBuilder();
+            tableHtml.append("""
+                <div class="vocabulary-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Word</th>
+                                <th>Reading</th>
+                                <th>Meaning</th>
+                                <th>Example</th>
+                                <th>Notes</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                """);
+
+            for (JapaneseVocabulary vocab : randomVocab) {
+                tableHtml.append(String.format("""
+                    <tr>
+                        <td>
+                            <div class="vocab-kanji">%s</div>
+                            <div class="vocab-kana">%s</div>
+                            <div class="vocab-romaji">%s</div>
+                        </td>
+                        <td>
+                            <span class="vocab-pos">%s</span>
+                        </td>
+                        <td>
+                            <div><strong>EN:</strong> %s</div>
+                            <div><strong>VN:</strong> %s</div>
+                        </td>
+                        <td>
+                            <div class="vocab-example-jp">%s</div>
+                            <div class="vocab-example-en">%s</div>
+                        </td>
+                        <td>%s</td>
+                    </tr>
+                    """,
+                    escapeHtml(vocab.getWordKanji() != null ? vocab.getWordKanji() : ""),
+                    escapeHtml(vocab.getWordKana() != null ? vocab.getWordKana() : ""),
+                    escapeHtml(vocab.getRomaji() != null ? vocab.getRomaji() : ""),
+                    escapeHtml(vocab.getPartOfSpeech() != null ? vocab.getPartOfSpeech() : ""),
+                    escapeHtml(vocab.getDefinition() != null ? vocab.getDefinition() : ""),
+                    escapeHtml(vocab.getVietnamese() != null ? vocab.getVietnamese() : ""),
+                    escapeHtml(vocab.getExampleSentenceJp() != null ? vocab.getExampleSentenceJp() : ""),
+                    escapeHtml(vocab.getExampleSentenceEn() != null ? vocab.getExampleSentenceEn() : ""),
+                    escapeHtml(vocab.getNotes() != null ? vocab.getNotes() : "")
+                ));
+            }
+
+            tableHtml.append("""
+                        </tbody>
+                    </table>
+                </div>
+                """);
+
+            return tableHtml.toString();
+
+        } catch (Exception e) {
+            logger.error("Error building vocabulary table: {}", e.getMessage(), e);
+            return "<p>Unable to load vocabulary table.</p>";
+        }
     }
 
     /**

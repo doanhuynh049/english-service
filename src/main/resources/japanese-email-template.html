@@ -263,6 +263,98 @@
             margin-bottom: 0.75rem;
         }
 
+        /* Vocabulary Section */
+        .vocabulary-section {
+            background: #f8f5ff;
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            border: 1px solid #e2d8f0;
+        }
+
+        .vocabulary-section h3 {
+            color: #6b46c1;
+            font-size: 1.25rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .vocabulary-table {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .vocabulary-table table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        .vocabulary-table th {
+            background: #6b46c1;
+            color: white;
+            padding: 0.75rem 0.5rem;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+
+        .vocabulary-table td {
+            padding: 0.75rem 0.5rem;
+            border-bottom: 1px solid #e2e8f0;
+            vertical-align: top;
+            line-height: 1.4;
+        }
+
+        .vocabulary-table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+
+        .vocabulary-table tr:hover {
+            background: #e2d8f0;
+        }
+
+        .vocab-kanji {
+            font-weight: 600;
+            color: #2d3748;
+            font-size: 1rem;
+        }
+
+        .vocab-kana {
+            color: #6b46c1;
+            font-size: 0.9rem;
+        }
+
+        .vocab-romaji {
+            color: #718096;
+            font-style: italic;
+            font-size: 0.85rem;
+        }
+
+        .vocab-pos {
+            background: #e2d8f0;
+            color: #6b46c1;
+            padding: 0.2rem 0.5rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .vocab-example-jp {
+            color: #2d3748;
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+        }
+
+        .vocab-example-en {
+            color: #718096;
+            font-size: 0.85rem;
+        }
+
         /* Footer */
         .footer {
             background: #2d3748;
@@ -380,6 +472,15 @@
                     Practice Tasks
                 </h3>
                 {{PRACTICE_TASKS}}
+            </div>
+
+            <!-- Vocabulary Section -->
+            <div class="vocabulary-section">
+                <h3>
+                    <span class="section-icon">📖</span>
+                    Key Vocabulary (5 Random Words)
+                </h3>
+                {{VOCABULARY_TABLE}}
             </div>
         </div>
 
