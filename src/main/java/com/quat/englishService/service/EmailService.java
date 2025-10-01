@@ -231,6 +231,32 @@ public class EmailService {
         }
     }
 
+    /**
+     * Send Japanese lesson email with HTML content and Excel attachment
+     */
+    @Retryable(value = {Exception.class}, maxAttempts = 3, backoff = @Backoff(delay = 2000))
+    public void sendJapaneseLessonEmailWithAttachment(String subject, String htmlContent, String excelFilePath) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setFrom(fromEmail);
+            helper.setTo(toEmail);
+            helper.setSubject(subject);
+            helper.setText(htmlContent, true);
+
+            // Attach Excel file if it exists
+            attachLearningExcelFile(helper, excelFilePath);
+
+            mailSender.send(message);
+            logger.info("Japanese lesson email with Excel attachment sent successfully to {}", toEmail);
+
+        } catch (Exception e) {
+            logger.error("Failed to send Japanese lesson email with attachment: {}", e.getMessage(), e);
+            throw new RuntimeException("Japanese lesson email with attachment sending failed", e);
+        }
+    }
+
     private void attachAudioFiles(MimeMessageHelper helper, List<ParsedVocabularyWord> vocabularyWords) {
         for (ParsedVocabularyWord word : vocabularyWords) {
             try {
@@ -320,6 +346,22 @@ public class EmailService {
             }
         } catch (Exception e) {
             logger.error("Error attaching TOEIC passages file: {}", e.getMessage(), e);
+        }
+    }
+
+    private void attachLearningExcelFile(MimeMessageHelper helper, String excelFilePath) {
+        try {
+            File excelFile = new File(excelFilePath);
+            if (excelFile.exists() && excelFile.isFile()) {
+                String fileName = "Learning_Summary_" +
+                                LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + ".xlsx";
+                helper.addAttachment(fileName, excelFile);
+                logger.info("Attached learning summary Excel file: {} ({} bytes)", fileName, excelFile.length());
+            } else {
+                logger.warn("Learning summary Excel file not found: {}", excelFilePath);
+            }
+        } catch (Exception e) {
+            logger.error("Error attaching learning summary Excel file: {}", e.getMessage(), e);
         }
     }
 

@@ -3,12 +3,13 @@ package com.quat.englishService.service;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.quat.englishService.dto.JapaneseLesson;
+import com.quat.englishService.dto.LearningSummary;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -29,6 +30,7 @@ public class JapaneseLessonService {
     private final GeminiClient geminiClient;
     private final EmailService emailService;
     private final ObjectMapper objectMapper;
+    private final LearningSummaryService learningSummaryService;
     
     @Value("${app.japanese-excel-file-path}")
     private String japaneseExcelFilePath;
@@ -62,10 +64,40 @@ public class JapaneseLessonService {
             - Make sure contentHtml contains well-structured HTML suitable for email display
             """;
 
-    public JapaneseLessonService(GeminiClient geminiClient, EmailService emailService, ObjectMapper objectMapper) {
+    private static final String SUMMARY_PROMPT_TEMPLATE = """
+            You are a Japanese language tutor. 
+            Summarize today's lesson into major knowledge points for a learning summary table.
+
+            Lesson content:
+            Topic: {Topic}
+            Phase: {Phase}
+            Description: {Description}
+            Lesson Title: {LessonTitle}
+            Content: {Content}
+
+            Requirements:
+            1. List key knowledge and important points from the lesson.
+            2. Provide 2–3 example words or sentences (Japanese with romaji and English).
+            3. Add optional notes or tips if needed.
+
+            Format your output strictly as JSON:
+            {
+                "keyKnowledge": "Takeaway knowlegde learned (2 sentences)",
+                "examples": "Key examples: こんにちは (konnichiwa) - Hello, ありがとう (arigatou) - Thank you",
+                "notes": "Additional tips or important notes for retention"
+            }
+
+            Important:
+            - JSON must be valid for automatic parsing.
+            - Summaries should be clear and concise to display in one Excel row.
+            - Keep examples short but informative.
+            """;
+
+    public JapaneseLessonService(GeminiClient geminiClient, EmailService emailService, ObjectMapper objectMapper, LearningSummaryService learningSummaryService) {
         this.geminiClient = geminiClient;
         this.emailService = emailService;
         this.objectMapper = objectMapper;
+        this.learningSummaryService = learningSummaryService;
     }
 
     /**
@@ -98,15 +130,20 @@ public class JapaneseLessonService {
             parseAIResponse(lesson, aiResponse);
             logger.info("Successfully parsed AI response for lesson: {}", lesson.getLessonTitle());
 
-            // Step 5: Generate email content
+            // Step 5: Generate learning summary and save to Excel
+            LearningSummary summary = generateLearningSummary(lesson);
+            String excelFilePath = learningSummaryService.saveLearningProgress("Japanese", summary);
+            logger.info("Generated and saved learning summary to Excel: {}", excelFilePath);
+
+            // Step 6: Generate email content
             String emailContent = buildEmailContent(lesson);
 
-            // Step 6: Send email
+            // Step 7: Send email with Excel attachment
             String subject = String.format("[Japanese Lesson - Day %d] %s", lesson.getDay(), lesson.getTopic());
-            emailService.sendJapaneseLessonEmail(subject, emailContent);
-            logger.info("Japanese lesson email sent successfully");
+            emailService.sendJapaneseLessonEmailWithAttachment(subject, emailContent, excelFilePath);
+            logger.info("Japanese lesson email sent successfully with Excel attachment");
 
-            // Step 7: Update Excel status
+            // Step 8: Update Excel status
             updateLessonStatus(lesson);
             logger.info("Updated lesson status to Done in Excel");
 
@@ -448,6 +485,72 @@ public class JapaneseLessonService {
                   .replace(">", "&gt;")
                   .replace("\"", "&quot;")
                   .replace("'", "&#39;");
+    }
+
+    /**
+     * Generate learning summary using AI
+     */
+    private LearningSummary generateLearningSummary(JapaneseLesson lesson) {
+        try {
+            // Build summary prompt
+            String summaryPrompt = SUMMARY_PROMPT_TEMPLATE
+                    .replace("{Topic}", lesson.getTopic())
+                    .replace("{Phase}", lesson.getPhase() != null ? lesson.getPhase() : "")
+                    .replace("{Description}", lesson.getDescription())
+                    .replace("{LessonTitle}", lesson.getLessonTitle() != null ? lesson.getLessonTitle() : "")
+                    .replace("{Content}", stripHtmlTags(lesson.getContentHtml() != null ? lesson.getContentHtml() : ""));
+
+            // Call AI API for summary
+            String aiSummaryResponse = geminiClient.generateContent(summaryPrompt);
+            if (aiSummaryResponse == null || aiSummaryResponse.trim().isEmpty()) {
+                logger.warn("Empty summary response from AI, creating fallback summary");
+                return createFallbackSummary(lesson);
+            }
+
+            // Parse AI summary response
+            String cleanedSummaryResponse = cleanJsonResponse(aiSummaryResponse);
+            Map<String, Object> summaryMap = objectMapper.readValue(
+                cleanedSummaryResponse, new TypeReference<Map<String, Object>>() {}
+            );
+
+            // Create LearningSummary object
+            LearningSummary summary = new LearningSummary();
+            summary.setDay(lesson.getDay());
+            summary.setPhase(lesson.getPhase());
+            summary.setTopic(lesson.getTopic());
+            summary.setKeyKnowledge((String) summaryMap.get("keyKnowledge"));
+            summary.setExamples((String) summaryMap.get("examples"));
+            summary.setNotes((String) summaryMap.get("notes"));
+
+            logger.info("Successfully generated learning summary for Day {}: {}", lesson.getDay(), lesson.getTopic());
+            return summary;
+
+        } catch (Exception e) {
+            logger.error("Error generating learning summary: {}", e.getMessage(), e);
+            return createFallbackSummary(lesson);
+        }
+    }
+
+    /**
+     * Create fallback summary when AI fails
+     */
+    private LearningSummary createFallbackSummary(JapaneseLesson lesson) {
+        LearningSummary summary = new LearningSummary();
+        summary.setDay(lesson.getDay());
+        summary.setPhase(lesson.getPhase());
+        summary.setTopic(lesson.getTopic());
+        summary.setKeyKnowledge("Studied " + lesson.getTopic() + " - " + lesson.getDescription());
+        summary.setExamples("Examples from lesson content");
+        summary.setNotes("Review lesson materials for better understanding");
+        return summary;
+    }
+
+    /**
+     * Strip HTML tags for summary generation
+     */
+    private String stripHtmlTags(String html) {
+        if (html == null) return "";
+        return html.replaceAll("<[^>]*>", " ").replaceAll("\\s+", " ").trim();
     }
 
     /**
