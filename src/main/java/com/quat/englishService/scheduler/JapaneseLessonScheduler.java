@@ -32,7 +32,7 @@ public class JapaneseLessonScheduler {
      * - Month: * (every month)
      * - Day of week: * (every day of the week)
      */
-    @Scheduled(cron = "0 0 8 * * *", zone = "Asia/Ho_Chi_Minh")
+    @Scheduled(cron = "0 30 12 * * *", zone = "Asia/Ho_Chi_Minh")
     public void sendDailyJapaneseLesson() {
         logger.info("Starting scheduled Japanese lesson task at 8:00 AM...");
         
