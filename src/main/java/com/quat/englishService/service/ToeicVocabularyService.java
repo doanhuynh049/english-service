@@ -26,7 +26,7 @@ public class ToeicVocabularyService {
     
     // Configurable parameters
     private static final int TOTAL_WORDS_FOR_EMAIL = 15;
-    private static final int NEW_WORDS_COUNT = 10;
+    private static final int NEW_WORDS_COUNT = 5;
     private static final int EXISTING_WORDS_COUNT = TOTAL_WORDS_FOR_EMAIL - NEW_WORDS_COUNT;
 
 
