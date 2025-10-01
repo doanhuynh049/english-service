@@ -208,6 +208,29 @@ public class EmailService {
         }
     }
 
+    /**
+     * Send Japanese lesson email with HTML content
+     */
+    @Retryable(value = {Exception.class}, maxAttempts = 3, backoff = @Backoff(delay = 2000))
+    public void sendJapaneseLessonEmail(String subject, String htmlContent) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setFrom(fromEmail);
+            helper.setTo(toEmail);
+            helper.setSubject(subject);
+            helper.setText(htmlContent, true);
+
+            mailSender.send(message);
+            logger.info("Japanese lesson email sent successfully to {}", toEmail);
+
+        } catch (Exception e) {
+            logger.error("Failed to send Japanese lesson email: {}", e.getMessage(), e);
+            throw new RuntimeException("Japanese lesson email sending failed", e);
+        }
+    }
+
     private void attachAudioFiles(MimeMessageHelper helper, List<ParsedVocabularyWord> vocabularyWords) {
         for (ParsedVocabularyWord word : vocabularyWords) {
             try {
