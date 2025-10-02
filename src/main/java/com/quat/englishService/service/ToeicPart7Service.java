@@ -37,7 +37,7 @@ public class ToeicPart7Service {
           2. Specific detail recall  
           3. Inference / implication  
           4. Vocabulary-in-context  
-          5. Tone, organization, or author’s purpose  
+          5. Tone, organization, or author’s purpose
 
         • Difficulty: Make questions progressively more challenging, mixing direct factual questions with inferential and critical-thinking ones.  
         • Answer Randomization: Distribute correct answers across A, B, C, D (not always the same letter).  
@@ -96,11 +96,11 @@ public class ToeicPart7Service {
             1. Extract 10-15 of the most advanced/challenging words and phrases from the passage.
             2. For each word/phrase, provide:
                - Word/Phrase
-               - IPA Pronunciation
+               - Word/Phrase (wrap with **word** for bold formatting)
                - Part of Speech
                - Definition in context (clear and concise)
                - Example sentence (different from the passage)
-               - Common collocations or related expressions
+               - Example sentence (different from the passage, wrap key vocabulary with **word**)
                - Synonyms and commonly confused words
                - Word family (noun/verb/adjective/adverb forms if applicable)
                - TOEIC frequency level (Common / Frequent / Advanced)
@@ -109,6 +109,7 @@ public class ToeicPart7Service {
 
             Format the response as a structured vocabulary study guide suitable for high-level TOEIC preparation.
 
+            Use **word** formatting around vocabulary words and key terms to make them bold in the email.
             Passage to analyze:
             %s
 
@@ -117,14 +118,14 @@ public class ToeicPart7Service {
             =====================================
 
             Word/Phrase: [word]
-            IPA: [pronunciation]
+            Word/Phrase: **[word]**
             Part of Speech: [noun/verb/adjective/etc.]
             Definition: [clear definition in context]
             Example: [new example sentence]
-            Collocations: [related word combinations]
-            Synonyms/Confused Words: [list]
-            Word Family: [noun/verb/adj/adv forms]
-            TOEIC Level: [Common/Frequent/Advanced]
+            Example: [new example sentence with **key words** marked]
+            Collocations: [related word combinations with **key terms** marked]
+            Synonyms/Confused Words: [list with **important words** marked]
+            Word Family: [noun/verb/adj/adv forms with **variations** marked]
             Notes: [usage tips, nuances, or common mistakes]
             Vietnamese: [translation]
 
