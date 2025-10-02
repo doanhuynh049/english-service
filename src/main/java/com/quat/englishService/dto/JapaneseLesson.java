@@ -17,6 +17,7 @@ public class JapaneseLesson {
     private String[] examples;
     private String[] practiceTasks;
     private ListeningPractice listeningPractice;
+    private String vocabularyAudioPath;
     private LocalDateTime createdAt;
 
     // Constructors
@@ -63,6 +64,9 @@ public class JapaneseLesson {
 
     public ListeningPractice getListeningPractice() { return listeningPractice; }
     public void setListeningPractice(ListeningPractice listeningPractice) { this.listeningPractice = listeningPractice; }
+
+    public String getVocabularyAudioPath() { return vocabularyAudioPath; }
+    public void setVocabularyAudioPath(String vocabularyAudioPath) { this.vocabularyAudioPath = vocabularyAudioPath; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }

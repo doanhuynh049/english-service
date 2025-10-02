@@ -289,6 +289,43 @@ public class EmailService {
         }
     }
 
+    /**
+     * Send Japanese lesson email with HTML content, Excel attachment, audio files, and vocabulary audio
+     */
+    @Retryable(value = {Exception.class}, maxAttempts = 3, backoff = @Backoff(delay = 2000))
+    public void sendJapaneseLessonEmailWithAttachments(String subject, String htmlContent, String excelFilePath, 
+                                                       ListeningPractice listeningPractice, String vocabularyAudioPath) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setFrom(fromEmail);
+            helper.setTo(toEmail);
+            helper.setSubject(subject);
+            helper.setText(htmlContent, true);
+
+            // Attach Excel file if it exists
+            attachLearningExcelFile(helper, excelFilePath);
+
+            // Attach audio files if listening practice exists
+            if (listeningPractice != null) {
+                attachJapaneseAudioFiles(helper, listeningPractice);
+            }
+
+            // Attach vocabulary audio file if it exists
+            if (vocabularyAudioPath != null) {
+                attachVocabularyAudioFile(helper, vocabularyAudioPath);
+            }
+
+            mailSender.send(message);
+            logger.info("Japanese lesson email with Excel, audio, and vocabulary audio attachments sent successfully to {}", toEmail);
+
+        } catch (Exception e) {
+            logger.error("Failed to send Japanese lesson email with attachments: {}", e.getMessage(), e);
+            throw new RuntimeException("Japanese lesson email with attachments sending failed", e);
+        }
+    }
+
     private void attachAudioFiles(MimeMessageHelper helper, List<ParsedVocabularyWord> vocabularyWords) {
         for (ParsedVocabularyWord word : vocabularyWords) {
             try {
@@ -457,6 +494,22 @@ public class EmailService {
             
         } catch (Exception e) {
             logger.error("Error attaching Japanese audio files: {}", e.getMessage(), e);
+        }
+    }
+
+    private void attachVocabularyAudioFile(MimeMessageHelper helper, String vocabularyAudioPath) {
+        try {
+            File audioFile = new File(vocabularyAudioPath);
+            if (audioFile.exists() && audioFile.isFile()) {
+                String fileName = "vocabulary_review_" + 
+                                LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + ".mp3";
+                helper.addAttachment(fileName, audioFile);
+                logger.info("Attached vocabulary audio file: {} ({} bytes)", fileName, audioFile.length());
+            } else {
+                logger.warn("Vocabulary audio file not found: {}", vocabularyAudioPath);
+            }
+        } catch (Exception e) {
+            logger.error("Error attaching vocabulary audio file: {}", e.getMessage(), e);
         }
     }
 

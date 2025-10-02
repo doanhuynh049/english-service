@@ -204,13 +204,21 @@ public class JapaneseLessonService {
             lesson.setListeningPractice(listeningPractice);
             logger.info("Generated listening practice with audio files");
 
+            // Step 5.7: Generate vocabulary audio file
+            String vocabularyAudioPath = generateVocabularyAudio(vocabularyList);
+            lesson.setVocabularyAudioPath(vocabularyAudioPath);
+            if (vocabularyAudioPath != null) {
+                logger.info("Generated vocabulary audio file: {}", vocabularyAudioPath);
+            }
+
             // Step 6: Generate email content
             String emailContent = buildEmailContent(lesson, vocabularyList);
 
             // Step 7: Send email with Excel and audio attachments
             String subject = String.format("[Japanese Lesson - Day %d] %s", lesson.getDay(), lesson.getTopic());
-            emailService.sendJapaneseLessonEmailWithAttachments(subject, emailContent, excelFilePath, lesson.getListeningPractice());
-            logger.info("Japanese lesson email sent successfully with Excel and audio attachments");
+            emailService.sendJapaneseLessonEmailWithAttachments(subject, emailContent, excelFilePath, 
+                                                               lesson.getListeningPractice(), lesson.getVocabularyAudioPath());
+            logger.info("Japanese lesson email sent successfully with Excel, audio, and vocabulary audio attachments");
 
             // Step 8: Update Excel status
             updateLessonStatus(lesson);
@@ -1009,6 +1017,89 @@ public class JapaneseLessonService {
         } catch (Exception e) {
             logger.error("Error building listening practice HTML: {}", e.getMessage(), e);
             return "<p>Unable to load listening practice content.</p>";
+        }
+    }
+
+    /**
+     * Generate vocabulary audio file that reads all words and their examples
+     * Format: Word -> 2s pause -> Example -> 5s pause -> Next word
+     */
+    private String generateVocabularyAudio(List<JapaneseVocabulary> vocabularyList) {
+        if (vocabularyList == null || vocabularyList.isEmpty()) {
+            logger.info("No vocabulary to generate audio for");
+            return null;
+        }
+
+        try {
+            // Build the vocabulary reading script with proper timing
+            StringBuilder script = new StringBuilder();
+            script.append("Let's review today's key vocabulary words. ");
+            script.append("I will read each word, pause for two seconds, then read an example sentence, followed by a five second pause. ");
+            script.append("Are you ready? Let's begin. ");
+            
+            for (int i = 0; i < vocabularyList.size(); i++) {
+                JapaneseVocabulary vocab = vocabularyList.get(i);
+                
+                // Announce word number
+                script.append("Word number ").append(i + 1).append(". ");
+                
+                // Read the Japanese word (prefer Kanji, fallback to Kana)
+                String japaneseWord = "";
+                if (vocab.getWordKanji() != null && !vocab.getWordKanji().trim().isEmpty()) {
+                    japaneseWord = vocab.getWordKanji();
+                    script.append(japaneseWord);
+                } else if (vocab.getWordKana() != null && !vocab.getWordKana().trim().isEmpty()) {
+                    japaneseWord = vocab.getWordKana();
+                    script.append(japaneseWord);
+                }
+                
+                // Add English meaning
+                if (vocab.getDefinition() != null && !vocab.getDefinition().trim().isEmpty()) {
+                    script.append(". Meaning: ").append(vocab.getDefinition()).append(". ");
+                }
+                
+                // Add 2-second pause (represented by dots and spaces)
+                script.append("... ... ");
+                
+                // Read example sentence if available
+                if (vocab.getExampleSentenceJp() != null && !vocab.getExampleSentenceJp().trim().isEmpty()) {
+                    script.append("Example sentence: ").append(vocab.getExampleSentenceJp());
+                    
+                    // Add English translation of example
+                    if (vocab.getExampleSentenceEn() != null && !vocab.getExampleSentenceEn().trim().isEmpty()) {
+                        script.append(". In English: ").append(vocab.getExampleSentenceEn());
+                    }
+                    script.append(". ");
+                } else {
+                    script.append("No example available for this word. ");
+                }
+                
+                // Add 5-second pause between words (longer pause)
+                script.append("... ... ... ... ... ... ... ... ... ... ");
+            }
+            
+            script.append("That completes today's vocabulary review with ")
+                  .append(vocabularyList.size())
+                  .append(" words. Remember to practice these words in your daily conversations. Good luck with your Japanese studies!");
+            
+            // Generate audio file using AudioService
+            String vocabularyText = script.toString();
+            logger.info("Generated vocabulary script with {} characters for {} words", vocabularyText.length(), vocabularyList.size());
+            
+            AudioService.AudioInfo audioInfo = audioService.generateAudioFilesWithMonologue(
+                "vocabulary_review", vocabularyText);
+            
+            if (audioInfo != null) {
+                logger.info("Successfully generated vocabulary audio file: {} words", vocabularyList.size());
+                return audioInfo.getExamplePath(); // Use example path for the vocabulary file
+            } else {
+                logger.error("Failed to generate vocabulary audio file");
+                return null;
+            }
+            
+        } catch (Exception e) {
+            logger.error("Error generating vocabulary audio: {}", e.getMessage(), e);
+            return null;
         }
     }
 }

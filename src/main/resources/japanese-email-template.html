@@ -19,7 +19,7 @@
         }
 
         .email-container {
-            max-width: 600px;
+            max-width: 700px;
             margin: 0 auto;
             background-color: #ffffff;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
@@ -281,6 +281,10 @@
             gap: 0.5rem;
         }
 
+        .vocabulary-table .table-wrapper {
+            overflow-x: auto;       /* enable horizontal scrolling */
+            -webkit-overflow-scrolling: touch; /* smooth scrolling on iOS */
+        }
         .vocabulary-table {
             background: white;
             border-radius: 8px;
@@ -289,6 +293,7 @@
         }
 
         .vocabulary-table table {
+            min-width: 600px;
             width: 100%;
             border-collapse: collapse;
             font-size: 0.9rem;
@@ -634,9 +639,21 @@
             <div class="vocabulary-section">
                 <h3>
                     <span class="section-icon">📖</span>
-                    Key Vocabulary (5 Random Words)
+                    Key Vocabularies
                 </h3>
                 {{VOCABULARY_TABLE}}
+                
+                <!-- Vocabulary Audio Notice -->
+                <div style="margin-top: 1rem; padding: 1rem; background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border-radius: 8px; border-left: 4px solid #0ea5e9;">
+                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                        <span style="font-size: 1.25rem;">🎵</span>
+                        <strong style="color: #0369a1;">Vocabulary Audio Review</strong>
+                    </div>
+                    <p style="margin: 0; color: #0c4a6e; font-size: 0.9rem;">
+                        📎 A complete audio review of all vocabulary words is attached to this email. 
+                        Listen to the pronunciation and example sentences to improve your speaking skills!
+                    </p>
+                </div>
             </div>
 
             <!-- Listening Practice Section -->
