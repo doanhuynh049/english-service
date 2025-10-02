@@ -1,6 +1,5 @@
 package com.quat.englishService.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
@@ -28,6 +27,7 @@ public class ToeicListeningService {
     private final AudioService audioService;
     private final CollocationHistoryService collocationHistoryService;
     private final ExecutorService executorService;
+    private final EmlService emlService;
     private static final int NUMBER_PASSAGES = 3;
 
     private static final String PASSAGE_PROMPT_TEMPLATE = """
@@ -97,11 +97,12 @@ public class ToeicListeningService {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public ToeicListeningService(GeminiClient geminiClient, EmailService emailService, AudioService audioService, CollocationHistoryService collocationHistoryService) {
+    public ToeicListeningService(GeminiClient geminiClient, EmailService emailService, AudioService audioService, CollocationHistoryService collocationHistoryService, EmlService emlService) {
         this.geminiClient = geminiClient;
         this.emailService = emailService;
         this.audioService = audioService;
         this.collocationHistoryService = collocationHistoryService;
+        this.emlService = emlService;
         this.executorService = Executors.newFixedThreadPool(4);
     }
 
@@ -115,7 +116,9 @@ public class ToeicListeningService {
 
             // Step 2: Generate 7 new collocations using updated prompt
             String newCollocationsPrompt = collocationHistoryService.generateNewCollocationsPrompt(reviewCollocations);
+            logger.info("Generated prompt for new collocations: {}", newCollocationsPrompt);
             String newCollocationsResponse = geminiClient.generateContent(newCollocationsPrompt);
+            logger.info("Generated response for new collocations: {}", newCollocationsResponse);
             logger.info("Generated 7 new TOEIC collocations");
 
             // Step 3: Parse new collocations from JSON response
@@ -156,9 +159,13 @@ public class ToeicListeningService {
             // Step 10: Create text file with all passages
             String passagesFilePath = createPassagesTextFile(passages);
 
-            // Step 11: Send email with structured collocations and attachments
-            emailService.sendToeicListeningEmail(collocationsHtmlContent, audioFiles, passagesFilePath);
-            logger.info("TOEIC Listening email sent successfully");
+            // Step 10.5: Create EML file with complete collocation history
+            String emlFilePath = emlService.createCollocationHistoryEml();
+            logger.info("Created EML collocation history file: {}", emlFilePath);
+
+            // Step 11: Send email with structured collocations and attachments including EML
+            emailService.sendToeicListeningEmailWithEml(collocationsHtmlContent, audioFiles, passagesFilePath, emlFilePath);
+            logger.info("TOEIC Listening email sent successfully with EML attachment");
 
         } catch (Exception e) {
             logger.error("Error during TOEIC Listening processing: {}", e.getMessage(), e);

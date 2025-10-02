@@ -128,6 +128,13 @@ public class CollocationHistoryService {
             """, excludeList.toString());
     }
 
+    /**
+     * Get all collocation history entries for external services
+     */
+    public List<CollocationEntry> getAllCollocationHistory() {
+        return loadCollocationHistory();
+    }
+
     private List<CollocationEntry> loadCollocationHistory() {
         try {
             File historyFile = new File(COLLOCATIONS_HISTORY_FILE);

@@ -118,6 +118,41 @@ public class EmailService {
     }
 
     @Retryable(value = {Exception.class}, maxAttempts = 3, backoff = @Backoff(delay = 2000))
+    public void sendToeicListeningEmailWithEml(String collocationsContent, List<ToeicListeningService.AudioFileInfo> audioFiles, 
+                                              String passagesFilePath, String emlFilePath) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setFrom(fromEmail);
+            helper.setTo(toEmail);
+            helper.setSubject("🎧 TOEIC Listening Practice - " + LocalDate.now().format(DateTimeFormatter.ofPattern("MMM dd, yyyy")));
+            helper.setText(buildToeicEmailContent(collocationsContent), true);
+
+            // Attach audio files
+            attachToeicAudioFiles(helper, audioFiles);
+
+            // Attach passages text file
+            if (passagesFilePath != null) {
+                attachToeicPassagesFile(helper, passagesFilePath);
+            }
+
+            // Attach collocation history EML file
+            if (emlFilePath != null) {
+                attachEmlFile(helper, emlFilePath);
+            }
+
+            mailSender.send(message);
+            logger.info("TOEIC Listening email sent successfully to {} with {} audio files, passages document, and EML attachment",
+                       toEmail, audioFiles.size());
+
+        } catch (Exception e) {
+            logger.error("Failed to send TOEIC Listening email with EML: {}", e.getMessage(), e);
+            throw new RuntimeException("TOEIC Email sending failed", e);
+        }
+    }
+
+    @Retryable(value = {Exception.class}, maxAttempts = 3, backoff = @Backoff(delay = 2000))
     public void sendIeltsReadingEmail(String htmlContent) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
@@ -510,6 +545,22 @@ public class EmailService {
             }
         } catch (Exception e) {
             logger.error("Error attaching vocabulary audio file: {}", e.getMessage(), e);
+        }
+    }
+
+    private void attachEmlFile(MimeMessageHelper helper, String emlFilePath) {
+        try {
+            File emlFile = new File(emlFilePath);
+            if (emlFile.exists() && emlFile.isFile()) {
+                String fileName = "Complete_TOEIC_Collocations_History_" +
+                                LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + ".eml";
+                helper.addAttachment(fileName, emlFile);
+                logger.info("Attached EML collocation history file: {} ({} bytes)", fileName, emlFile.length());
+            } else {
+                logger.warn("EML collocation history file not found: {}", emlFilePath);
+            }
+        } catch (Exception e) {
+            logger.error("Error attaching EML collocation history file: {}", e.getMessage(), e);
         }
     }
 

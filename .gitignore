@@ -81,6 +81,8 @@ Thumbs.db
 # toeic_collocations_history.json
 # *.xlsx
 # *.xls
+*.eml
+vocabulary-audio/
 
 # Environment variables (if you decide to use .env files)
 .env
