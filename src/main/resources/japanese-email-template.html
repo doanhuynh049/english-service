@@ -355,6 +355,162 @@
             font-size: 0.85rem;
         }
 
+        /* Listening Practice Section */
+        .listening-section {
+            background: #f0f8ff;
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            border: 1px solid #b3d9ff;
+        }
+
+        .listening-section h3 {
+            color: #1e40af;
+            font-size: 1.25rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .listening-words {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .listening-word {
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            border-left: 4px solid #3b82f6;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .word-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.75rem;
+        }
+
+        .word-japanese {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1e40af;
+        }
+
+        .word-romaji {
+            font-style: italic;
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+
+        .word-meanings {
+            margin-bottom: 0.75rem;
+        }
+
+        .word-english {
+            color: #374151;
+            font-weight: 500;
+        }
+
+        .word-vietnamese {
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+
+        .word-example {
+            background: #f8fafc;
+            padding: 0.75rem;
+            border-radius: 6px;
+            margin-top: 0.75rem;
+        }
+
+        .example-japanese {
+            color: #1e40af;
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+        }
+
+        .example-romaji {
+            color: #6b7280;
+            font-style: italic;
+            font-size: 0.85rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .example-english {
+            color: #374151;
+            font-size: 0.9rem;
+        }
+
+        .audio-controls {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .audio-button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .audio-button:hover {
+            background: #2563eb;
+        }
+
+        .listening-paragraph {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: 2px solid #3b82f6;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .paragraph-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+
+        .paragraph-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #1e40af;
+        }
+
+        .paragraph-japanese {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            color: #1e40af;
+            margin-bottom: 0.75rem;
+            font-weight: 500;
+        }
+
+        .paragraph-romaji {
+            font-style: italic;
+            color: #6b7280;
+            margin-bottom: 0.75rem;
+            line-height: 1.5;
+        }
+
+        .paragraph-english {
+            color: #374151;
+            line-height: 1.5;
+        }
+
         /* Footer */
         .footer {
             background: #2d3748;
@@ -481,6 +637,15 @@
                     Key Vocabulary (5 Random Words)
                 </h3>
                 {{VOCABULARY_TABLE}}
+            </div>
+
+            <!-- Listening Practice Section -->
+            <div class="listening-section">
+                <h3>
+                    <span class="section-icon">🎧</span>
+                    Listening Practice
+                </h3>
+                {{LISTENING_PRACTICE}}
             </div>
         </div>
 

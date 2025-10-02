@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.quat.englishService.dto.JapaneseLesson;
 import com.quat.englishService.dto.LearningSummary;
 import com.quat.englishService.dto.JapaneseVocabulary;
+import com.quat.englishService.dto.ListeningPractice;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.apache.poi.ss.usermodel.*;
@@ -19,6 +20,10 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
+import java.util.ArrayList;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Service for managing Japanese learning lessons
@@ -33,6 +38,7 @@ public class JapaneseLessonService {
     private final EmailService emailService;
     private final ObjectMapper objectMapper;
     private final LearningSummaryService learningSummaryService;
+    private final AudioService audioService;
     
     @Value("${app.japanese-excel-file-path}")
     private String japaneseExcelFilePath;
@@ -95,11 +101,57 @@ public class JapaneseLessonService {
             - Keep examples short but informative.
             """;
 
-    public JapaneseLessonService(GeminiClient geminiClient, EmailService emailService, ObjectMapper objectMapper, LearningSummaryService learningSummaryService) {
+    private static final String LISTENING_PRACTICE_PROMPT_TEMPLATE = """
+            You are a Japanese language tutor creating listening practice exercises for beginners.
+            
+            Based on today's lesson content, create a listening practice exercise:
+            
+            Lesson Content:
+            Topic: {Topic}
+            Description: {Description}
+            Lesson Title: {LessonTitle}
+            Content: {Content}
+            
+            Requirements:
+            1. Extract exactly 3 most important words from the lesson content
+            2. For each word, provide complete information suitable for beginners
+            3. Create 1 short paragraph (3-5 sentences) using all 3 words naturally
+            4. Use simple, beginner-friendly language throughout
+            
+            Format your output strictly as JSON:
+            {
+                "words": [
+                    {
+                        "japanese": "こんにちは",
+                        "romaji": "konnichiwa", 
+                        "english": "hello",
+                        "vietnamese": "xin chào",
+                        "exampleSentence": "私はこんにちはと言います。",
+                        "exampleRomaji": "Watashi wa konnichiwa to iimasu.",
+                        "exampleEnglish": "I say hello."
+                    }
+                ],
+                "listeningParagraph": {
+                    "japanese": "私はこんにちはと言います。今日はいい天気です。ありがとうございます。",
+                    "romaji": "Watashi wa konnichiwa to iimasu. Kyou wa ii tenki desu. Arigatou gozaimasu.",
+                    "english": "I say hello. Today is good weather. Thank you very much."
+                }
+            }
+            
+            Important:
+            - JSON must be valid for automatic parsing
+            - Use only words appropriate for beginners
+            - Make sure the paragraph sounds natural and coherent
+            - Include all 3 words naturally in the paragraph
+            - Keep sentences simple and clear for beginners
+            """;
+
+    public JapaneseLessonService(GeminiClient geminiClient, EmailService emailService, ObjectMapper objectMapper, LearningSummaryService learningSummaryService, AudioService audioService) {
         this.geminiClient = geminiClient;
         this.emailService = emailService;
         this.objectMapper = objectMapper;
         this.learningSummaryService = learningSummaryService;
+        this.audioService = audioService;
     }
 
     /**
@@ -131,25 +183,30 @@ public class JapaneseLessonService {
             // Step 4: Parse AI response
             parseAIResponse(lesson, aiResponse);
             logger.info("Successfully parsed AI response for lesson: {}", lesson.getLessonTitle());
-
+            Thread.sleep(2000); // Wait for file system to stabilize
             // Step 5: Generate learning summary and save to Excel
             LearningSummary summary = generateLearningSummary(lesson);
             String excelFilePath = learningSummaryService.saveLearningProgress("Japanese", summary);
             logger.info("Generated and saved learning summary to Excel: {}", excelFilePath);
-
+            Thread.sleep(2000); // Wait for file system to stabilize
             // Step 5.5: Generate vocabulary and save to Excel
             List<JapaneseVocabulary> vocabularyList = learningSummaryService.generateVocabulary(
                 lesson.getTopic(), lesson.getDescription(), lesson.getContentHtml(), lesson.getDay());
             learningSummaryService.saveVocabularyToExcel(vocabularyList);
             logger.info("Generated and saved {} vocabulary entries to Excel", vocabularyList.size());
+            Thread.sleep(2000); // Wait for file system to stabilize
+            // Step 5.6: Generate listening practice with audio
+            ListeningPractice listeningPractice = generateListeningPractice(lesson);
+            lesson.setListeningPractice(listeningPractice);
+            logger.info("Generated listening practice with audio files");
 
             // Step 6: Generate email content
             String emailContent = buildEmailContent(lesson);
 
-            // Step 7: Send email with Excel attachment
+            // Step 7: Send email with Excel and audio attachments
             String subject = String.format("[Japanese Lesson - Day %d] %s", lesson.getDay(), lesson.getTopic());
-            emailService.sendJapaneseLessonEmailWithAttachment(subject, emailContent, excelFilePath);
-            logger.info("Japanese lesson email sent successfully with Excel attachment");
+            emailService.sendJapaneseLessonEmailWithAttachments(subject, emailContent, excelFilePath, lesson.getListeningPractice());
+            logger.info("Japanese lesson email sent successfully with Excel and audio attachments");
 
             // Step 8: Update Excel status
             updateLessonStatus(lesson);
@@ -332,6 +389,9 @@ public class JapaneseLessonService {
             // Build vocabulary table section
             String vocabularyTable = buildVocabularyTable();
 
+            // Build listening practice section
+            String listeningPractice = buildListeningPracticeHtml(lesson);
+
             // Replace placeholders
             String content = template
                 .replace("{{DATE}}", LocalDate.now().format(DateTimeFormatter.ofPattern("EEEE, MMMM dd, yyyy")))
@@ -343,6 +403,7 @@ public class JapaneseLessonService {
                 .replace("{{EXAMPLES}}", examplesHtml.toString())
                 .replace("{{PRACTICE_TASKS}}", tasksHtml.toString())
                 .replace("{{VOCABULARY_TABLE}}", vocabularyTable)
+                .replace("{{LISTENING_PRACTICE}}", listeningPractice)
                 .replace("{{GENERATION_DATE}}", LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
 
             return content;
@@ -672,6 +733,226 @@ public class JapaneseLessonService {
         } catch (Exception e) {
             logger.error("Error processing specific lesson: {}", e.getMessage(), e);
             throw new RuntimeException("Failed to process specific lesson", e);
+        }
+    }
+
+    /**
+     * Generate listening practice content and audio files
+     */
+    private ListeningPractice generateListeningPractice(JapaneseLesson lesson) {
+        try {
+            logger.info("Generating listening practice for lesson: {}", lesson.getTopic());
+            
+            // Build listening practice prompt
+            String listeningPrompt = LISTENING_PRACTICE_PROMPT_TEMPLATE
+                    .replace("{Topic}", lesson.getTopic())
+                    .replace("{Description}", lesson.getDescription())
+                    .replace("{LessonTitle}", lesson.getLessonTitle() != null ? lesson.getLessonTitle() : "")
+                    .replace("{Content}", stripHtmlTags(lesson.getContentHtml() != null ? lesson.getContentHtml() : ""));
+
+            // Call AI API for listening practice
+            String aiResponse = geminiClient.generateContent(listeningPrompt);
+            if (aiResponse == null || aiResponse.trim().isEmpty()) {
+                logger.warn("Empty listening practice response from AI");
+                return null;
+            }
+
+            // Parse AI response
+            String cleanedResponse = cleanJsonResponse(aiResponse);
+            Map<String, Object> responseMap = objectMapper.readValue(
+                cleanedResponse, new TypeReference<Map<String, Object>>() {}
+            );
+
+            ListeningPractice practice = new ListeningPractice();
+            
+            // Parse words
+            Object wordsObj = responseMap.get("words");
+            if (wordsObj instanceof List) {
+                @SuppressWarnings("unchecked")
+                List<Map<String, Object>> wordsList = (List<Map<String, Object>>) wordsObj;
+                List<ListeningPractice.Word> words = new ArrayList<>();
+                
+                for (Map<String, Object> wordMap : wordsList) {
+                    ListeningPractice.Word word = new ListeningPractice.Word();
+                    word.setJapanese((String) wordMap.get("japanese"));
+                    word.setRomaji((String) wordMap.get("romaji"));
+                    word.setEnglish((String) wordMap.get("english"));
+                    word.setVietnamese((String) wordMap.get("vietnamese"));
+                    word.setExampleSentence((String) wordMap.get("exampleSentence"));
+                    word.setExampleRomaji((String) wordMap.get("exampleRomaji"));
+                    word.setExampleEnglish((String) wordMap.get("exampleEnglish"));
+                    words.add(word);
+                }
+                practice.setWords(words);
+            }
+            
+            // Parse listening paragraph
+            Object paragraphObj = responseMap.get("listeningParagraph");
+            if (paragraphObj instanceof Map) {
+                @SuppressWarnings("unchecked")
+                Map<String, Object> paragraphMap = (Map<String, Object>) paragraphObj;
+                ListeningPractice.Paragraph paragraph = new ListeningPractice.Paragraph();
+                paragraph.setJapanese((String) paragraphMap.get("japanese"));
+                paragraph.setRomaji((String) paragraphMap.get("romaji"));
+                paragraph.setEnglish((String) paragraphMap.get("english"));
+                practice.setListeningParagraph(paragraph);
+            }
+
+            // Generate audio files asynchronously
+            generateAudioFilesAsync(practice);
+            
+            logger.info("Successfully generated listening practice with {} words", 
+                       practice.getWords() != null ? practice.getWords().size() : 0);
+            return practice;
+
+        } catch (Exception e) {
+            logger.error("Error generating listening practice: {}", e.getMessage(), e);
+            return null;
+        }
+    }
+
+    /**
+     * Generate audio files for listening practice asynchronously
+     */
+    private void generateAudioFilesAsync(ListeningPractice practice) {
+        ExecutorService executor = Executors.newFixedThreadPool(4);
+        List<CompletableFuture<Void>> futures = new ArrayList<>();
+
+        // Generate audio for each word
+        if (practice.getWords() != null) {
+            for (ListeningPractice.Word word : practice.getWords()) {
+                // Generate audio for word pronunciation
+                CompletableFuture<Void> wordAudioFuture = CompletableFuture.runAsync(() -> {
+                    try {
+                        AudioService.AudioInfo audioInfo = audioService.generateAudioFiles(
+                            word.getJapanese(), word.getExampleSentence());
+                        if (audioInfo != null) {
+                            word.setWordAudioUrl(audioInfo.getPronunciationUrl());
+                            word.setExampleAudioUrl(audioInfo.getExampleUrl());
+                            logger.debug("Generated audio for word: {}", word.getJapanese());
+                        }
+                    } catch (Exception e) {
+                        logger.error("Error generating audio for word '{}': {}", word.getJapanese(), e.getMessage());
+                    }
+                }, executor);
+                futures.add(wordAudioFuture);
+            }
+        }
+
+        // Generate audio for listening paragraph
+        if (practice.getListeningParagraph() != null) {
+            CompletableFuture<Void> paragraphAudioFuture = CompletableFuture.runAsync(() -> {
+                try {
+                    String paragraphText = practice.getListeningParagraph().getJapanese();
+                    AudioService.AudioInfo audioInfo = audioService.generateAudioFiles(
+                        "listening_paragraph", paragraphText);
+                    if (audioInfo != null) {
+                        practice.getListeningParagraph().setAudioUrl(audioInfo.getExampleUrl());
+                        logger.debug("Generated audio for listening paragraph");
+                    }
+                } catch (Exception e) {
+                    logger.error("Error generating audio for listening paragraph: {}", e.getMessage());
+                }
+            }, executor);
+            futures.add(paragraphAudioFuture);
+        }
+
+        // Wait for all audio generation to complete (with timeout)
+        CompletableFuture<Void> allFutures = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
+        try {
+            allFutures.get(60, java.util.concurrent.TimeUnit.SECONDS); // 60 second timeout
+            logger.info("All audio files generated successfully");
+        } catch (Exception e) {
+            logger.warn("Some audio files may not have been generated: {}", e.getMessage());
+        } finally {
+            executor.shutdown();
+        }
+    }
+
+    /**
+     * Build listening practice HTML for email template
+     */
+    private String buildListeningPracticeHtml(JapaneseLesson lesson) {
+        try {
+            ListeningPractice practice = lesson.getListeningPractice();
+            if (practice == null) {
+                return "<p>No listening practice available for this lesson.</p>";
+            }
+
+            StringBuilder html = new StringBuilder();
+
+            // Build words section
+            if (practice.getWords() != null && !practice.getWords().isEmpty()) {
+                html.append("<div class=\"listening-words\">");
+                
+                for (ListeningPractice.Word word : practice.getWords()) {
+                    html.append(String.format("""
+                        <div class="listening-word">
+                            <div class="word-header">
+                                <div>
+                                    <div class="word-japanese">%s</div>
+                                    <div class="word-romaji">%s</div>
+                                </div>
+                            </div>
+                            <div class="word-meanings">
+                                <div class="word-english"><strong>EN:</strong> %s</div>
+                                <div class="word-vietnamese"><strong>VN:</strong> %s</div>
+                            </div>
+                            <div class="word-example">
+                                <div class="example-japanese">%s</div>
+                                <div class="example-romaji">%s</div>
+                                <div class="example-english">%s</div>
+                                <div class="audio-controls">
+                                    %s
+                                    %s
+                                </div>
+                            </div>
+                        </div>
+                        """,
+                        escapeHtml(word.getJapanese() != null ? word.getJapanese() : ""),
+                        escapeHtml(word.getRomaji() != null ? word.getRomaji() : ""),
+                        escapeHtml(word.getEnglish() != null ? word.getEnglish() : ""),
+                        escapeHtml(word.getVietnamese() != null ? word.getVietnamese() : ""),
+                        escapeHtml(word.getExampleSentence() != null ? word.getExampleSentence() : ""),
+                        escapeHtml(word.getExampleRomaji() != null ? word.getExampleRomaji() : ""),
+                        escapeHtml(word.getExampleEnglish() != null ? word.getExampleEnglish() : ""),
+                        word.getWordAudioUrl() != null ? 
+                            String.format("<a href=\"%s\" class=\"audio-button\">🔊 Word</a>", word.getWordAudioUrl()) : "",
+                        word.getExampleAudioUrl() != null ? 
+                            String.format("<a href=\"%s\" class=\"audio-button\">🔊 Example</a>", word.getExampleAudioUrl()) : ""
+                    ));
+                }
+                
+                html.append("</div>");
+            }
+
+            // Build listening paragraph section
+            if (practice.getListeningParagraph() != null) {
+                ListeningPractice.Paragraph paragraph = practice.getListeningParagraph();
+                html.append(String.format("""
+                    <div class="listening-paragraph">
+                        <div class="paragraph-header">
+                            <div class="paragraph-title">🎧 Listening Practice</div>
+                            %s
+                        </div>
+                        <div class="paragraph-japanese">%s</div>
+                        <div class="paragraph-romaji">%s</div>
+                        <div class="paragraph-english">%s</div>
+                    </div>
+                    """,
+                    paragraph.getAudioUrl() != null ? 
+                        String.format("<a href=\"%s\" class=\"audio-button\">🔊 Play Audio</a>", paragraph.getAudioUrl()) : "",
+                    escapeHtml(paragraph.getJapanese() != null ? paragraph.getJapanese() : ""),
+                    escapeHtml(paragraph.getRomaji() != null ? paragraph.getRomaji() : ""),
+                    escapeHtml(paragraph.getEnglish() != null ? paragraph.getEnglish() : "")
+                ));
+            }
+
+            return html.toString();
+
+        } catch (Exception e) {
+            logger.error("Error building listening practice HTML: {}", e.getMessage(), e);
+            return "<p>Unable to load listening practice content.</p>";
         }
     }
 }

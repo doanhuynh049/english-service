@@ -1,6 +1,7 @@
 package com.quat.englishService.service;
 
 import com.quat.englishService.dto.ParsedVocabularyWord;
+import com.quat.englishService.dto.ListeningPractice;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -257,6 +258,37 @@ public class EmailService {
         }
     }
 
+    /**
+     * Send Japanese lesson email with HTML content, Excel attachment, and audio files
+     */
+    @Retryable(value = {Exception.class}, maxAttempts = 3, backoff = @Backoff(delay = 2000))
+    public void sendJapaneseLessonEmailWithAttachments(String subject, String htmlContent, String excelFilePath, ListeningPractice listeningPractice) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setFrom(fromEmail);
+            helper.setTo(toEmail);
+            helper.setSubject(subject);
+            helper.setText(htmlContent, true);
+
+            // Attach Excel file if it exists
+            attachLearningExcelFile(helper, excelFilePath);
+
+            // Attach audio files if listening practice exists
+            if (listeningPractice != null) {
+                attachJapaneseAudioFiles(helper, listeningPractice);
+            }
+
+            mailSender.send(message);
+            logger.info("Japanese lesson email with Excel and audio attachments sent successfully to {}", toEmail);
+
+        } catch (Exception e) {
+            logger.error("Failed to send Japanese lesson email with attachments: {}", e.getMessage(), e);
+            throw new RuntimeException("Japanese lesson email with attachments sending failed", e);
+        }
+    }
+
     private void attachAudioFiles(MimeMessageHelper helper, List<ParsedVocabularyWord> vocabularyWords) {
         for (ParsedVocabularyWord word : vocabularyWords) {
             try {
@@ -363,6 +395,107 @@ public class EmailService {
         } catch (Exception e) {
             logger.error("Error attaching learning summary Excel file: {}", e.getMessage(), e);
         }
+    }
+
+    private void attachJapaneseAudioFiles(MimeMessageHelper helper, ListeningPractice listeningPractice) {
+        int attachmentCount = 0;
+        
+        try {
+            // Attach word audio files
+            if (listeningPractice.getWords() != null) {
+                for (int i = 0; i < listeningPractice.getWords().size(); i++) {
+                    ListeningPractice.Word word = listeningPractice.getWords().get(i);
+                    
+                    // Attach word pronunciation audio
+                    if (word.getWordAudioUrl() != null) {
+                        String audioPath = extractAudioPathFromUrl(word.getWordAudioUrl());
+                        if (audioPath != null) {
+                            File audioFile = new File(audioPath);
+                            if (audioFile.exists() && audioFile.isFile()) {
+                                String fileName = String.format("word_%d_%s_pronunciation.mp3", 
+                                    i + 1, sanitizeFileName(word.getJapanese()));
+                                helper.addAttachment(fileName, audioFile);
+                                attachmentCount++;
+                                logger.debug("Attached word audio: {} ({} bytes)", fileName, audioFile.length());
+                            }
+                        }
+                    }
+                    
+                    // Attach word example audio
+                    if (word.getExampleAudioUrl() != null) {
+                        String audioPath = extractAudioPathFromUrl(word.getExampleAudioUrl());
+                        if (audioPath != null) {
+                            File audioFile = new File(audioPath);
+                            if (audioFile.exists() && audioFile.isFile()) {
+                                String fileName = String.format("word_%d_%s_example.mp3", 
+                                    i + 1, sanitizeFileName(word.getJapanese()));
+                                helper.addAttachment(fileName, audioFile);
+                                attachmentCount++;
+                                logger.debug("Attached example audio: {} ({} bytes)", fileName, audioFile.length());
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // Attach listening paragraph audio
+            if (listeningPractice.getListeningParagraph() != null && 
+                listeningPractice.getListeningParagraph().getAudioUrl() != null) {
+                String audioPath = extractAudioPathFromUrl(listeningPractice.getListeningParagraph().getAudioUrl());
+                if (audioPath != null) {
+                    File audioFile = new File(audioPath);
+                    if (audioFile.exists() && audioFile.isFile()) {
+                        String fileName = "listening_paragraph.mp3";
+                        helper.addAttachment(fileName, audioFile);
+                        attachmentCount++;
+                        logger.debug("Attached paragraph audio: {} ({} bytes)", fileName, audioFile.length());
+                    }
+                }
+            }
+            
+            logger.info("Attached {} Japanese audio files to email", attachmentCount);
+            
+        } catch (Exception e) {
+            logger.error("Error attaching Japanese audio files: {}", e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Extract file path from audio URL
+     * Converts http://localhost:8282/audio/2025-10-01/filename.mp3 to actual file path
+     */
+    private String extractAudioPathFromUrl(String audioUrl) {
+        try {
+            if (audioUrl == null || !audioUrl.contains("/audio/")) {
+                return null;
+            }
+            
+            // Extract the date and filename from URL
+            // URL format: http://localhost:8282/audio/2025-10-01/filename.mp3
+            String[] parts = audioUrl.split("/audio/");
+            if (parts.length < 2) {
+                return null;
+            }
+            
+            String pathPart = parts[1]; // "2025-10-01/filename.mp3"
+            
+            // Construct the full file path
+            // Assuming audio files are stored in /tmp/vocabulary-audio/date/filename
+            String audioStoragePath = System.getProperty("app.audio.storage-path", "/tmp/vocabulary-audio");
+            return audioStoragePath + "/" + pathPart;
+            
+        } catch (Exception e) {
+            logger.warn("Error extracting audio path from URL '{}': {}", audioUrl, e.getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Sanitize filename for safe attachment names
+     */
+    private String sanitizeFileName(String name) {
+        if (name == null) return "unknown";
+        return name.replaceAll("[^a-zA-Z0-9._-]", "_").toLowerCase();
     }
 
     private int countAudioFiles(List<ParsedVocabularyWord> vocabularyWords) {

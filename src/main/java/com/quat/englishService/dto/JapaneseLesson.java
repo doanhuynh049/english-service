@@ -16,6 +16,7 @@ public class JapaneseLesson {
     private String contentHtml;
     private String[] examples;
     private String[] practiceTasks;
+    private ListeningPractice listeningPractice;
     private LocalDateTime createdAt;
 
     // Constructors
@@ -59,6 +60,9 @@ public class JapaneseLesson {
 
     public String[] getPracticeTasks() { return practiceTasks; }
     public void setPracticeTasks(String[] practiceTasks) { this.practiceTasks = practiceTasks; }
+
+    public ListeningPractice getListeningPractice() { return listeningPractice; }
+    public void setListeningPractice(ListeningPractice listeningPractice) { this.listeningPractice = listeningPractice; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
