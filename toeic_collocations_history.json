@@ -1,0 +1,785 @@
+[ {
+  "date" : "2025-09-17",
+  "collocation" : "grant access",
+  "ipa" : "/ɡrænt ˈæksɛs/",
+  "meaning" : "To give permission for someone to use or enter something.",
+  "example" : "Please submit a request to the IT department to grant access to the shared drive.",
+  "vietnamese" : "cấp quyền truy cập - Vui lòng gửi yêu cầu đến phòng IT để cấp quyền truy cập vào ổ đĩa chung."
+}, {
+  "date" : "2025-09-17",
+  "collocation" : "conduct a survey",
+  "ipa" : "/kənˈdʌkt ə ˈsɜːrveɪ/",
+  "meaning" : "To carry out a study by asking people questions to gather information.",
+  "example" : "Our marketing team plans to conduct a survey to gather customer feedback on our new product.",
+  "vietnamese" : "thực hiện khảo sát - Nhóm tiếp thị của chúng tôi dự định thực hiện một khảo sát để thu thập phản hồi của khách hàng về sản phẩm mới của chúng tôi."
+}, {
+  "date" : "2025-09-17",
+  "collocation" : "address concerns",
+  "ipa" : "/əˈdrɛs kənˈsɜːrnz/",
+  "meaning" : "To deal with or respond to worries or issues that people have.",
+  "example" : "The project manager held a meeting to address concerns raised by the team regarding budget constraints.",
+  "vietnamese" : "giải quyết những lo ngại - Quản lý dự án đã tổ chức một cuộc họp để giải quyết những lo ngại mà nhóm đưa ra về các hạn chế ngân sách."
+}, {
+  "date" : "2025-09-17",
+  "collocation" : "allocate resources",
+  "ipa" : "/ˈæləkeɪt ˈriːsɔːrsɪz/",
+  "meaning" : "To distribute money, staff, or materials for a particular purpose.",
+  "example" : "We need to carefully allocate resources to ensure all departments have what they need for the upcoming quarter.",
+  "vietnamese" : "phân bổ nguồn lực - Chúng ta cần phân bổ nguồn lực cẩn thận để đảm bảo tất cả các phòng ban có đủ những gì họ cần cho quý tới."
+}, {
+  "date" : "2025-09-17",
+  "collocation" : "review the agenda",
+  "ipa" : "/rɪˈvjuː ðə əˈʤɛndə/",
+  "meaning" : "To look over the list of items to be discussed at a meeting.",
+  "example" : "Before the meeting starts, let's take a moment to review the agenda and prioritize our discussion points.",
+  "vietnamese" : "xem xét chương trình nghị sự - Trước khi cuộc họp bắt đầu, hãy dành một chút thời gian để xem xét chương trình nghị sự và ưu tiên các điểm thảo luận của chúng ta."
+}, {
+  "date" : "2025-09-17",
+  "collocation" : "meet a deadline",
+  "ipa" : "/miːt ə ˈdɛdlaɪn/",
+  "meaning" : "To complete something by the required time.",
+  "example" : "It's crucial for the team to meet a deadline for this report, as it's vital for the client presentation.",
+  "vietnamese" : "hoàn thành đúng thời hạn - Việc nhóm hoàn thành đúng thời hạn cho báo cáo này là rất quan trọng, vì nó cần thiết cho buổi thuyết trình với khách hàng."
+}, {
+  "date" : "2025-09-17",
+  "collocation" : "submit a proposal",
+  "ipa" : "/səbˈmɪt ə prəˈpoʊzəl/",
+  "meaning" : "To formally present a plan or suggestion for consideration.",
+  "example" : "Our team will submit a proposal for the new marketing campaign by Friday.",
+  "vietnamese" : "nộp đề xuất - Nhóm của chúng tôi sẽ nộp đề xuất cho chiến dịch tiếp thị mới trước thứ Sáu."
+}, {
+  "date" : "2025-09-18",
+  "collocation" : "launch a product",
+  "ipa" : "/lɔːntʃ ə ˈprɒdʌkt/",
+  "meaning" : "To introduce a new product or service to the market.",
+  "example" : "Our marketing team is preparing to launch a new software product next quarter.",
+  "vietnamese" : "ra mắt sản phẩm - Đội ngũ tiếp thị của chúng tôi đang chuẩn bị ra mắt một sản phẩm phần mềm mới vào quý tới."
+}, {
+  "date" : "2025-09-18",
+  "collocation" : "process an order",
+  "ipa" : "/ˈprəʊsɛs ən ˈɔːrdər/",
+  "meaning" : "To handle and prepare a customer's request for goods or services.",
+  "example" : "Please ensure you process all online orders within 24 hours to maintain customer satisfaction.",
+  "vietnamese" : "xử lý đơn hàng - Vui lòng đảm bảo bạn xử lý tất cả các đơn hàng trực tuyến trong vòng 24 giờ để duy trì sự hài lòng của khách hàng."
+}, {
+  "date" : "2025-09-18",
+  "collocation" : "confirm attendance",
+  "ipa" : "/kənˈfɜːm əˈtɛndəns/",
+  "meaning" : "To verify that someone will be present at an event or meeting.",
+  "example" : "Participants are requested to confirm their attendance for the annual conference by Friday.",
+  "vietnamese" : "xác nhận tham dự - Các thành viên được yêu cầu xác nhận việc tham dự hội nghị thường niên trước thứ Sáu."
+}, {
+  "date" : "2025-09-18",
+  "collocation" : "draft a report",
+  "ipa" : "/drɑːft ə rɪˈpɔːrt/",
+  "meaning" : "To write an initial version of a document, often for review.",
+  "example" : "Could you please draft a report summarizing the project's progress by the end of the day?",
+  "vietnamese" : "soạn thảo báo cáo - Bạn có thể vui lòng soạn thảo một báo cáo tóm tắt tiến độ dự án vào cuối ngày được không?"
+}, {
+  "date" : "2025-09-18",
+  "collocation" : "update records",
+  "ipa" : "/ˈʌpdeɪt ˈrɛkɔːrdz/",
+  "meaning" : "To add new information or make changes to existing data in a system.",
+  "example" : "It's crucial to update records accurately after every client interaction.",
+  "vietnamese" : "cập nhật hồ sơ - Việc cập nhật hồ sơ chính xác sau mỗi lần tương tác với khách hàng là rất quan trọng."
+}, {
+  "date" : "2025-09-18",
+  "collocation" : "negotiate a contract",
+  "ipa" : "/nɪˈɡoʊʃieɪt ə ˈkɒntrækt/",
+  "meaning" : "To discuss and come to an agreement on the terms of a formal business arrangement.",
+  "example" : "Our legal team is working to negotiate a contract with the new supplier for bulk materials.",
+  "vietnamese" : "đàm phán hợp đồng - Đội ngũ pháp lý của chúng tôi đang làm việc để đàm phán hợp đồng với nhà cung cấp mới cho các vật liệu số lượng lớn."
+}, {
+  "date" : "2025-09-18",
+  "collocation" : "implement a strategy",
+  "ipa" : "/ˈɪmplɪmɛnt ə ˈstrætədʒi/",
+  "meaning" : "To put a plan or method into effect to achieve a particular goal.",
+  "example" : "Management plans to implement a new customer retention strategy next month.",
+  "vietnamese" : "triển khai chiến lược - Ban quản lý dự định triển khai một chiến lược giữ chân khách hàng mới vào tháng tới."
+}, {
+  "date" : "2025-09-19",
+  "collocation" : "gain insight",
+  "ipa" : "/ɡeɪn ˈɪnsaɪt/",
+  "meaning" : "To get a deeper understanding of something, often to help make decisions.",
+  "example" : "The market research helped us gain valuable insight into customer preferences.",
+  "vietnamese" : "thu được cái nhìn sâu sắc / có được hiểu biết sâu sắc - Nghiên cứu thị trường đã giúp chúng tôi thu được cái nhìn sâu sắc có giá trị về sở thích của khách hàng."
+}, {
+  "date" : "2025-09-19",
+  "collocation" : "facilitate a discussion",
+  "ipa" : "/fəˈsɪlɪteɪt ə dɪˈskʌʃən/",
+  "meaning" : "To help a discussion happen more easily or effectively; to lead a discussion.",
+  "example" : "Ms. Chen will facilitate a discussion on improving team collaboration during the workshop.",
+  "vietnamese" : "điều phối cuộc thảo luận / tạo điều kiện cho cuộc thảo luận - Cô Trần sẽ điều phối một cuộc thảo luận về việc cải thiện sự hợp tác nhóm trong buổi hội thảo."
+}, {
+  "date" : "2025-09-19",
+  "collocation" : "prioritize tasks",
+  "ipa" : "/praɪˈɒrɪtaɪz tɑːsks/",
+  "meaning" : "To arrange tasks in order of importance so that the most urgent ones are done first.",
+  "example" : "It's essential to prioritize tasks at the start of each day to manage workload efficiently.",
+  "vietnamese" : "ưu tiên các nhiệm vụ - Điều cần thiết là ưu tiên các nhiệm vụ vào đầu mỗi ngày để quản lý khối lượng công việc một cách hiệu quả."
+}, {
+  "date" : "2025-09-19",
+  "collocation" : "adhere to policies",
+  "ipa" : "/ədˈhɪər tuː ˈpɒlɪsiz/",
+  "meaning" : "To follow or stick to rules, regulations, or guidelines strictly.",
+  "example" : "All staff must adhere to company policies regarding data security and confidentiality.",
+  "vietnamese" : "tuân thủ các chính sách - Tất cả nhân viên phải tuân thủ các chính sách của công ty về bảo mật và tính bảo mật dữ liệu."
+}, {
+  "date" : "2025-09-19",
+  "collocation" : "compile data",
+  "ipa" : "/kəmˈpaɪl ˈdeɪtə/",
+  "meaning" : "To collect information from various sources and arrange it in an organized way.",
+  "example" : "Our team needs to compile data from all sales reports for the quarterly presentation.",
+  "vietnamese" : "tổng hợp dữ liệu - Nhóm của chúng ta cần tổng hợp dữ liệu từ tất cả các báo cáo bán hàng cho buổi thuyết trình hàng quý."
+}, {
+  "date" : "2025-09-19",
+  "collocation" : "disseminate information",
+  "ipa" : "/dɪˈsɛmɪneɪt ˌɪnfərˈmeɪʃən/",
+  "meaning" : "To spread information or knowledge widely to many people.",
+  "example" : "The marketing department will disseminate information about the new product launch to all media outlets.",
+  "vietnamese" : "phổ biến thông tin - Bộ phận tiếp thị sẽ phổ biến thông tin về việc ra mắt sản phẩm mới đến tất cả các kênh truyền thông."
+}, {
+  "date" : "2025-09-19",
+  "collocation" : "outline objectives",
+  "ipa" : "/ˈaʊtlaɪn əbˈdʒɛktɪvz/",
+  "meaning" : "To state the main aims or goals of a project or plan clearly and briefly.",
+  "example" : "Before we begin the project, let's clearly outline the objectives and expected outcomes.",
+  "vietnamese" : "phác thảo mục tiêu / vạch ra mục tiêu - Trước khi bắt đầu dự án, hãy phác thảo rõ ràng các mục tiêu và kết quả mong đợi."
+}, {
+  "date" : "2025-09-20",
+  "collocation" : "extend an invitation",
+  "ipa" : "/ɪkˈstɛnd ən ˌɪnvɪˈteɪʃən/",
+  "meaning" : "To formally ask someone to an event or meeting.",
+  "example" : "We plan to extend an invitation to all our key stakeholders for the annual gala.",
+  "vietnamese" : "gửi lời mời - Chúng tôi dự định gửi lời mời đến tất cả các bên liên quan chính cho buổi dạ tiệc thường niên."
+}, {
+  "date" : "2025-09-20",
+  "collocation" : "expedite a shipment",
+  "ipa" : "/ˌɛkspəˈdaɪt ə ˈʃɪpmənt/",
+  "meaning" : "To make a delivery happen faster than usual.",
+  "example" : "Due to the urgent demand, we asked the supplier to expedite the shipment of the new components.",
+  "vietnamese" : "đẩy nhanh đơn hàng - Do nhu cầu cấp bách, chúng tôi đã yêu cầu nhà cung cấp đẩy nhanh đơn hàng các linh kiện mới."
+}, {
+  "date" : "2025-09-20",
+  "collocation" : "monitor progress",
+  "ipa" : "/ˈmɑːnɪtər ˈprɑːɡrəs/",
+  "meaning" : "To regularly check how well a task or project is developing.",
+  "example" : "The team lead will monitor progress on the software development daily to ensure we stay on schedule.",
+  "vietnamese" : "theo dõi tiến độ - Trưởng nhóm sẽ theo dõi tiến độ phát triển phần mềm hàng ngày để đảm bảo chúng tôi đúng lịch trình."
+}, {
+  "date" : "2025-09-20",
+  "collocation" : "render a service",
+  "ipa" : "/ˈrɛndər ə ˈsɜːrvɪs/",
+  "meaning" : "To provide help or a professional task for someone.",
+  "example" : "Our legal department can render a service to clients requiring assistance with patent applications.",
+  "vietnamese" : "cung cấp dịch vụ - Bộ phận pháp lý của chúng tôi có thể cung cấp dịch vụ cho khách hàng yêu cầu hỗ trợ về đơn đăng ký bằng sáng chế."
+}, {
+  "date" : "2025-09-20",
+  "collocation" : "cultivate relationships",
+  "ipa" : "/ˈkʌltɪveɪt rɪˈleɪʃənʃɪps/",
+  "meaning" : "To develop and maintain good connections with people, especially clients or partners.",
+  "example" : "It's essential for our sales team to cultivate relationships with potential customers through regular follow-ups.",
+  "vietnamese" : "xây dựng mối quan hệ - Điều cần thiết cho đội ngũ bán hàng của chúng tôi là xây dựng mối quan hệ với khách hàng tiềm năng thông qua các cuộc theo dõi thường xuyên."
+}, {
+  "date" : "2025-09-20",
+  "collocation" : "verify credentials",
+  "ipa" : "/ˈvɛrɪfaɪ krəˈdɛnʃəlz/",
+  "meaning" : "To check and confirm someone's qualifications or identity.",
+  "example" : "Before offering the position, Human Resources will thoroughly verify the credentials of all shortlisted candidates.",
+  "vietnamese" : "xác minh thông tin - Trước khi đề nghị vị trí, Phòng Nhân sự sẽ xác minh kỹ lưỡng thông tin của tất cả các ứng viên được chọn lọc."
+}, {
+  "date" : "2025-09-20",
+  "collocation" : "seek clarification",
+  "ipa" : "/siːk ˌklærɪfɪˈkeɪʃən/",
+  "meaning" : "To ask for more information because something is not clear.",
+  "example" : "I need to seek clarification from the project manager regarding the new budget constraints before I can proceed.",
+  "vietnamese" : "tìm kiếm sự làm rõ - Tôi cần tìm kiếm sự làm rõ từ quản lý dự án về các ràng buộc ngân sách mới trước khi tôi có thể tiếp tục."
+}, {
+  "date" : "2025-09-21",
+  "collocation" : "set a target",
+  "ipa" : "/sɛt ə ˈtɑːrɡɪt/",
+  "meaning" : "To establish a goal or objective that needs to be achieved.",
+  "example" : "Management decided to set a target of increasing sales by 15% this quarter.",
+  "vietnamese" : "đặt mục tiêu - Ban quản lý đã quyết định đặt mục tiêu tăng doanh số 15% trong quý này."
+}, {
+  "date" : "2025-09-21",
+  "collocation" : "reach an agreement",
+  "ipa" : "/riːtʃ ən əˈɡriːmənt/",
+  "meaning" : "To come to a mutual understanding or decision after discussion or negotiation.",
+  "example" : "After several meetings, both companies were able to reach an agreement on the new partnership terms.",
+  "vietnamese" : "đạt được thỏa thuận - Sau nhiều cuộc họp, cả hai công ty đã có thể đạt được thỏa thuận về các điều khoản hợp tác mới."
+}, {
+  "date" : "2025-09-21",
+  "collocation" : "conduct research",
+  "ipa" : "/ˈkɒndʌkt ˈriːsɜːrtʃ/",
+  "meaning" : "To systematically investigate or study a topic to discover new facts or information.",
+  "example" : "Our marketing team needs to conduct thorough research into consumer preferences before launching the new product.",
+  "vietnamese" : "tiến hành nghiên cứu - Đội ngũ tiếp thị của chúng ta cần tiến hành nghiên cứu kỹ lưỡng về sở thích của người tiêu dùng trước khi ra mắt sản phẩm mới."
+}, {
+  "date" : "2025-09-21",
+  "collocation" : "present findings",
+  "ipa" : "/prɪˈzɛnt ˈfaɪndɪŋz/",
+  "meaning" : "To formally show or explain the results or conclusions of a study, investigation, or project.",
+  "example" : "The project manager will present the findings of the feasibility study at tomorrow's staff meeting.",
+  "vietnamese" : "trình bày kết quả - Giám đốc dự án sẽ trình bày kết quả nghiên cứu khả thi tại cuộc họp nhân viên ngày mai."
+}, {
+  "date" : "2025-09-21",
+  "collocation" : "resolve an issue",
+  "ipa" : "/rɪˈzɒlv ən ˈɪʃuː/",
+  "meaning" : "To find a solution to a problem or difficulty.",
+  "example" : "Our technical support team is working hard to resolve the software issue that customers are experiencing.",
+  "vietnamese" : "giải quyết vấn đề - Đội ngũ hỗ trợ kỹ thuật của chúng tôi đang nỗ lực giải quyết vấn đề phần mềm mà khách hàng đang gặp phải."
+}, {
+  "date" : "2025-09-21",
+  "collocation" : "delegate tasks",
+  "ipa" : "/ˈdɛlɪɡeɪt tɑːsks/",
+  "meaning" : "To assign specific duties or responsibilities to others, often subordinates.",
+  "example" : "Effective managers know how to delegate tasks efficiently to ensure projects are completed on time.",
+  "vietnamese" : "phân công nhiệm vụ - Các nhà quản lý hiệu quả biết cách phân công nhiệm vụ một cách hiệu quả để đảm bảo các dự án được hoàn thành đúng thời hạn."
+}, {
+  "date" : "2025-09-21",
+  "collocation" : "generate revenue",
+  "ipa" : "/ˈdʒɛnəreɪt ˈrɛvənuː/",
+  "meaning" : "To produce income or earnings for a company or organization.",
+  "example" : "Our primary goal this quarter is to implement new strategies that will significantly generate revenue.",
+  "vietnamese" : "tạo ra doanh thu - Mục tiêu chính của chúng ta trong quý này là thực hiện các chiến lược mới nhằm tạo ra doanh thu đáng kể."
+}, {
+  "date" : "2025-09-22",
+  "collocation" : "allocate funds",
+  "ipa" : "/ˈæləkeɪt fʌndz/",
+  "meaning" : "To set aside or distribute money for a specific purpose.",
+  "example" : "The finance committee needs to allocate funds for the new marketing campaign.",
+  "vietnamese" : "phân bổ ngân sách/quỹ - Ủy ban tài chính cần phân bổ ngân sách cho chiến dịch tiếp thị mới."
+}, {
+  "date" : "2025-09-22",
+  "collocation" : "liaise with",
+  "ipa" : "/ˈliːeɪz wɪð/",
+  "meaning" : "To communicate and cooperate with someone or a group to exchange information.",
+  "example" : "Please liaise with the IT department to ensure a smooth system upgrade.",
+  "vietnamese" : "liên lạc/phối hợp với - Vui lòng liên lạc với phòng IT để đảm bảo việc nâng cấp hệ thống diễn ra suôn sẻ."
+}, {
+  "date" : "2025-09-22",
+  "collocation" : "approve a budget",
+  "ipa" : "/əˈpruːv ə ˈbʌdʒɪt/",
+  "meaning" : "To officially agree to a financial plan for a project or period.",
+  "example" : "The board of directors is expected to approve the budget for the expansion project next week.",
+  "vietnamese" : "phê duyệt ngân sách - Hội đồng quản trị dự kiến sẽ phê duyệt ngân sách cho dự án mở rộng vào tuần tới."
+}, {
+  "date" : "2025-09-22",
+  "collocation" : "conduct a meeting",
+  "ipa" : "/kənˈdʌkt ə ˈmiːtɪŋ/",
+  "meaning" : "To organize and lead a formal gathering of people to discuss matters.",
+  "example" : "Ms. Chen will conduct the weekly team meeting to discuss project progress.",
+  "vietnamese" : "tổ chức/điều hành cuộc họp - Cô Trần sẽ điều hành cuộc họp nhóm hàng tuần để thảo luận về tiến độ dự án."
+}, {
+  "date" : "2025-09-22",
+  "collocation" : "submit an application",
+  "ipa" : "/səbˈmɪt ən ˌæplɪˈkeɪʃən/",
+  "meaning" : "To formally hand in a request, often for a job, permit, or service.",
+  "example" : "Candidates must submit their application online by the end of the day.",
+  "vietnamese" : "nộp đơn đăng ký/xin - Các ứng viên phải nộp đơn đăng ký trực tuyến trước cuối ngày."
+}, {
+  "date" : "2025-09-22",
+  "collocation" : "assess performance",
+  "ipa" : "/əˈses pərˈfɔːrməns/",
+  "meaning" : "To evaluate how well an individual, team, or system is functioning.",
+  "example" : "Managers will assess employee performance annually to identify areas for development.",
+  "vietnamese" : "đánh giá hiệu suất - Các quản lý sẽ đánh giá hiệu suất của nhân viên hàng năm để xác định các lĩnh vực cần phát triển."
+}, {
+  "date" : "2025-09-22",
+  "collocation" : "address an audience",
+  "ipa" : "/əˈdres ən ˈɔːdiəns/",
+  "meaning" : "To give a formal speech or presentation to a group of listeners.",
+  "example" : "The keynote speaker will address an audience of over 500 industry professionals.",
+  "vietnamese" : "phát biểu trước khán giả - Diễn giả chính sẽ phát biểu trước khán giả gồm hơn 500 chuyên gia trong ngành."
+}, {
+  "date" : "2025-09-23",
+  "collocation" : "enhance productivity",
+  "ipa" : "/ɪnˈhæns ˌprɒdʌkˈtɪvəti/",
+  "meaning" : "To improve the rate at which goods are produced, or the amount of work completed.",
+  "example" : "Implementing the new software helped our team significantly enhance productivity.",
+  "vietnamese" : "nâng cao năng suất - Việc triển khai phần mềm mới đã giúp đội ngũ của chúng tôi nâng cao năng suất đáng kể."
+}, {
+  "date" : "2025-09-23",
+  "collocation" : "streamline operations",
+  "ipa" : "/ˈstriːmlaɪn ˌɒpəˈreɪʃənz/",
+  "meaning" : "To make a process or organization more efficient by simplifying or optimizing it.",
+  "example" : "Our goal this quarter is to streamline operations and reduce unnecessary costs.",
+  "vietnamese" : "tinh gọn hoạt động - Mục tiêu của chúng tôi trong quý này là tinh gọn hoạt động và giảm các chi phí không cần thiết."
+}, {
+  "date" : "2025-09-23",
+  "collocation" : "foster collaboration",
+  "ipa" : "/ˈfɒstər kəˌlæbəˈreɪʃən/",
+  "meaning" : "To encourage teamwork and cooperation among individuals or departments.",
+  "example" : "The new open-plan office design aims at fostering collaboration among project teams.",
+  "vietnamese" : "thúc đẩy hợp tác - Thiết kế văn phòng mở mới nhằm mục đích thúc đẩy hợp tác giữa các nhóm dự án."
+}, {
+  "date" : "2025-09-23",
+  "collocation" : "mitigate risks",
+  "ipa" : "/ˈmɪtɪɡeɪt rɪsks/",
+  "meaning" : "To make potential dangers or problems less severe or serious.",
+  "example" : "We need to develop a comprehensive plan to identify and mitigate risks associated with the new market entry.",
+  "vietnamese" : "giảm thiểu rủi ro - Chúng ta cần phát triển một kế hoạch toàn diện để xác định và giảm thiểu rủi ro liên quan đến việc thâm nhập thị trường mới."
+}, {
+  "date" : "2025-09-23",
+  "collocation" : "devise a plan",
+  "ipa" : "/dɪˈvaɪz ə plæn/",
+  "meaning" : "To invent or think up a detailed method for doing something.",
+  "example" : "The marketing department needs to devise a plan to increase brand awareness by year-end.",
+  "vietnamese" : "lên kế hoạch - Phòng marketing cần lên kế hoạch để tăng cường nhận diện thương hiệu vào cuối năm."
+}, {
+  "date" : "2025-09-23",
+  "collocation" : "gain a competitive edge",
+  "ipa" : "/ɡeɪn ə kəmˌpɛtɪtɪv ɛdʒ/",
+  "meaning" : "To achieve an advantage over competitors.",
+  "example" : "Investing in advanced technology will help us gain a competitive edge in the global market.",
+  "vietnamese" : "đạt lợi thế cạnh tranh - Đầu tư vào công nghệ tiên tiến sẽ giúp chúng ta đạt được lợi thế cạnh tranh trên thị trường toàn cầu."
+}, {
+  "date" : "2025-09-23",
+  "collocation" : "drive initiatives",
+  "ipa" : "/draɪv ɪˈnɪʃiətɪvz/",
+  "meaning" : "To lead and push forward new projects or programs.",
+  "example" : "As a project manager, her role is to drive initiatives that align with the company's strategic goals.",
+  "vietnamese" : "thúc đẩy các sáng kiến/dự án - Với tư cách là quản lý dự án, vai trò của cô ấy là thúc đẩy các sáng kiến phù hợp với mục tiêu chiến lược của công ty."
+}, {
+  "date" : "2025-09-24",
+  "collocation" : "conduct an audit",
+  "ipa" : "/kənˈdʌkt ən ˈɔːdɪt/",
+  "meaning" : "To officially examine a company's financial records, operations, or systems to ensure they are accurate and comply with standards.",
+  "example" : "The external team will conduct an audit of our financial statements next month.",
+  "vietnamese" : "tiến hành kiểm toán - Đội ngũ bên ngoài sẽ tiến hành kiểm toán báo cáo tài chính của chúng ta vào tháng tới."
+}, {
+  "date" : "2025-09-24",
+  "collocation" : "propose a solution",
+  "ipa" : "/prəˈpoʊz ə səˈluːʃən/",
+  "meaning" : "To suggest a way to solve a problem or deal with a difficult situation.",
+  "example" : "During the brainstorming session, we need to propose a solution for the supply chain delay.",
+  "vietnamese" : "đề xuất giải pháp - Trong buổi họp động não, chúng ta cần đề xuất một giải pháp cho việc chậm trễ chuỗi cung ứng."
+}, {
+  "date" : "2025-09-24",
+  "collocation" : "handle inquiries",
+  "ipa" : "/ˈhændl ˈɪnkwəriz/",
+  "meaning" : "To deal with questions or requests for information from customers or other parties.",
+  "example" : "Our customer service team is trained to handle inquiries efficiently and professionally.",
+  "vietnamese" : "xử lý yêu cầu/thắc mắc - Đội ngũ dịch vụ khách hàng của chúng tôi được đào tạo để xử lý các yêu cầu một cách hiệu quả và chuyên nghiệp."
+}, {
+  "date" : "2025-09-24",
+  "collocation" : "manage expectations",
+  "ipa" : "/ˈmænɪdʒ ˌɛkspɛkˈteɪʃənz/",
+  "meaning" : "To ensure that someone's hopes or demands are realistic and reasonable, often to prevent disappointment.",
+  "example" : "It's crucial to manage expectations with clients regarding project timelines to avoid future issues.",
+  "vietnamese" : "quản lý kỳ vọng - Điều quan trọng là phải quản lý kỳ vọng với khách hàng về thời gian hoàn thành dự án để tránh các vấn đề trong tương lai."
+}, {
+  "date" : "2025-09-24",
+  "collocation" : "schedule a meeting",
+  "ipa" : "/ˈskɛdʒuːl ə ˈmiːtɪŋ/",
+  "meaning" : "To arrange a time and place for people to meet.",
+  "example" : "Please schedule a meeting with the department heads to discuss the new policy.",
+  "vietnamese" : "lên lịch cuộc họp - Vui lòng lên lịch một cuộc họp với các trưởng phòng để thảo luận về chính sách mới."
+}, {
+  "date" : "2025-09-24",
+  "collocation" : "issue a statement",
+  "ipa" : "/ˈɪʃuː ə ˈsteɪtmənt/",
+  "meaning" : "To formally release an official announcement or public declaration.",
+  "example" : "The company will issue a statement addressing the recent media rumors by end of day.",
+  "vietnamese" : "ban hành tuyên bố - Công ty sẽ ban hành một tuyên bố giải quyết các tin đồn truyền thông gần đây vào cuối ngày."
+}, {
+  "date" : "2025-09-24",
+  "collocation" : "gain traction",
+  "ipa" : "/ɡeɪn ˈtrækʃən/",
+  "meaning" : "To become popular or accepted, making progress or gaining support.",
+  "example" : "Our new marketing campaign is starting to gain traction with a wider audience.",
+  "vietnamese" : "có được sức hút/đà phát triển - Chiến dịch tiếp thị mới của chúng tôi đang bắt đầu có được sức hút với lượng khán giả rộng hơn."
+}, {
+  "date" : "2025-09-25",
+  "collocation" : "formulate a strategy",
+  "ipa" : "/ˈfɔːrmjuleɪt ə ˈstrætədʒi/",
+  "meaning" : "To develop a detailed plan or approach to achieve a specific goal.",
+  "example" : "The marketing team needs to formulate a strategy for increasing our online presence.",
+  "vietnamese" : "đề ra chiến lược - Đội ngũ tiếp thị cần đề ra một chiến lược để tăng cường sự hiện diện trực tuyến của chúng ta."
+}, {
+  "date" : "2025-09-25",
+  "collocation" : "achieve objectives",
+  "ipa" : "/əˈtʃiːv əbˈdʒɛktɪvz/",
+  "meaning" : "To successfully reach the goals or targets that have been set.",
+  "example" : "We must work together to achieve our project objectives by the end of the fiscal quarter.",
+  "vietnamese" : "đạt được mục tiêu - Chúng ta phải làm việc cùng nhau để đạt được các mục tiêu dự án của mình vào cuối quý tài chính."
+}, {
+  "date" : "2025-09-25",
+  "collocation" : "maintain standards",
+  "ipa" : "/meɪnˈteɪn ˈstændərds/",
+  "meaning" : "To ensure that quality, performance, or behavior levels remain consistently high or acceptable.",
+  "example" : "Our factory strives to maintain high production standards to ensure product quality.",
+  "vietnamese" : "duy trì tiêu chuẩn - Nhà máy của chúng tôi cố gắng duy trì các tiêu chuẩn sản xuất cao để đảm bảo chất lượng sản phẩm."
+}, {
+  "date" : "2025-09-25",
+  "collocation" : "forecast demand",
+  "ipa" : "/ˈfɔːrkæst dɪˈmænd/",
+  "meaning" : "To predict the future need or desire for a product or service.",
+  "example" : "The sales department is responsible for accurately forecasting demand for our new software.",
+  "vietnamese" : "dự báo nhu cầu - Bộ phận bán hàng chịu trách nhiệm dự báo chính xác nhu cầu cho phần mềm mới của chúng tôi."
+}, {
+  "date" : "2025-09-25",
+  "collocation" : "gather feedback",
+  "ipa" : "/ˈɡæðər ˈfiːdbæk/",
+  "meaning" : "To collect opinions, reactions, or information about a product, service, or performance.",
+  "example" : "After the training session, we will gather feedback from all participants to improve future workshops.",
+  "vietnamese" : "thu thập phản hồi - Sau buổi tập huấn, chúng tôi sẽ thu thập phản hồi từ tất cả những người tham gia để cải thiện các buổi hội thảo trong tương lai."
+}, {
+  "date" : "2025-09-25",
+  "collocation" : "conduct an interview",
+  "ipa" : "/kənˈdʌkt ən ˈɪntərvjuː/",
+  "meaning" : "To hold a formal meeting with someone, usually to assess their suitability for a job or to gather information.",
+  "example" : "The HR manager will conduct an interview with the top three candidates next Monday.",
+  "vietnamese" : "tiến hành phỏng vấn - Giám đốc nhân sự sẽ tiến hành phỏng vấn ba ứng viên hàng đầu vào thứ Hai tới."
+}, {
+  "date" : "2025-09-25",
+  "collocation" : "submit an invoice",
+  "ipa" : "/səbˈmɪt ən ˈɪnvɔɪs/",
+  "meaning" : "To send a bill for goods or services provided, requesting payment.",
+  "example" : "Please remember to submit an invoice for your consulting services by the end of the month.",
+  "vietnamese" : "nộp hóa đơn - Vui lòng nhớ nộp hóa đơn cho các dịch vụ tư vấn của bạn trước cuối tháng."
+}, {
+  "date" : "2025-09-26",
+  "collocation" : "allocate time",
+  "ipa" : "/ˈæləkeɪt taɪm/",
+  "meaning" : "To assign a specific period for a task or activity.",
+  "example" : "We need to allocate sufficient time for the new project's quality assurance phase.",
+  "vietnamese" : "phân bổ thời gian - Chúng ta cần phân bổ đủ thời gian cho giai đoạn đảm bảo chất lượng của dự án mới."
+}, {
+  "date" : "2025-09-26",
+  "collocation" : "drive sales",
+  "ipa" : "/draɪv seɪlz/",
+  "meaning" : "To increase the amount of products or services sold.",
+  "example" : "The new marketing campaign aims to drive sales by targeting a younger demographic.",
+  "vietnamese" : "thúc đẩy doanh số - Chiến dịch tiếp thị mới nhằm thúc đẩy doanh số bằng cách nhắm mục tiêu vào nhóm nhân khẩu học trẻ hơn."
+}, {
+  "date" : "2025-09-26",
+  "collocation" : "secure funding",
+  "ipa" : "/sɪˈkjʊr ˈfʌndɪŋ/",
+  "meaning" : "To obtain money or financial support for a project or business.",
+  "example" : "The startup successfully secured funding from a venture capital firm after several presentations.",
+  "vietnamese" : "đảm bảo nguồn vốn - Công ty khởi nghiệp đã thành công đảm bảo nguồn vốn từ một công ty đầu tư mạo hiểm sau nhiều buổi thuyết trình."
+}, {
+  "date" : "2025-09-26",
+  "collocation" : "leverage resources",
+  "ipa" : "/ˈlevərɪdʒ ˈriːsɔːrsɪz/",
+  "meaning" : "To use available assets, skills, or people effectively to achieve a goal.",
+  "example" : "By leveraging existing resources, we can complete the project ahead of schedule without needing extra budget.",
+  "vietnamese" : "tận dụng nguồn lực - Bằng cách tận dụng các nguồn lực hiện có, chúng ta có thể hoàn thành dự án trước thời hạn mà không cần thêm ngân sách."
+}, {
+  "date" : "2025-09-26",
+  "collocation" : "disrupt the market",
+  "ipa" : "/dɪsˈrʌpt ðə ˈmɑːrkɪt/",
+  "meaning" : "To introduce a product or service that changes the way an industry operates, often in a revolutionary way.",
+  "example" : "Their innovative app has the potential to disrupt the market for traditional financial services.",
+  "vietnamese" : "phá vỡ thị trường - Ứng dụng sáng tạo của họ có tiềm năng phá vỡ thị trường dịch vụ tài chính truyền thống."
+}, {
+  "date" : "2025-09-26",
+  "collocation" : "sustain operations",
+  "ipa" : "/səˈsteɪn ˌɒpəˈreɪʃənz/",
+  "meaning" : "To maintain business activities continuously and effectively over time.",
+  "example" : "We must ensure a stable supply chain to sustain operations during peak season.",
+  "vietnamese" : "duy trì hoạt động - Chúng ta phải đảm bảo một chuỗi cung ứng ổn định để duy trì hoạt động trong mùa cao điểm."
+}, {
+  "date" : "2025-09-26",
+  "collocation" : "boost morale",
+  "ipa" : "/buːst məˈrɑːl/",
+  "meaning" : "To improve the confidence, enthusiasm, and discipline of a group of people.",
+  "example" : "The company picnic was a great initiative to boost morale among employees.",
+  "vietnamese" : "nâng cao tinh thần - Buổi dã ngoại của công ty là một sáng kiến tuyệt vời để nâng cao tinh thần làm việc của nhân viên."
+}, {
+  "date" : "2025-09-27",
+  "collocation" : "implement changes",
+  "ipa" : "/ˈɪmplɪmənt ˈtʃeɪndʒɪz/",
+  "meaning" : "To put new plans or adjustments into practice.",
+  "example" : "The management decided to implement changes to the employee benefits package next quarter.",
+  "vietnamese" : "thực hiện các thay đổi - Ban quản lý quyết định thực hiện các thay đổi đối với gói phúc lợi nhân viên vào quý tới."
+}, {
+  "date" : "2025-09-27",
+  "collocation" : "assume responsibility",
+  "ipa" : "/əˈsuːm rɪˌspɒnsɪˈbɪləti/",
+  "meaning" : "To take charge of or accept accountability for a task or duty.",
+  "example" : "After the project manager resigned, Sarah had to assume responsibility for the entire team.",
+  "vietnamese" : "đảm nhận trách nhiệm - Sau khi quản lý dự án từ chức, Sarah phải đảm nhận trách nhiệm cho toàn bộ nhóm."
+}, {
+  "date" : "2025-09-27",
+  "collocation" : "assess the impact",
+  "ipa" : "/əˈses ðə ˈɪmpækt/",
+  "meaning" : "To evaluate the effect or consequence of something.",
+  "example" : "Before launching the new product, we need to thoroughly assess the impact on our existing market share.",
+  "vietnamese" : "đánh giá tác động - Trước khi ra mắt sản phẩm mới, chúng ta cần đánh giá kỹ lưỡng tác động lên thị phần hiện có của chúng ta."
+}, {
+  "date" : "2025-09-27",
+  "collocation" : "conduct a review",
+  "ipa" : "/kənˈdʌkt ə rɪˈvjuː/",
+  "meaning" : "To carry out an examination or evaluation of something.",
+  "example" : "The department manager decided to conduct a review of all current procedures to find areas for improvement.",
+  "vietnamese" : "tiến hành đánh giá/rà soát - Trưởng phòng quyết định tiến hành đánh giá tất cả các quy trình hiện hành để tìm ra các lĩnh vực cần cải thiện."
+}, {
+  "date" : "2025-09-27",
+  "collocation" : "maintain a record",
+  "ipa" : "/meɪnˈteɪn ə ˈrɛkərd/",
+  "meaning" : "To keep an official account or written evidence of events or information.",
+  "example" : "All employees are required to maintain a record of their working hours for payroll purposes.",
+  "vietnamese" : "duy trì hồ sơ/ghi chép - Tất cả nhân viên được yêu cầu duy trì hồ sơ về giờ làm việc của họ cho mục đích tính lương."
+}, {
+  "date" : "2025-09-27",
+  "collocation" : "oversee operations",
+  "ipa" : "/ˌoʊvərˈsiː ˌɒpəˈreɪʃənz/",
+  "meaning" : "To supervise the activities and processes of a business or project.",
+  "example" : "The new director will be responsible for overseeing operations in all our overseas branches.",
+  "vietnamese" : "giám sát hoạt động - Giám đốc mới sẽ chịu trách nhiệm giám sát các hoạt động tại tất cả các chi nhánh ở nước ngoài của chúng ta."
+}, {
+  "date" : "2025-09-27",
+  "collocation" : "resolve a dispute",
+  "ipa" : "/rɪˈzɒlv ə dɪˈspjuːt/",
+  "meaning" : "To find a solution to an argument or disagreement.",
+  "example" : "Our legal team is working hard to resolve a dispute with the supplier over contract terms.",
+  "vietnamese" : "giải quyết tranh chấp - Đội ngũ pháp lý của chúng tôi đang nỗ lực giải quyết tranh chấp với nhà cung cấp về các điều khoản hợp đồng."
+}, {
+  "date" : "2025-09-28",
+  "collocation" : "deliver a presentation",
+  "ipa" : "/dɪˈlɪvər ə ˌprɛzənˈteɪʃən/",
+  "meaning" : "To give a formal talk about a topic to an audience.",
+  "example" : "Ms. Kim will deliver a presentation on the quarterly sales figures at the next board meeting.",
+  "vietnamese" : "thuyết trình - Cô Kim sẽ thuyết trình về số liệu doanh thu hàng quý tại cuộc họp hội đồng quản trị tiếp theo."
+}, {
+  "date" : "2025-09-28",
+  "collocation" : "approve a request",
+  "ipa" : "/əˈpruːv ə rɪˈkwɛst/",
+  "meaning" : "To officially agree to someone's demand or appeal.",
+  "example" : "The manager needs to approve all travel requests before employees can book flights.",
+  "vietnamese" : "duyệt yêu cầu - Người quản lý cần duyệt tất cả các yêu cầu đi công tác trước khi nhân viên có thể đặt vé máy bay."
+}, {
+  "date" : "2025-09-28",
+  "collocation" : "process a payment",
+  "ipa" : "/ˈprɑːsɛs ə ˈpeɪmənt/",
+  "meaning" : "To handle the details of receiving or sending money.",
+  "example" : "Our accounting department will process your payment within three business days.",
+  "vietnamese" : "xử lý thanh toán - Bộ phận kế toán của chúng tôi sẽ xử lý thanh toán của bạn trong vòng ba ngày làm việc."
+}, {
+  "date" : "2025-09-28",
+  "collocation" : "implement a policy",
+  "ipa" : "/ˈɪmplɪmɛnt ə ˈpɑːləsi/",
+  "meaning" : "To put a new rule or guideline into effect.",
+  "example" : "The company decided to implement a new remote work policy to offer more flexibility to staff.",
+  "vietnamese" : "thực hiện chính sách - Công ty quyết định thực hiện một chính sách làm việc từ xa mới để mang lại sự linh hoạt hơn cho nhân viên."
+}, {
+  "date" : "2025-09-28",
+  "collocation" : "submit a report",
+  "ipa" : "/səbˈmɪt ə rɪˈpɔːrt/",
+  "meaning" : "To formally give a written account of something.",
+  "example" : "Please remember to submit your expense report by Friday afternoon.",
+  "vietnamese" : "nộp báo cáo - Vui lòng nhớ nộp báo cáo chi phí của bạn trước chiều thứ Sáu."
+}, {
+  "date" : "2025-09-28",
+  "collocation" : "provide feedback",
+  "ipa" : "/prəˈvaɪd ˈfiːdbæk/",
+  "meaning" : "To offer opinions or suggestions about something.",
+  "example" : "Managers are encouraged to provide constructive feedback to their team members during performance reviews.",
+  "vietnamese" : "đưa ra phản hồi - Các nhà quản lý được khuyến khích đưa ra phản hồi mang tính xây dựng cho các thành viên trong nhóm của họ trong các buổi đánh giá hiệu suất."
+}, {
+  "date" : "2025-09-28",
+  "collocation" : "coordinate efforts",
+  "ipa" : "/koʊˈɔːrdɪneɪt ˈɛfərts/",
+  "meaning" : "To organize different people or groups to work together effectively.",
+  "example" : "We need to coordinate efforts across departments to ensure the project stays on schedule.",
+  "vietnamese" : "phối hợp nỗ lực - Chúng ta cần phối hợp nỗ lực giữa các phòng ban để đảm bảo dự án đúng tiến độ."
+}, {
+  "date" : "2025-09-29",
+  "collocation" : "meet expectations",
+  "ipa" : "/miːt ˌɛkspɛkˈteɪʃənz/",
+  "meaning" : "To perform as well as or better than what is expected.",
+  "example" : "Our team consistently meets client expectations, leading to high satisfaction rates.",
+  "vietnamese" : "đáp ứng kỳ vọng - Nhóm của chúng tôi luôn đáp ứng kỳ vọng của khách hàng, dẫn đến tỷ lệ hài lòng cao."
+}, {
+  "date" : "2025-09-29",
+  "collocation" : "facilitate growth",
+  "ipa" : "/fəˈsɪlɪteɪt ɡroʊθ/",
+  "meaning" : "To make it easier for something to develop or increase.",
+  "example" : "The new investment will facilitate growth in our research and development department.",
+  "vietnamese" : "thúc đẩy tăng trưởng - Khoản đầu tư mới sẽ thúc đẩy tăng trưởng trong bộ phận nghiên cứu và phát triển của chúng tôi."
+}, {
+  "date" : "2025-09-29",
+  "collocation" : "compile a report",
+  "ipa" : "/kəmˈpaɪl ə rɪˈpɔːrt/",
+  "meaning" : "To collect and put together information to create a detailed document.",
+  "example" : "Please compile a report on the market trends by the end of the week.",
+  "vietnamese" : "tổng hợp báo cáo - Vui lòng tổng hợp báo cáo về xu hướng thị trường trước cuối tuần."
+}, {
+  "date" : "2025-09-29",
+  "collocation" : "drive efficiency",
+  "ipa" : "/draɪv ɪˈfɪʃənsi/",
+  "meaning" : "To make processes or systems more effective and use less time, money, or effort.",
+  "example" : "We are implementing new software to drive efficiency across all our operational departments.",
+  "vietnamese" : "thúc đẩy hiệu quả - Chúng tôi đang triển khai phần mềm mới để thúc đẩy hiệu quả trên tất cả các bộ phận vận hành."
+}, {
+  "date" : "2025-09-29",
+  "collocation" : "cultivate a culture",
+  "ipa" : "/ˈkʌltɪveɪt ə ˈkʌltʃər/",
+  "meaning" : "To develop and promote a specific set of values, behaviors, and beliefs within an organization.",
+  "example" : "The HR department is working to cultivate a culture of innovation and collaboration.",
+  "vietnamese" : "xây dựng văn hóa - Phòng nhân sự đang nỗ lực xây dựng một nền văn hóa đổi mới và hợp tác."
+}, {
+  "date" : "2025-09-29",
+  "collocation" : "mitigate losses",
+  "ipa" : "/ˈmɪtɪɡeɪt ˈlɒsɪz/",
+  "meaning" : "To reduce the financial harm or damage caused by an unfortunate event.",
+  "example" : "Our crisis management plan aims to mitigate losses during unexpected economic downturns.",
+  "vietnamese" : "giảm thiểu thiệt hại - Kế hoạch quản lý khủng hoảng của chúng tôi nhằm giảm thiểu thiệt hại trong các đợt suy thoái kinh tế bất ngờ."
+}, {
+  "date" : "2025-09-29",
+  "collocation" : "address an issue",
+  "ipa" : "/əˈdrɛs æn ˈɪʃuː/",
+  "meaning" : "To deal with a problem or matter that needs attention.",
+  "example" : "We need to address the issue of supply chain disruptions before it affects our production schedule.",
+  "vietnamese" : "giải quyết vấn đề - Chúng ta cần giải quyết vấn đề gián đoạn chuỗi cung ứng trước khi nó ảnh hưởng đến lịch trình sản xuất của chúng ta."
+}, {
+  "date" : "2025-09-30",
+  "collocation" : "address a challenge",
+  "ipa" : "/əˈdrɛs ə ˈtʃælɪndʒ/",
+  "meaning" : "To deal with a difficult situation or problem that requires effort and skill.",
+  "example" : "Our team needs to address the challenge of increasing production costs while maintaining quality.",
+  "vietnamese" : "giải quyết một thách thức - Nhóm của chúng ta cần giải quyết thách thức về chi phí sản xuất gia tăng trong khi vẫn duy trì chất lượng."
+}, {
+  "date" : "2025-09-30",
+  "collocation" : "streamline processes",
+  "ipa" : "/ˈstriːmlaɪn ˈprɒsɛsɪz/",
+  "meaning" : "To make methods of doing things more efficient and simpler, often by removing unnecessary steps.",
+  "example" : "The new software will help us streamline our billing processes, reducing errors and saving time.",
+  "vietnamese" : "tinh gọn quy trình - Phần mềm mới sẽ giúp chúng ta tinh gọn các quy trình thanh toán, giảm lỗi và tiết kiệm thời gian."
+}, {
+  "date" : "2025-09-30",
+  "collocation" : "draft a proposal",
+  "ipa" : "/drɑːft ə prəˈpoʊzəl/",
+  "meaning" : "To write an initial version of a formal suggestion or plan for consideration.",
+  "example" : "Mr. Lee is busy drafting a proposal for the upcoming client presentation on the new marketing strategy.",
+  "vietnamese" : "soạn thảo đề xuất - Ông Lee đang bận soạn thảo một đề xuất cho buổi thuyết trình với khách hàng sắp tới về chiến lược tiếp thị mới."
+}, {
+  "date" : "2025-09-30",
+  "collocation" : "assume a role",
+  "ipa" : "/əˈsjuːm ə roʊl/",
+  "meaning" : "To take on a particular position, function, or responsibility within an organization or project.",
+  "example" : "She will assume the role of project manager starting next month, leading the international expansion.",
+  "vietnamese" : "đảm nhận vai trò - Cô ấy sẽ đảm nhận vai trò quản lý dự án bắt đầu từ tháng tới, dẫn dắt việc mở rộng quốc tế."
+}, {
+  "date" : "2025-09-30",
+  "collocation" : "gain approval",
+  "ipa" : "/ɡeɪn əˈpruːvəl/",
+  "meaning" : "To get official acceptance or permission from an authority or superior for something.",
+  "example" : "We need to gain approval from the legal department before launching the new advertising campaign.",
+  "vietnamese" : "nhận được sự chấp thuận - Chúng ta cần nhận được sự chấp thuận từ phòng pháp lý trước khi khởi chạy chiến dịch quảng cáo mới."
+}, {
+  "date" : "2025-09-30",
+  "collocation" : "forge partnerships",
+  "ipa" : "/fɔːrdʒ ˈpɑːrtnərʃɪps/",
+  "meaning" : "To create strong, lasting working relationships or alliances with other companies or individuals.",
+  "example" : "The CEO is looking to forge new partnerships in the Asian market to expand our global reach.",
+  "vietnamese" : "xây dựng quan hệ đối tác - Giám đốc điều hành đang tìm cách xây dựng các quan hệ đối tác mới tại thị trường châu Á để mở rộng phạm vi toàn cầu của chúng ta."
+}, {
+  "date" : "2025-09-30",
+  "collocation" : "evaluate options",
+  "ipa" : "/ɪˈvæljuˌeɪt ˈɒpʃənz/",
+  "meaning" : "To carefully assess and compare different choices or possibilities before making a decision.",
+  "example" : "Before investing in new equipment, we should carefully evaluate all available options for cost and efficiency.",
+  "vietnamese" : "đánh giá các lựa chọn - Trước khi đầu tư vào thiết bị mới, chúng ta nên cẩn thận đánh giá tất cả các lựa chọn có sẵn về chi phí và hiệu quả."
+}, {
+  "date" : "2025-10-01",
+  "collocation" : "grasp the concept",
+  "ipa" : "/ɡræsp ðə ˈkɑːnsɛpt/",
+  "meaning" : "To fully understand an idea or principle.",
+  "example" : "It's crucial for new hires to quickly grasp the concept of our agile development process.",
+  "vietnamese" : "nắm bắt khái niệm - Điều quan trọng là nhân viên mới phải nhanh chóng nắm bắt khái niệm về quy trình phát triển linh hoạt của chúng tôi."
+}, {
+  "date" : "2025-10-01",
+  "collocation" : "secure a deal",
+  "ipa" : "/sɪˈkjʊr ə diːl/",
+  "meaning" : "To successfully make a business agreement or arrangement.",
+  "example" : "Our sales team worked hard to secure a deal with the international distributor, which will expand our market reach.",
+  "vietnamese" : "đạt được thỏa thuận/ký kết hợp đồng - Đội ngũ bán hàng của chúng tôi đã làm việc chăm chỉ để đạt được thỏa thuận với nhà phân phối quốc tế, điều này sẽ mở rộng phạm vi thị trường của chúng tôi."
+}, {
+  "date" : "2025-10-01",
+  "collocation" : "deploy a system",
+  "ipa" : "/dɪˈplɔɪ ə ˈsɪstəm/",
+  "meaning" : "To install and put a new system or software into operation.",
+  "example" : "The IT department plans to deploy a new customer relationship management system by the end of the quarter.",
+  "vietnamese" : "triển khai một hệ thống - Bộ phận IT dự kiến sẽ triển khai hệ thống quản lý quan hệ khách hàng mới vào cuối quý."
+}, {
+  "date" : "2025-10-01",
+  "collocation" : "gain market share",
+  "ipa" : "/ɡeɪn ˈmɑːrkɪt ʃer/",
+  "meaning" : "To increase the percentage of total sales that a company has in a particular market.",
+  "example" : "Our aggressive marketing campaign aims to help us gain market share from our main competitors.",
+  "vietnamese" : "giành thị phần - Chiến dịch tiếp thị mạnh mẽ của chúng tôi nhằm giúp chúng tôi giành thị phần từ các đối thủ cạnh tranh chính."
+}, {
+  "date" : "2025-10-01",
+  "collocation" : "ensure compliance",
+  "ipa" : "/ɪnˈʃʊr kəmˈplaɪəns/",
+  "meaning" : "To make certain that rules, laws, or standards are being followed.",
+  "example" : "The legal team's main responsibility is to ensure compliance with all new data protection regulations.",
+  "vietnamese" : "đảm bảo tuân thủ - Trách nhiệm chính của nhóm pháp lý là đảm bảo tuân thủ tất cả các quy định bảo vệ dữ liệu mới."
+}, {
+  "date" : "2025-10-01",
+  "collocation" : "foster innovation",
+  "ipa" : "/ˈfɑːstər ˌɪnəˈveɪʃən/",
+  "meaning" : "To encourage the development of new ideas, methods, or products.",
+  "example" : "Our company encourages employees to attend workshops and share ideas to foster innovation across all departments.",
+  "vietnamese" : "thúc đẩy sự đổi mới - Công ty chúng tôi khuyến khích nhân viên tham gia các buổi hội thảo và chia sẻ ý tưởng để thúc đẩy sự đổi mới trên tất cả các phòng ban."
+}, {
+  "date" : "2025-10-01",
+  "collocation" : "undertake a project",
+  "ipa" : "/ˌʌndərˈteɪk ə ˈprɑːdʒɛkt/",
+  "meaning" : "To start or begin a significant task, enterprise, or piece of work.",
+  "example" : "The R&D team will undertake a new research project to explore sustainable energy solutions.",
+  "vietnamese" : "thực hiện một dự án - Nhóm R&D sẽ thực hiện một dự án nghiên cứu mới để khám phá các giải pháp năng lượng bền vững."
+}, {
+  "date" : "2025-10-02",
+  "collocation" : "place an order",
+  "ipa" : "/pleɪs æn ˈɔːrdər/",
+  "meaning" : "To request goods or services from a supplier.",
+  "example" : "We need to place an order for new office supplies before the end of the week.",
+  "vietnamese" : "đặt hàng - Chúng ta cần đặt hàng đồ dùng văn phòng mới trước cuối tuần."
+}, {
+  "date" : "2025-10-02",
+  "collocation" : "attend a conference",
+  "ipa" : "/əˈtɛnd ə ˈkɒnfərəns/",
+  "meaning" : "To go to a large formal meeting where people discuss important topics.",
+  "example" : "Our team will attend a conference in Singapore to learn about the latest industry trends.",
+  "vietnamese" : "tham dự hội nghị - Nhóm của chúng tôi sẽ tham dự một hội nghị ở Singapore để tìm hiểu về các xu hướng mới nhất trong ngành."
+}, {
+  "date" : "2025-10-02",
+  "collocation" : "approve an expenditure",
+  "ipa" : "/əˈpruːv æn ɪkˈspɛndɪtʃər/",
+  "meaning" : "To officially allow money to be spent on something.",
+  "example" : "The manager needs to approve an expenditure over $500 before it can be processed.",
+  "vietnamese" : "phê duyệt khoản chi - Quản lý cần phê duyệt khoản chi trên 500 đô la trước khi nó có thể được xử lý."
+}, {
+  "date" : "2025-10-02",
+  "collocation" : "issue a refund",
+  "ipa" : "/ˈɪʃuː ə ˈriːfʌnd/",
+  "meaning" : "To give money back to a customer, usually because they returned a product or service was unsatisfactory.",
+  "example" : "The customer service representative was able to issue a refund for the damaged merchandise immediately.",
+  "vietnamese" : "hoàn tiền - Đại diện dịch vụ khách hàng đã có thể hoàn tiền cho hàng hóa bị hư hỏng ngay lập tức."
+}, {
+  "date" : "2025-10-02",
+  "collocation" : "take initiative",
+  "ipa" : "/teɪk ɪˈnɪʃətɪv/",
+  "meaning" : "To be the first one to do something, often without being told, especially when it solves a problem or improves a situation.",
+  "example" : "We encourage all employees to take initiative and suggest improvements to our workflow.",
+  "vietnamese" : "chủ động hành động/tự khởi xướng - Chúng tôi khuyến khích tất cả nhân viên chủ động hành động và đề xuất cải tiến quy trình làm việc."
+}, {
+  "date" : "2025-10-02",
+  "collocation" : "meet the requirements",
+  "ipa" : "/miːt ðə rɪˈkwaɪərmənts/",
+  "meaning" : "To fulfill or satisfy the necessary conditions or demands.",
+  "example" : "The new software update should meet the requirements for enhanced data security.",
+  "vietnamese" : "đáp ứng các yêu cầu - Bản cập nhật phần mềm mới nên đáp ứng các yêu cầu về bảo mật dữ liệu nâng cao."
+}, {
+  "date" : "2025-10-02",
+  "collocation" : "launch a campaign",
+  "ipa" : "/lɔːntʃ ə kæmˈpeɪn/",
+  "meaning" : "To start a series of planned activities, especially in advertising or marketing.",
+  "example" : "Our marketing team plans to launch a campaign next month to promote the new product line.",
+  "vietnamese" : "phát động một chiến dịch - Đội ngũ marketing của chúng tôi có kế hoạch phát động một chiến dịch vào tháng tới để quảng bá dòng sản phẩm mới."
+} ]
