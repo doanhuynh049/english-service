@@ -167,6 +167,9 @@ public class ToeicListeningService {
             emailService.sendToeicListeningEmailWithEml(collocationsHtmlContent, audioFiles, passagesFilePath, emlFilePath);
             logger.info("TOEIC Listening email sent successfully with EML attachment");
 
+            // Step 13: Clean up temporary EML file
+            emlService.deleteEmlFile(emlFilePath);
+            logger.info("Cleaned up temporary EML file");
         } catch (Exception e) {
             logger.error("Error during TOEIC Listening processing: {}", e.getMessage(), e);
             throw new RuntimeException("TOEIC Listening processing failed", e);

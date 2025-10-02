@@ -25,6 +25,7 @@ public class EmlService {
 
     /**
      * Create an EML email file containing a table with all collocations from history
+     * Creates the file in the target folder for temporary use
      */
     public String createCollocationHistoryEml() {
         try {
@@ -38,19 +39,42 @@ public class EmlService {
             // Generate EML content
             String emlContent = generateEmlContent(allCollocations);
             
-            // Save to file
+            // Create target directory if it doesn't exist
+            Path targetDir = Paths.get("target");
+            if (!Files.exists(targetDir)) {
+                Files.createDirectories(targetDir);
+            }
+            
+            // Save to file in target folder
             String fileName = "collocation_history_" + 
                             LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HHmm")) + ".eml";
-            Path emlPath = Paths.get(fileName);
+            Path emlPath = targetDir.resolve(fileName);
             
             Files.writeString(emlPath, emlContent);
-            logger.info("Created EML file with {} collocations: {}", allCollocations.size(), fileName);
+            logger.info("Created EML file with {} collocations in target folder: {}", allCollocations.size(), fileName);
             
             return emlPath.toAbsolutePath().toString();
 
         } catch (Exception e) {
             logger.error("Error creating collocation history EML: {}", e.getMessage(), e);
             throw new RuntimeException("Failed to create collocation history EML", e);
+        }
+    }
+
+    /**
+     * Delete the temporary EML file after it has been sent
+     */
+    public void deleteEmlFile(String emlFilePath) {
+        try {
+            Path emlPath = Paths.get(emlFilePath);
+            if (Files.exists(emlPath)) {
+                Files.delete(emlPath);
+                logger.info("Deleted temporary EML file: {}", emlPath.getFileName());
+            } else {
+                logger.warn("EML file not found for deletion: {}", emlFilePath);
+            }
+        } catch (Exception e) {
+            logger.error("Error deleting EML file '{}': {}", emlFilePath, e.getMessage(), e);
         }
     }
 
