@@ -9,7 +9,6 @@ import org.springframework.stereotype.Service;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -23,13 +22,13 @@ public class CollocationHistoryService {
     private static final String COLLOCATIONS_HISTORY_FILE = "toeic_collocations_history.json";
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public List<ToeicListeningService.Collocation> getCollocationsForToday() {
+    public List<ToeicListeningService.Collocation> getCollocationsForToday(int reviewCount) {
         try {
             // Load existing collocations
             List<CollocationEntry> history = loadCollocationHistory();
             
             // Get 3 recent collocations for review (avoiding today's date)
-            List<ToeicListeningService.Collocation> reviewCollocations = getReviewCollocations(history, 3);
+            List<ToeicListeningService.Collocation> reviewCollocations = getReviewCollocations(history, reviewCount);
             logger.info("Selected {} review collocations", reviewCollocations.size());
             
             return reviewCollocations;
@@ -74,6 +73,10 @@ public class CollocationHistoryService {
     }
 
     public String generateNewCollocationsPrompt(List<ToeicListeningService.Collocation> reviewCollocations) {
+        return generateNewCollocationsPrompt(reviewCollocations, 7); // Default to 7 for backward compatibility
+    }
+
+    public String generateNewCollocationsPrompt(List<ToeicListeningService.Collocation> reviewCollocations, int numberOfNewCollocations) {
         StringBuilder excludeList = new StringBuilder();
         
         try {
@@ -97,7 +100,7 @@ public class CollocationHistoryService {
         }
 
         return String.format("""
-            Generate 7 NEW common collocations frequently used in TOEIC Listening tests for learners within the 600–950 score range (intermediate to advanced). 
+            Generate %d NEW common collocations frequently used in TOEIC Listening tests for learners within the 600–950 score range (intermediate to advanced). 
 
             Requirements:
 
@@ -111,7 +114,7 @@ public class CollocationHistoryService {
             3. Present the collocations as an array under the key "collocations".
             4. Ensure the JSON is properly formatted for easy parsing in Java.
             5. Keep the output consistent so it can be directly used to generate HTML emails with structured design.
-            6. Generate ONLY 7 new collocations (not 10) as 3 review collocations will be added separately.
+            6. Generate ONLY %d new collocations as the review collocations will be added separately.
 
             Example of JSON structure:
             {
@@ -125,7 +128,7 @@ public class CollocationHistoryService {
                     }
                 ]
             }%s
-            """, excludeList.toString());
+            """, numberOfNewCollocations, numberOfNewCollocations, excludeList.toString());
     }
 
     /**

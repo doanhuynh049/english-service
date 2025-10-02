@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -22,6 +23,9 @@ public class ToeicListeningService {
 
     private static final Logger logger = LoggerFactory.getLogger(ToeicListeningService.class);
 
+    @Value("${app.toeic.collocations.new-count:5}")
+    private int numberOfNewCollocations;
+    private int totalCollocationsPerDay = 10;
     private final GeminiClient geminiClient;
     private final EmailService emailService;
     private final AudioService audioService;
@@ -111,28 +115,28 @@ public class ToeicListeningService {
 
         try {
             // Step 1: Get 3 review collocations from history
-            List<Collocation> reviewCollocations = collocationHistoryService.getCollocationsForToday();
+            List<Collocation> reviewCollocations = collocationHistoryService.getCollocationsForToday(totalCollocationsPerDay - numberOfNewCollocations);
             logger.info("Retrieved {} review collocations", reviewCollocations.size());
 
-            // Step 2: Generate 7 new collocations using updated prompt
-            String newCollocationsPrompt = collocationHistoryService.generateNewCollocationsPrompt(reviewCollocations);
-            logger.info("Generated prompt for new collocations: {}", newCollocationsPrompt);
+            // Step 2: Generate new collocations using updated prompt
+            String newCollocationsPrompt = collocationHistoryService.generateNewCollocationsPrompt(reviewCollocations, numberOfNewCollocations);
+            logger.info("Generated prompt for {} new collocations: {}", numberOfNewCollocations, newCollocationsPrompt);
             String newCollocationsResponse = geminiClient.generateContent(newCollocationsPrompt);
             logger.info("Generated response for new collocations: {}", newCollocationsResponse);
-            logger.info("Generated 7 new TOEIC collocations");
+            logger.info("Generated {} new TOEIC collocations", numberOfNewCollocations);
 
             // Step 3: Parse new collocations from JSON response
             List<Collocation> newCollocations = parseCollocationsFromJson(newCollocationsResponse);
             logger.info("Parsed {} new collocations from JSON", newCollocations.size());
 
-            // Step 4: Combine review and new collocations (3 + 7 = 10 total)
+            // Step 4: Combine review and new collocations
             List<Collocation> allCollocations = new ArrayList<>();
             allCollocations.addAll(reviewCollocations);
             allCollocations.addAll(newCollocations);
             
             // Shuffle to mix review and new collocations
             Collections.shuffle(allCollocations);
-            logger.info("Combined total {} collocations (3 review + 7 new)", allCollocations.size());
+            logger.info("Combined total {} collocations ({} review + {} new)", allCollocations.size(), reviewCollocations.size(), numberOfNewCollocations);
 
             // Step 5: Save new collocations to history
             collocationHistoryService.saveNewCollocations(newCollocations);
