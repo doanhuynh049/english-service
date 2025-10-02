@@ -21,6 +21,10 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -201,7 +205,7 @@ public class JapaneseLessonService {
             logger.info("Generated listening practice with audio files");
 
             // Step 6: Generate email content
-            String emailContent = buildEmailContent(lesson);
+            String emailContent = buildEmailContent(lesson, vocabularyList);
 
             // Step 7: Send email with Excel and audio attachments
             String subject = String.format("[Japanese Lesson - Day %d] %s", lesson.getDay(), lesson.getTopic());
@@ -351,9 +355,9 @@ public class JapaneseLessonService {
     }
 
     /**
-     * Build email content HTML
+     * Build email content HTML with newly generated vocabulary
      */
-    private String buildEmailContent(JapaneseLesson lesson) {
+    private String buildEmailContent(JapaneseLesson lesson, List<JapaneseVocabulary> generatedVocabulary) {
         try {
             // Load the HTML template
             String template = loadEmailTemplate();
@@ -386,8 +390,10 @@ public class JapaneseLessonService {
                 }
             }
 
-            // Build vocabulary table section
-            String vocabularyTable = buildVocabularyTable();
+            // Build vocabulary table section - prioritize newly generated vocabulary
+            String vocabularyTable = (generatedVocabulary != null && !generatedVocabulary.isEmpty()) 
+                ? buildVocabularyTable(generatedVocabulary) 
+                : buildVocabularyTable();
 
             // Build listening practice section
             String listeningPractice = buildListeningPracticeHtml(lesson);
@@ -637,23 +643,78 @@ public class JapaneseLessonService {
                 return "<p>No vocabulary entries available yet. Vocabulary will appear after more lessons.</p>";
             }
 
-            StringBuilder tableHtml = new StringBuilder();
-            tableHtml.append("""
-                <div class="vocabulary-table">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Word</th>
-                                <th>Reading</th>
-                                <th>Meaning</th>
-                                <th>Example</th>
-                                <th>Notes</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                """);
+            return buildVocabularyTableHtml(randomVocab);
 
-            for (JapaneseVocabulary vocab : randomVocab) {
+        } catch (Exception e) {
+            logger.error("Error building vocabulary table: {}", e.getMessage(), e);
+            return "<p>Unable to load vocabulary table.</p>";
+        }
+    }
+
+    /**
+     * Build vocabulary table HTML for email with newly generated vocabulary
+     */
+    private String buildVocabularyTable(List<JapaneseVocabulary> newVocabulary) {
+        try {
+            List<JapaneseVocabulary> selectedVocab = new ArrayList<>();
+            
+            // First, try to select 5 words from the newly generated vocabulary
+            if (newVocabulary != null && !newVocabulary.isEmpty()) {
+                Collections.shuffle(new ArrayList<>(newVocabulary));
+                selectedVocab.addAll(newVocabulary.subList(0, newVocabulary.size()));
+                logger.info("Added {} words from newly generated vocabulary", newVocabulary.size());
+            }
+            
+            // If we need more words, get additional ones from existing vocabulary
+            List<JapaneseVocabulary> existingVocab = learningSummaryService.getRandomVocabularyForEmail(5);
+            
+            // Avoid duplicates by checking word kanji
+            Set<String> existingKanji = selectedVocab.stream()
+                .map(JapaneseVocabulary::getWordKanji)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+            
+            existingVocab.stream()
+                .filter(vocab -> !existingKanji.contains(vocab.getWordKanji()))
+                .limit(5)
+                .forEach(selectedVocab::add);
+            
+            logger.info("Added {} words from existing vocabulary", 
+                        Math.min(5, existingVocab.size()));
+            
+            if (selectedVocab.isEmpty()) {
+                return "<p>No vocabulary entries available yet. Vocabulary will appear after more lessons.</p>";
+            }
+
+            return buildVocabularyTableHtml(selectedVocab);
+
+        } catch (Exception e) {
+            logger.error("Error building vocabulary table: {}", e.getMessage(), e);
+            return "<p>Unable to load vocabulary table.</p>";
+        }
+    }
+
+    /**
+     * Helper method to build the actual HTML for vocabulary table
+     */
+    private String buildVocabularyTableHtml(List<JapaneseVocabulary> vocabularyList) {
+        StringBuilder tableHtml = new StringBuilder();
+        tableHtml.append("""
+            <div class="vocabulary-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Word</th>
+                            <th>Reading</th>
+                            <th>Meaning</th>
+                            <th>Example</th>
+                            <th>Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            """);
+
+        for (JapaneseVocabulary vocab : vocabularyList) {
                 tableHtml.append(String.format("""
                     <tr>
                         <td>
@@ -687,18 +748,13 @@ public class JapaneseLessonService {
                 ));
             }
 
-            tableHtml.append("""
-                        </tbody>
-                    </table>
-                </div>
-                """);
+        tableHtml.append("""
+                    </tbody>
+                </table>
+            </div>
+            """);
 
-            return tableHtml.toString();
-
-        } catch (Exception e) {
-            logger.error("Error building vocabulary table: {}", e.getMessage(), e);
-            return "<p>Unable to load vocabulary table.</p>";
-        }
+        return tableHtml.toString();
     }
 
     /**

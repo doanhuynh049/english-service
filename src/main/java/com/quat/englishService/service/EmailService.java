@@ -412,7 +412,7 @@ public class EmailService {
                         if (audioPath != null) {
                             File audioFile = new File(audioPath);
                             if (audioFile.exists() && audioFile.isFile()) {
-                                String fileName = String.format("word_%d_%s_pronunciation.mp3", 
+                                String fileName = String.format("%d_%s_pronunciation.mp3", 
                                     i + 1, sanitizeFileName(word.getJapanese()));
                                 helper.addAttachment(fileName, audioFile);
                                 attachmentCount++;
@@ -427,7 +427,7 @@ public class EmailService {
                         if (audioPath != null) {
                             File audioFile = new File(audioPath);
                             if (audioFile.exists() && audioFile.isFile()) {
-                                String fileName = String.format("word_%d_%s_example.mp3", 
+                                String fileName = String.format("%d_%s_example.mp3", 
                                     i + 1, sanitizeFileName(word.getJapanese()));
                                 helper.addAttachment(fileName, audioFile);
                                 attachmentCount++;
@@ -494,8 +494,20 @@ public class EmailService {
      * Sanitize filename for safe attachment names
      */
     private String sanitizeFileName(String name) {
-        if (name == null) return "unknown";
-        return name.replaceAll("[^a-zA-Z0-9._-]", "_").toLowerCase();
+        if (name == null) return "japanese";
+
+        // Allow: English letters, digits, dot, underscore, dash, and Japanese ranges
+        // \u3040-\u309F  => Hiragana
+        // \u30A0-\u30FF  => Katakana
+        // \u4E00-\u9FFF  => Common Kanji (CJK Unified Ideographs)
+        String sanitized = name.replaceAll("[^a-zA-Z0-9._\\-\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FFF]", "_");
+
+        // If nothing left except underscores → fallback
+        if (sanitized.replace("_", "").isEmpty()) {
+            return "japanese";
+        }
+
+        return sanitized;
     }
 
     private int countAudioFiles(List<ParsedVocabularyWord> vocabularyWords) {
