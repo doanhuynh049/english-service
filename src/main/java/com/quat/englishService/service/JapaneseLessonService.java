@@ -130,7 +130,7 @@ public class JapaneseLessonService {
                         "romaji": "konnichiwa", 
                         "english": "hello",
                         "vietnamese": "xin chào",
-                        "exampleSentence": "私はこんにちはと言います。",
+                        "exampleSentence": "私(わたし)はこんにちはと言(い)います。",
                         "exampleRomaji": "Watashi wa konnichiwa to iimasu.",
                         "exampleEnglish": "I say hello."
                     }
@@ -1034,8 +1034,6 @@ public class JapaneseLessonService {
             // Build the vocabulary reading script with proper timing
             StringBuilder script = new StringBuilder();
             script.append("Let's review today's key vocabulary words. ");
-            script.append("I will read each word, pause for two seconds, then read an example sentence, followed by a five second pause. ");
-            script.append("Are you ready? Let's begin. ");
             
             for (int i = 0; i < vocabularyList.size(); i++) {
                 JapaneseVocabulary vocab = vocabularyList.get(i);
@@ -1053,22 +1051,22 @@ public class JapaneseLessonService {
                     script.append(japaneseWord);
                 }
                 
-                // Add English meaning
-                if (vocab.getDefinition() != null && !vocab.getDefinition().trim().isEmpty()) {
-                    script.append(". Meaning: ").append(vocab.getDefinition()).append(". ");
-                }
+                // // Add English meaning
+                // if (vocab.getDefinition() != null && !vocab.getDefinition().trim().isEmpty()) {
+                //     script.append(". Meaning: ").append(vocab.getDefinition()).append(". ");
+                // }
                 
                 // Add 2-second pause (represented by dots and spaces)
                 script.append("... ... ");
                 
                 // Read example sentence if available
                 if (vocab.getExampleSentenceJp() != null && !vocab.getExampleSentenceJp().trim().isEmpty()) {
-                    script.append("Example sentence: ").append(vocab.getExampleSentenceJp());
+                    script.append("Example: ").append(vocab.getExampleSentenceJp());
                     
-                    // Add English translation of example
-                    if (vocab.getExampleSentenceEn() != null && !vocab.getExampleSentenceEn().trim().isEmpty()) {
-                        script.append(". In English: ").append(vocab.getExampleSentenceEn());
-                    }
+                    // // Add English translation of example
+                    // if (vocab.getExampleSentenceEn() != null && !vocab.getExampleSentenceEn().trim().isEmpty()) {
+                    //     script.append(". In English: ").append(vocab.getExampleSentenceEn());
+                    // }
                     script.append(". ");
                 } else {
                     script.append("No example available for this word. ");
