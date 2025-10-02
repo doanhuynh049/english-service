@@ -10,6 +10,7 @@ curl -X GET http://localhost:8282/actuator/health
 
 # Check all service statuses
 curl -X GET http://localhost:8282/api/vocabulary/status
+curl -X GET http://localhost:8282/api/japanese/status
 curl -X GET http://localhost:8282/api/toeic-vocabulary/status
 curl -X GET http://localhost:8282/api/ielts/status
 curl -X GET http://localhost:8282/api/toeic/status
@@ -120,6 +121,87 @@ curl -X GET "http://localhost:8282/api/audio/stream?filename=word_pronunciation.
 curl -X GET http://localhost:8282/api/audio/list
 ```
 
+## 🇯🇵 Japanese Learning Service (Daily Lessons - 7:00 AM)
+
+### Trigger Daily Processing
+```bash
+curl -X POST http://localhost:8282/api/japanese/trigger-daily
+```
+
+### Process Specific Lesson
+```bash
+curl -X POST http://localhost:8282/api/japanese/process-lesson \
+  -H "Content-Type: application/json" \
+  -d '{
+    "topic": "Hiragana 1",
+    "description": "Learn Hiragana: あ, い, う. Practice writing, reading, and 2 example words.",
+    "day": 1,
+    "phase": "Month 1: Hiragana + Basics"
+  }'
+```
+
+### Test with Different Topics
+```bash
+# Hiragana lesson
+curl -X POST http://localhost:8282/api/japanese/process-lesson \
+  -H "Content-Type: application/json" \
+  -d '{
+    "topic": "Hiragana Characters",
+    "description": "Master the basic hiragana syllabary",
+    "day": 5
+  }'
+
+# Katakana lesson
+curl -X POST http://localhost:8282/api/japanese/process-lesson \
+  -H "Content-Type: application/json" \
+  -d '{
+    "topic": "Katakana Practice",
+    "description": "Learn katakana for foreign words",
+    "day": 15
+  }'
+
+# Basic Kanji lesson
+curl -X POST http://localhost:8282/api/japanese/process-lesson \
+  -H "Content-Type: application/json" \
+  -d '{
+    "topic": "Basic Kanji",
+    "description": "Introduction to essential kanji characters",
+    "day": 30
+  }'
+
+# Grammar lesson
+curl -X POST http://localhost:8282/api/japanese/process-lesson \
+  -H "Content-Type: application/json" \
+  -d '{
+    "topic": "Present Tense Verbs",
+    "description": "Learn present tense verb conjugation patterns",
+    "day": 45
+  }'
+```
+
+### Service Status and Health
+```bash
+# Get detailed service information
+curl -X GET http://localhost:8282/api/japanese/status
+
+# Health check
+curl -X GET http://localhost:8282/api/japanese/health
+```
+
+### Excel Curriculum Format
+The Japanese service reads from an Excel file with the following structure:
+- **Column A**: Day (numeric)
+- **Column B**: Phase (e.g., "Month 1: Hiragana + Basics")
+- **Column C**: Topic (e.g., "Hiragana 1")
+- **Column D**: Description (lesson details)
+- **Column E**: Status ("Open" or "Done")
+
+Example Excel content:
+```bash
+# View expected Excel format via API
+curl -X GET http://localhost:8282/api/japanese/status | jq '.excelFormat'
+```
+
 ## 🧪 Testing Workflows
 
 ### Complete Daily Test (All Services)
@@ -127,6 +209,9 @@ curl -X GET http://localhost:8282/api/audio/list
 # Test all daily services in sequence
 echo "Testing Vocabulary Service..."
 curl -X POST http://localhost:8282/api/vocabulary/trigger-daily
+
+echo "Testing Japanese Learning Service..."
+curl -X POST http://localhost:8282/api/japanese/trigger-daily
 
 echo "Testing TOEIC Vocabulary Service..."
 curl -X POST http://localhost:8282/api/toeic-vocabulary/trigger-daily
@@ -176,8 +261,9 @@ curl -X GET http://localhost:8282/actuator/info
 
 ### Service-Specific Status
 ```bash
-# Get detailed status for each service
+# Get detailed status for each service including Japanese
 curl -X GET http://localhost:8282/api/vocabulary/status | jq
+curl -X GET http://localhost:8282/api/japanese/status | jq
 curl -X GET http://localhost:8282/api/toeic-vocabulary/status | jq
 curl -X GET http://localhost:8282/api/ielts/status | jq
 curl -X GET http://localhost:8282/api/toeic/status | jq

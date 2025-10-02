@@ -1,7 +1,8 @@
-# English Learning Service Suite 📚🎧📖
+# English Learning & Japanese Service Suite 📚🎧📖🇯🇵
 
-A comprehensive Spring Boot application that automatically delivers three types of English learning content via email:
+A comprehensive Spring Boot application that automatically delivers four types of English and Japanese learning content via email:
 - **Daily Vocabulary** (5:00 AM): 4 vocabulary words with AI explanations and audio
+- **Japanese Lesson** (7:00 AM): Structured Japanese lessons from Excel curriculum (Hiragana, Katakana, Kanji, Grammar)
 - **IELTS Reading Practice** (11:00 AM): Academic reading passages with detailed explanations
 - **TOEIC Listening Practice** (6:00 PM): Business collocations with audio passages
 
@@ -19,6 +20,21 @@ All powered by Google's Gemini AI and Google Text-to-Speech for immersive, multi
   - Vietnamese translations with cultural nuance
   - AI-generated monologues for natural context
 - **Multi-Modal Content**: Text explanations + pronunciation audio + contextual audio
+
+### 🇯🇵 Japanese Learning Service (7:00 AM)
+- **Structured Lessons**: Daily lessons from Excel curriculum covering Hiragana, Katakana, Kanji, and Grammar
+- **Multi-Phase Learning**: Organized progression through foundation, intermediate, and advanced levels
+- **AI-Generated Content**:
+  - Detailed lesson explanations with romaji transliteration
+  - Natural example sentences with pronunciation guides
+  - Interactive practice tasks for writing and speaking
+  - Listening practice with vocabulary and audio
+- **Complete Learning Package**:
+  - HTML email with lesson content and examples
+  - Learning summary saved to Excel for progress tracking
+  - Vocabulary entries with Japanese, romaji, and translations
+  - Audio files for pronunciation and listening practice
+- **Smart Progress Management**: Automatic status tracking from "Open" to "Done" in Excel curriculum
 
 ### 📖 IELTS Reading Practice (11:00 AM)
 - **Academic Passages**: Authentic IELTS-style reading passages (250-300 words)
@@ -68,6 +84,7 @@ All powered by Google's Gemini AI and Google Text-to-Speech for immersive, multi
 
 ```
 ├── VocabularyScheduler       → Daily vocabulary at 5:00 AM (4 words: 3 new + 1 review)
+├── JapaneseScheduler         → Daily Japanese lesson at 7:00 AM (from Excel curriculum)
 ├── IeltsScheduler           → Daily IELTS reading at 11:00 AM (academic passages + explanations)
 ├── ToeicVocabularyScheduler → Daily TOEIC vocabulary at 9:00 AM (15 words: 10 new + 5 review)
 ├── ToeicScheduler           → Daily TOEIC listening at 6:00 PM (collocations + passages)
@@ -76,10 +93,12 @@ All powered by Google's Gemini AI and Google Text-to-Speech for immersive, multi
 ├── AudioService             → TTS generation with Python/gTTS integration
 ├── ExcelService             → Progress tracking and word history management
 ├── VocabularyService        → Core vocabulary processing with AI monologues
+├── JapaneseLessonService    → Japanese lesson generation and processing
 ├── IeltsReadingService      → IELTS academic reading generation and processing
 ├── ToeicVocabularyService   → Advanced TOEIC vocabulary for score 800+ (Part 6 & 7)
 ├── ToeicListeningService    → TOEIC content generation and audio processing
 ├── VocabularyController     → REST API for vocabulary testing
+├── JapaneseController       → REST API for Japanese lesson testing
 ├── IeltsController          → REST API for IELTS testing
 ├── ToeicVocabularyController → REST API for TOEIC vocabulary testing
 ├── ToeicController          → REST API for TOEIC testing
@@ -88,20 +107,22 @@ All powered by Google's Gemini AI and Google Text-to-Speech for immersive, multi
 
 ## 📅 Complete Daily Learning Schedule
 
-The application provides a comprehensive English learning experience with three automated sessions throughout the day:
+The application provides a comprehensive English and Japanese learning experience with four automated sessions throughout the day:
 
 | Time | Service | Content | Duration | Focus |
 |------|---------|---------|----------|-------|
 | **5:00 AM** | 📚 Vocabulary | 4 words (3 new + 1 review) | ~15 min | Basic → Advanced vocabulary |
+| **7:00 AM** | 🇯🇵 Japanese | Daily lesson from curriculum | ~20 min | Hiragana/Katakana/Kanji/Grammar |
 | **9:00 AM** | 🎯 TOEIC Vocabulary | 15 words (10 new + 5 review) | ~20 min | Advanced TOEIC vocabulary (800+) |
 | **11:00 AM** | 📖 IELTS Reading | Academic passage + questions | ~20 min | Reading comprehension |
 | **6:00 PM** | 🎧 TOEIC Listening | Business collocations + audio | ~25 min | Listening skills |
 
-**Total Daily Learning Time**: ~80 minutes of structured English practice
+**Total Daily Learning Time**: ~100 minutes of structured English and Japanese practice
 
 ### Learning Progression
 - **Early Morning (5 AM)**: Start with vocabulary foundation building
-- **Morning (9 AM)**: Advanced TOEIC vocabulary for business contexts
+- **Morning (7 AM)**: Japanese language basics and grammar
+- **Mid-Morning (9 AM)**: Advanced TOEIC vocabulary for business contexts
 - **Midday (11 AM)**: Academic reading skills for IELTS preparation  
 - **Evening (6 PM)**: Business English listening for TOEIC preparation
 
@@ -155,6 +176,9 @@ java -jar target/english-service-0.0.1-SNAPSHOT.jar
 ```bash
 # Test vocabulary service (generates 4 words: 3 new + 1 review)
 curl -X POST http://localhost:8282/api/vocabulary/trigger-daily
+
+# Test Japanese lesson service (generates daily lesson from Excel curriculum)
+curl -X POST http://localhost:8282/api/japanese/trigger-daily
 
 # Test TOEIC vocabulary service (generates 15 words: 10 new + 5 review for TOEIC 800+)
 curl -X POST http://localhost:8282/api/toeic-vocabulary/trigger-daily
@@ -231,6 +255,16 @@ public void scheduledVocabularySession() {
 }
 ```
 
+### 🇯🇵 Japanese Lesson Session (7:00 AM)
+```java
+@Scheduled(cron = "0 0 7 * * ?") // 7:00 AM daily
+public void scheduledJapaneseLessonSession() {
+    // Processes daily Japanese lesson from Excel curriculum
+    // Generates AI explanations, audio, and example sentences
+    // Sends Japanese lesson email with attachments
+}
+```
+
 ### 📖 IELTS Reading Session (11:00 AM)
 ```java
 @Scheduled(cron = "0 0 11 * * ?") // 11:00 AM daily
@@ -255,6 +289,7 @@ public void scheduledToeicListeningSession() {
 
 ### Cron Expression Guide
 - `0 0 5 * * ?` = Every day at 5:00:00 AM
+- `0 0 7 * * ?` = Every day at 7:00:00 AM
 - `0 0 11 * * ?` = Every day at 11:00:00 AM
 - `0 0 18 * * ?` = Every day at 6:00:00 PM
 - Modify in respective scheduler files to change times
@@ -284,6 +319,42 @@ Check vocabulary service health.
 
 ```bash
 curl http://localhost:8282/api/vocabulary/health
+```
+
+### Japanese Learning Endpoints
+
+**POST** `/api/japanese/trigger-daily`
+Manually triggers daily Japanese lesson processing from Excel curriculum.
+
+```bash
+curl -X POST http://localhost:8282/api/japanese/trigger-daily
+```
+
+**POST** `/api/japanese/process-lesson`
+Process a specific Japanese lesson with custom content.
+
+```bash
+curl -X POST http://localhost:8282/api/japanese/process-lesson \
+  -H "Content-Type: application/json" \
+  -d '{
+    "topic": "Hiragana あいう",
+    "description": "Learn basic hiragana characters",
+    "day": 1
+  }'
+```
+
+**GET** `/api/japanese/status`
+Get service status and configuration details.
+
+```bash
+curl http://localhost:8282/api/japanese/status
+```
+
+**GET** `/api/japanese/health`
+Check Japanese service health.
+
+```bash
+curl http://localhost:8282/api/japanese/health
 ```
 
 ### IELTS Endpoints
@@ -344,6 +415,13 @@ Leave the application running for automated learning:
 - Monologue transcript document
 - Excel log updated with learning history
 
+**7:00 AM Daily:** Japanese Lesson Email
+- Daily Japanese lesson from Excel curriculum
+- Structured content covering Hiragana, Katakana, Kanji, and Grammar
+- AI-generated explanations and example sentences
+- Audio files for pronunciation and listening practice
+- Progress tracked in Excel curriculum
+
 **11:00 AM Daily:** IELTS Reading Email
 - Academic reading passage (250-300 words)
 - 5 multiple-choice comprehension questions with answers
@@ -364,6 +442,9 @@ Leave the application running for automated learning:
 # Test vocabulary service immediately
 curl -X POST http://localhost:8282/api/vocabulary/trigger-daily
 
+# Test Japanese lesson service immediately
+curl -X POST http://localhost:8282/api/japanese/trigger-daily
+
 # Test IELTS reading service immediately
 curl -X POST http://localhost:8282/api/ielts/send-reading
 
@@ -377,6 +458,7 @@ curl -X POST http://localhost:8282/api/vocabulary/process-words \
 
 # Check service health
 curl http://localhost:8282/api/vocabulary/health
+curl http://localhost:8282/api/japanese/health
 curl http://localhost:8282/api/toeic/health
 curl http://localhost:8282/audio/health
 
@@ -408,6 +490,14 @@ The application sends three types of beautiful HTML emails:
 - **Audio Player Links**: Direct access to pronunciation and example audio
 - **Footer**: Motivational message and service attribution
 - **Styling**: Professional CSS with green theme and clean formatting
+
+### 🇯🇵 Japanese Lesson Email Template (`japanese-email-template.html`)
+- **Header**: Date and Japanese lesson title
+- **Lesson Content**: Structured lesson with Hiragana, Katakana, Kanji, and Grammar
+- **Example Sentences**: Natural examples with romaji and audio
+- **Practice Tasks**: Interactive writing and speaking tasks
+- **Footer**: Study tips and service attribution
+- **Styling**: Professional CSS with red theme and clean formatting
 
 ### 📖 IELTS Email Template (`ielts-email-template.html`)
 - **Header**: IELTS Academic Reading title with date
@@ -444,6 +534,32 @@ Word 2: RESILIENT
 [Full Gemini AI explanation...]
 
 [...2 more words...]
+```
+
+### Sample Japanese Lesson Email Structure
+
+```
+🇯🇵 Japanese Lesson: Hiragana あいう
+Date: Monday, August 25, 2025
+
+📘 HIRAGANA CHART
+─────────────────────
+あ い う
+
+📝 LESSON CONTENT
+─────────────────────
+- Topic: Basic Hiragana Characters
+- Description: Learn the first set of hiragana characters.
+
+🔊 AUDIO FILES
+─────────────────────
+- Pronunciation guide for あ, い, う
+- Example words with audio
+
+✏️ PRACTICE TASKS
+─────────────────────
+1. Write out the characters あ, い, う
+2. Practice pronunciation with audio
 ```
 
 ### Sample IELTS Email Structure
@@ -537,6 +653,7 @@ src/main/java/com/quat/englishService/
 ├── EnglishServiceApplication.java     # Main Spring Boot application
 ├── controller/
 │   ├── VocabularyController.java      # Vocabulary REST API endpoints
+│   ├── JapaneseController.java        # Japanese REST API endpoints
 │   ├── IeltsController.java           # IELTS REST API endpoints
 │   ├── ToeicController.java           # TOEIC REST API endpoints
 │   └── AudioController.java           # Audio streaming endpoints
@@ -548,14 +665,16 @@ src/main/java/com/quat/englishService/
 │   └── VocabularyWord.java           # Domain model
 ├── scheduler/
 │   ├── VocabularyScheduler.java      # Daily vocabulary scheduling (5:00 AM)
+│   ├── JapaneseScheduler.java        # Daily Japanese lesson scheduling (7:00 AM)
 │   ├── IeltsScheduler.java           # Daily IELTS scheduling (11:00 AM)
 │   └── ToeicScheduler.java           # Daily TOEIC scheduling (6:00 PM)
 └── service/
-    ├── EmailService.java             # Triple email handling (vocabulary + IELTS + TOEIC)
+    ├── EmailService.java             # Quad email handling (vocabulary + Japanese + IELTS + TOEIC)
     ├── ExcelService.java             # Excel file operations and logging
     ├── GeminiClient.java             # AI API client with custom prompts
     ├── AudioService.java             # TTS generation with Python/gTTS
     ├── VocabularyService.java        # Core vocabulary business logic
+    ├── JapaneseLessonService.java    # Japanese lesson generation and processing
     ├── IeltsReadingService.java      # IELTS academic reading generation and processing
     ├── ToeicListeningService.java    # TOEIC content generation and processing
     └── CollocationHistoryService.java # Smart collocation history management
@@ -563,6 +682,7 @@ src/main/java/com/quat/englishService/
 src/main/resources/
 ├── application.properties            # Main configuration
 ├── email-template.html              # Vocabulary email template
+├── japanese-email-template.html      # Japanese lesson email template
 ├── ielts-email-template.html        # IELTS email template
 └── toeic-email-template.html        # TOEIC email template
 ```
@@ -676,4 +796,4 @@ If you encounter any issues or have questions:
 
 ---
 
-**Happy Learning!** 🎓 Improve your English vocabulary one word at a time with AI-powered explanations delivered right to your inbox every morning.
+**Happy Learning!** 🎓 Improve your English and Japanese skills with AI-powered explanations delivered right to your inbox every morning.
