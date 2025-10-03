@@ -1004,6 +1004,140 @@ public class EmailService {
         }
     }
 
+    /**
+     * Send Thai lesson email with HTML content, Excel attachment, and audio files
+     */
+    @Retryable(value = {Exception.class}, maxAttempts = 3, backoff = @Backoff(delay = 2000))
+    public void sendThaiLessonEmailWithAudioAttachments(String subject, String htmlContent, String excelFilePath, Object thaiLesson) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setFrom(fromEmail);
+            helper.setTo(toEmail);
+            helper.setSubject(subject);
+            helper.setText(htmlContent, true);
+
+            // Attach Excel file if it exists
+            attachThaiExcelFile(helper, excelFilePath);
+
+            // Attach Thai audio files
+            attachThaiAudioFiles(helper, thaiLesson);
+
+            mailSender.send(message);
+            logger.info("Thai lesson email with Excel and audio attachments sent successfully to {}", toEmail);
+
+        } catch (Exception e) {
+            logger.error("Failed to send Thai lesson email with audio attachments: {}", e.getMessage(), e);
+            throw new RuntimeException("Thai lesson email with audio attachments sending failed", e);
+        }
+    }
+
+    private void attachThaiAudioFiles(MimeMessageHelper helper, Object lessonObj) {
+        try {
+            // Use reflection to access ThaiLesson fields to avoid circular dependency
+            Class<?> lessonClass = lessonObj.getClass();
+            
+            // Attach vocabulary audio
+            try {
+                Object vocabularyAudioPath = lessonClass.getMethod("getVocabularyAudioPath").invoke(lessonObj);
+                if (vocabularyAudioPath != null) {
+                    File audioFile = new File(vocabularyAudioPath.toString());
+                    if (audioFile.exists() && audioFile.isFile()) {
+                        String fileName = "thai_vocabulary_audio_" + 
+                                        LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + ".mp3";
+                        helper.addAttachment(fileName, audioFile);
+                        logger.info("Attached Thai vocabulary audio: {} ({} bytes)", fileName, audioFile.length());
+                    }
+                }
+            } catch (Exception e) {
+                logger.debug("No vocabulary audio path found or error accessing it: {}", e.getMessage());
+            }
+
+            // Attach listening practice audio
+            try {
+                Object listeningAudioPath = lessonClass.getMethod("getListeningPracticeAudioPath").invoke(lessonObj);
+                if (listeningAudioPath != null) {
+                    File audioFile = new File(listeningAudioPath.toString());
+                    if (audioFile.exists() && audioFile.isFile()) {
+                        String fileName = "thai_listening_practice_" + 
+                                        LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + ".mp3";
+                        helper.addAttachment(fileName, audioFile);
+                        logger.info("Attached Thai listening practice audio: {} ({} bytes)", fileName, audioFile.length());
+                    }
+                }
+            } catch (Exception e) {
+                logger.debug("No listening practice audio path found or error accessing it: {}", e.getMessage());
+            }
+
+            // Attach individual vocabulary word audio files
+            try {
+                Object vocabulary = lessonClass.getMethod("getVocabulary").invoke(lessonObj);
+                if (vocabulary != null && vocabulary.getClass().isArray()) {
+                    Object[] vocabArray = (Object[]) vocabulary;
+                    for (Object vocabObj : vocabArray) {
+                        attachIndividualThaiVocabAudio(helper, vocabObj);
+                    }
+                }
+            } catch (Exception e) {
+                logger.debug("No vocabulary array found or error accessing it: {}", e.getMessage());
+            }
+
+        } catch (Exception e) {
+            logger.error("Error attaching Thai audio files: {}", e.getMessage(), e);
+        }
+    }
+
+    private void attachIndividualThaiVocabAudio(MimeMessageHelper helper, Object vocabObj) {
+        try {
+            Class<?> vocabClass = vocabObj.getClass();
+            
+            // Get Thai word for filename
+            String thaiWord = "word";
+            try {
+                Object thaiWordObj = vocabClass.getMethod("getThai").invoke(vocabObj);
+                if (thaiWordObj != null) {
+                    thaiWord = thaiWordObj.toString().replaceAll("[^a-zA-Z0-9.-]", "_");
+                }
+            } catch (Exception e) {
+                logger.debug("Could not get Thai word: {}", e.getMessage());
+            }
+
+            // Attach pronunciation audio
+            try {
+                Object pronunciationPath = vocabClass.getMethod("getPronunciationAudioPath").invoke(vocabObj);
+                if (pronunciationPath != null) {
+                    File audioFile = new File(pronunciationPath.toString());
+                    if (audioFile.exists() && audioFile.isFile()) {
+                        String fileName = "thai_" + thaiWord + "_pronunciation.mp3";
+                        helper.addAttachment(fileName, audioFile);
+                        logger.debug("Attached Thai pronunciation audio: {}", fileName);
+                    }
+                }
+            } catch (Exception e) {
+                logger.debug("No pronunciation audio path found: {}", e.getMessage());
+            }
+
+            // Attach example audio
+            try {
+                Object examplePath = vocabClass.getMethod("getExampleAudioPath").invoke(vocabObj);
+                if (examplePath != null) {
+                    File audioFile = new File(examplePath.toString());
+                    if (audioFile.exists() && audioFile.isFile()) {
+                        String fileName = "thai_" + thaiWord + "_example.mp3";
+                        helper.addAttachment(fileName, audioFile);
+                        logger.debug("Attached Thai example audio: {}", fileName);
+                    }
+                }
+            } catch (Exception e) {
+                logger.debug("No example audio path found: {}", e.getMessage());
+            }
+
+        } catch (Exception e) {
+            logger.error("Error attaching individual Thai vocabulary audio: {}", e.getMessage(), e);
+        }
+    }
+
     private void attachThaiExcelFile(MimeMessageHelper helper, String excelFilePath) {
         try {
             File excelFile = new File(excelFilePath);

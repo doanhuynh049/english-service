@@ -24,6 +24,10 @@ public class ThaiLesson {
     private ThaiExercise[] speakingExercises;
     private ThaiQuiz[] quizQuestions;
     
+    // Audio files for listening practice
+    private String vocabularyAudioPath;
+    private String listeningPracticeAudioPath;
+    
     // Constructors
     public ThaiLesson() {}
     
@@ -122,6 +126,22 @@ public class ThaiLesson {
         this.quizQuestions = quizQuestions;
     }
     
+    public String getVocabularyAudioPath() {
+        return vocabularyAudioPath;
+    }
+    
+    public void setVocabularyAudioPath(String vocabularyAudioPath) {
+        this.vocabularyAudioPath = vocabularyAudioPath;
+    }
+    
+    public String getListeningPracticeAudioPath() {
+        return listeningPracticeAudioPath;
+    }
+    
+    public void setListeningPracticeAudioPath(String listeningPracticeAudioPath) {
+        this.listeningPracticeAudioPath = listeningPracticeAudioPath;
+    }
+    
     @Override
     public String toString() {
         return String.format("ThaiLesson{day=%d, topic='%s', status='%s', lessonTitle='%s'}", 
@@ -140,6 +160,12 @@ public class ThaiLesson {
         private String exampleThai;
         private String exampleIpa;
         private String exampleEnglish;
+        
+        // Audio files
+        private String pronunciationAudioPath;
+        private String pronunciationAudioUrl;
+        private String exampleAudioPath;
+        private String exampleAudioUrl;
         
         // Constructors
         public ThaiVocabulary() {}
@@ -171,6 +197,18 @@ public class ThaiLesson {
         
         public String getExampleEnglish() { return exampleEnglish; }
         public void setExampleEnglish(String exampleEnglish) { this.exampleEnglish = exampleEnglish; }
+        
+        public String getPronunciationAudioPath() { return pronunciationAudioPath; }
+        public void setPronunciationAudioPath(String pronunciationAudioPath) { this.pronunciationAudioPath = pronunciationAudioPath; }
+        
+        public String getPronunciationAudioUrl() { return pronunciationAudioUrl; }
+        public void setPronunciationAudioUrl(String pronunciationAudioUrl) { this.pronunciationAudioUrl = pronunciationAudioUrl; }
+        
+        public String getExampleAudioPath() { return exampleAudioPath; }
+        public void setExampleAudioPath(String exampleAudioPath) { this.exampleAudioPath = exampleAudioPath; }
+        
+        public String getExampleAudioUrl() { return exampleAudioUrl; }
+        public void setExampleAudioUrl(String exampleAudioUrl) { this.exampleAudioUrl = exampleAudioUrl; }
     }
     
     /**

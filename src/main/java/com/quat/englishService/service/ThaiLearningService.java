@@ -31,75 +31,67 @@ public class ThaiLearningService {
     private final GeminiClient geminiClient;
     private final EmailService emailService;
     private final ObjectMapper objectMapper;
+    private final AudioService audioService;
     
     @Value("${app.thai-excel-file-path}")
     private String thaiExcelFilePath;
 
     private static final String THAI_LESSON_PROMPT_TEMPLATE = """
-            You are a Thai language teacher for beginners who want to focus on speaking and listening skills.
+            You are a Thai language teacher for beginners who want to focus on **speaking and listening skills (not reading or writing)**.
             Teach me today's lesson based on the following topic: {Topic}
 
             Requirements:
-            1. Provide practical vocabulary (5-8 words) with IPA pronunciation for each word
-            2. Include example sentences that beginners can actually use in conversation
-            3. Create 3-4 listening exercises focused on pronunciation and comprehension
-            4. Design 3-4 speaking exercises for practice (pronunciation drills, role-play scenarios)
-            5. Add 3-5 quiz questions to test understanding
-            6. Make content suitable for absolute beginners
-            7. Focus on practical, everyday Thai that tourists/beginners would need
+            1. Provide practical vocabulary (5–8 words) with IPA pronunciation (Thai script optional, only as reference).
+            2. Include simple example sentences with IPA so learners can speak immediately.
+            3. Create 3–4 listening-focused exercises (tone drills, repeat after teacher, listen & choose meaning).
+            4. Create 3–4 speaking exercises (pronunciation drills, shadowing, role-play).
+            5. Add 3–5 quiz questions that test listening & speaking comprehension, not reading.
+            6. Keep content simple, encouraging, and beginner-friendly.
+            7. Focus on practical everyday Thai tourists/beginners need (greetings, food, transport, shopping, asking for help).
+            8. Format response as JSON with this structure:
 
-            Format your response as JSON with this exact structure:
             {
-              "lessonTitle": "string - Clear lesson title",
-              "contentHtml": "<p>Introduction and overview of today's lesson in HTML format</p>",
-              "vocabulary": [
+            "lessonTitle": "string - Clear lesson title",
+            "contentHtml": "<p>Short intro & overview in HTML</p>",
+            "vocabulary": [
                 {
-                  "thai": "สวัสดี",
-                  "ipa": "/sa.wàt.diː/",
-                  "english": "Hello",
-                  "vietnamese": "Xin chào", 
-                  "example": "สวัสดีครับ/ค่ะ - Hello (polite form)"
+                "ipa": "/sa.wàt.diː/",
+                "thai": "สวัสดี (optional)",
+                "english": "Hello",
+                "vietnamese": "Xin chào",
+                "example": "sa-wàt-dii khrap/kha – Hello (polite)"
                 }
-              ],
-              "exampleSentences": [
-                "สวัสดีครับ ผมชื่อจอห์น - Hello, my name is John",
-                "คุณเป็นอย่างไรบ้างครับ - How are you?"
-              ],
-              "listeningExercises": [
-                "Listen and repeat: สวัสดี (sa-wat-dee) - Practice the tones carefully",
-                "Audio comprehension: Listen to a simple greeting conversation and identify key words",
-                "Tone practice: Distinguish between different tones in Thai numbers"
-              ],
-              "speakingExercises": [
-                "Pronunciation drill: Practice saying สวัสดี with correct tone 10 times", 
-                "Role-play: Introduce yourself to a Thai person using polite language",
-                "Shadow speaking: Repeat after native speaker audio focusing on tone and rhythm"
-              ],
-              "quizQuestions": [
+            ],
+            "exampleSentences": [
+                "sa-wàt-dii khrap, phǒm chʉ̂ʉ John – Hello, my name is John",
+                "khun pen yàang-rai bâang khrap – How are you?"
+            ],
+            "listeningExercises": [
+                "Listen and repeat: /sa.wàt.diː/ – focus on the falling tone",
+                "Tone recognition: Which word has rising tone, /khǎw/ or /khâw/?",
+                "Comprehension: Listen to a greeting dialogue and identify the word for 'Hello'"
+            ],
+            "speakingExercises": [
+                "Pronunciation drill: Say /sa.wàt.diː/ 10 times with correct tone",
+                "Shadowing: Repeat after the teacher’s voice slowly, then naturally",
+                "Role-play: Introduce yourself in Thai with greeting and your name"
+            ],
+            "quizQuestions": [
                 {
-                  "question": "How do you say 'Hello' politely in Thai?",
-                  "options": ["สวัสดี", "สวัสดีครับ/ค่ะ", "หวัดดี", "ฮัลโหล"],
-                  "correctAnswer": "สวัสดีครับ/ค่ะ",
-                  "explanation": "สวัสดีครับ/ค่ะ is the polite form. ครับ for males, ค่ะ for females."
+                "question": "Which is the polite way to say 'Hello'?",
+                "options": ["sa-wàt-dii khrap/kha", "halo", "wai", "chai"],
+                "correctAnswer": "sa-wàt-dii khrap/kha",
+                "explanation": "In Thai, use 'khrap' if male, 'kha' if female for politeness."
                 }
-              ]
+            ]
             }
-
-            IMPORTANT guidelines:
-            - Focus on practical communication over grammar theory
-            - Include IPA pronunciation for every Thai word
-            - Emphasize tones and correct pronunciation in exercises
-            - Keep vocabulary relevant to daily situations
-            - Make speaking exercises actionable and specific
-            - Ensure listening exercises build phonetic awareness
-            - Use HTML formatting in contentHtml for better email display
-            - All content should be beginner-friendly and encouraging
             """;
 
-    public ThaiLearningService(GeminiClient geminiClient, EmailService emailService, ObjectMapper objectMapper) {
+    public ThaiLearningService(GeminiClient geminiClient, EmailService emailService, ObjectMapper objectMapper, AudioService audioService) {
         this.geminiClient = geminiClient;
         this.emailService = emailService;
         this.objectMapper = objectMapper;
+        this.audioService = audioService;
     }
 
     /**
@@ -134,13 +126,17 @@ public class ThaiLearningService {
             parseAIResponse(lesson, aiResponse);
             logger.info("Successfully parsed AI response for lesson: {}", lesson.getLessonTitle());
 
-            // Step 5: Generate and send email
+            // Step 5: Generate audio files for vocabulary and listening practice
+            generateThaiAudioFiles(lesson);
+            logger.info("Generated audio files for Thai lesson");
+
+            // Step 6: Generate and send email
             String emailContent = buildEmailContent(lesson);
             String subject = String.format("[Thai Lesson - Day %d] %s", lesson.getDay(), lesson.getTopic());
             
-            // Send email with Excel attachment showing progress
+            // Send email with Excel and audio attachments
             String updatedExcelPath = updateLessonStatus(lesson);
-            emailService.sendThaiLessonEmailWithAttachment(subject, emailContent, updatedExcelPath);
+            emailService.sendThaiLessonEmailWithAudioAttachments(subject, emailContent, updatedExcelPath, lesson);
             
             logger.info("Thai lesson email sent successfully");
             logger.info("Daily Thai lesson processing completed successfully");
@@ -779,5 +775,200 @@ public class ThaiLearningService {
             logger.error("Error processing specific Thai lesson: {}", e.getMessage(), e);
             throw new RuntimeException("Failed to process specific Thai lesson", e);
         }
+    }
+
+    /**
+     * Generate audio files for Thai vocabulary and listening practice
+     */
+    private void generateThaiAudioFiles(ThaiLesson lesson) {
+        try {
+            logger.info("Starting audio generation for Thai lesson: {}", lesson.getTopic());
+
+            // Generate audio files for vocabulary words
+            if (lesson.getVocabulary() != null && lesson.getVocabulary().length > 0) {
+                generateVocabularyAudio(lesson);
+            }
+
+            // Generate listening practice audio
+            generateListeningPracticeAudio(lesson);
+
+            logger.info("Completed audio generation for Thai lesson");
+
+        } catch (Exception e) {
+            logger.error("Error generating Thai audio files: {}", e.getMessage(), e);
+            // Don't fail the entire lesson processing, just log the error
+        }
+    }
+
+    /**
+     * Generate audio files for vocabulary words
+     */
+    private void generateVocabularyAudio(ThaiLesson lesson) {
+        try {
+            StringBuilder vocabularyScript = new StringBuilder();
+            vocabularyScript.append("Thai Vocabulary for Day ").append(lesson.getDay()).append(".\n\n");
+
+            for (ThaiLesson.ThaiVocabulary vocab : lesson.getVocabulary()) {
+                if (vocab.getThai() != null && !vocab.getThai().trim().isEmpty()) {
+                    
+                    // Generate individual pronunciation audio
+                    AudioService.AudioInfo audioInfo = audioService.generateAudioFiles(
+                        vocab.getThai(), 
+                        vocab.getExampleThai() != null ? vocab.getExampleThai() : vocab.getThai()
+                    );
+                    
+                    if (audioInfo != null) {
+                        vocab.setPronunciationAudioPath(audioInfo.getPronunciationPath());
+                        vocab.setPronunciationAudioUrl(audioInfo.getPronunciationUrl());
+                        vocab.setExampleAudioPath(audioInfo.getExamplePath());
+                        vocab.setExampleAudioUrl(audioInfo.getExampleUrl());
+                        
+                        logger.debug("Generated audio for Thai word: {}", vocab.getThai());
+                    }
+
+                    // Add to vocabulary script for combined audio
+                    vocabularyScript.append(vocab.getThai());
+                    if (vocab.getEnglish() != null) {
+                        vocabularyScript.append(". ").append(vocab.getEnglish()).append(".\n");
+                    }
+                    vocabularyScript.append("Example: ");
+                    if (vocab.getExampleThai() != null) {
+                        vocabularyScript.append(vocab.getExampleThai());
+                    }
+                    if (vocab.getExampleEnglish() != null) {
+                        vocabularyScript.append(". ").append(vocab.getExampleEnglish());
+                    }
+                    vocabularyScript.append(".\n\n");
+                }
+            }
+
+            // Generate combined vocabulary audio
+            String vocabularyAudioPath = generateCombinedVocabularyAudio(vocabularyScript.toString(), lesson.getDay());
+            lesson.setVocabularyAudioPath(vocabularyAudioPath);
+
+            logger.info("Generated vocabulary audio for {} words", lesson.getVocabulary().length);
+
+        } catch (Exception e) {
+            logger.error("Error generating vocabulary audio: {}", e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Generate listening practice audio from example sentences and exercises
+     */
+    private void generateListeningPracticeAudio(ThaiLesson lesson) {
+        try {
+            StringBuilder listeningScript = new StringBuilder();
+            listeningScript.append("Thai Listening Practice for Day ").append(lesson.getDay()).append(".\n\n");
+
+            // Add example sentences
+            if (lesson.getExampleSentences() != null && lesson.getExampleSentences().length > 0) {
+                listeningScript.append("Example Sentences:\n");
+                for (String sentence : lesson.getExampleSentences()) {
+                    if (sentence != null && !sentence.trim().isEmpty()) {
+                        // Extract Thai text from the sentence (remove English translations)
+                        String thaiText = extractThaiText(sentence);
+                        listeningScript.append(thaiText).append(".\n");
+                    }
+                }
+                listeningScript.append("\n");
+            }
+
+            // Add listening exercises content
+            if (lesson.getListeningExercises() != null && lesson.getListeningExercises().length > 0) {
+                listeningScript.append("Listening Exercises:\n");
+                for (ThaiLesson.ThaiExercise exercise : lesson.getListeningExercises()) {
+                    if (exercise.getThai() != null && !exercise.getThai().trim().isEmpty()) {
+                        listeningScript.append(exercise.getThai()).append(".\n");
+                    }
+                }
+            }
+
+            // Generate listening practice audio file
+            String listeningAudioPath = generateCombinedListeningAudio(listeningScript.toString(), lesson.getDay());
+            lesson.setListeningPracticeAudioPath(listeningAudioPath);
+
+            logger.info("Generated listening practice audio for Thai lesson");
+
+        } catch (Exception e) {
+            logger.error("Error generating listening practice audio: {}", e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Generate combined vocabulary audio file
+     */
+    private String generateCombinedVocabularyAudio(String script, int day) {
+        try {
+            String dateFolder = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+            String fileName = String.format("thai_vocabulary_day_%d.mp3", day);
+            String outputPath = String.format("vocabulary-audio/%s/%s", dateFolder, fileName);
+
+            // Create directory if it doesn't exist
+            File outputFile = new File(outputPath);
+            outputFile.getParentFile().mkdirs();
+
+            boolean success = audioService.generateSingleAudio(script, outputPath, "passage", 45);
+            
+            if (success) {
+                logger.info("Generated combined vocabulary audio: {}", outputPath);
+                return outputPath;
+            } else {
+                logger.warn("Failed to generate combined vocabulary audio");
+                return null;
+            }
+
+        } catch (Exception e) {
+            logger.error("Error generating combined vocabulary audio: {}", e.getMessage(), e);
+            return null;
+        }
+    }
+
+    /**
+     * Generate combined listening practice audio file
+     */
+    private String generateCombinedListeningAudio(String script, int day) {
+        try {
+            String dateFolder = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+            String fileName = String.format("thai_listening_practice_day_%d.mp3", day);
+            String outputPath = String.format("vocabulary-audio/%s/%s", dateFolder, fileName);
+
+            // Create directory if it doesn't exist
+            File outputFile = new File(outputPath);
+            outputFile.getParentFile().mkdirs();
+
+            boolean success = audioService.generateSingleAudio(script, outputPath, "passage", 60);
+            
+            if (success) {
+                logger.info("Generated listening practice audio: {}", outputPath);
+                return outputPath;
+            } else {
+                logger.warn("Failed to generate listening practice audio");
+                return null;
+            }
+
+        } catch (Exception e) {
+            logger.error("Error generating listening practice audio: {}", e.getMessage(), e);
+            return null;
+        }
+    }
+
+    /**
+     * Extract Thai text from mixed Thai-English sentences
+     * Removes English translations and keeps only Thai script
+     */
+    private String extractThaiText(String mixedText) {
+        if (mixedText == null) return "";
+        
+        // Remove content in parentheses (usually English translations)
+        String cleaned = mixedText.replaceAll("\\([^)]*\\)", "");
+        
+        // Remove common English words and punctuation that might be mixed in
+        cleaned = cleaned.replaceAll("\\b[a-zA-Z]+\\b", ""); // Remove English words
+        cleaned = cleaned.replaceAll("\\s*-\\s*", " "); // Clean up dashes
+        cleaned = cleaned.replaceAll("\\s+", " "); // Normalize whitespace
+        cleaned = cleaned.trim();
+        
+        return cleaned;
     }
 }
