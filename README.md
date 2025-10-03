@@ -1,9 +1,22 @@
-# English Learning & Japanese Service Suite 📚🎧📖🇯🇵
+# English Learning & Japanese/Thai Service Suite 📚🎧📖🇯🇵🇹🇭
 
-A comprehensive Spring Boot application that automatically delivers four types of English and Japanese learning content via email:
-- **Daily Vocabulary** (5:00 AM): 4 vocabulary words with AI explanations and audio
+A comprehensive Spring Boot application that automatically delivers five types of English, Japanese, and Thai learning content via e# Test Japanese lesson service (generates daily lesson from Excel curriculum)
+curl -X POST http://localhost:8282/api/japanese/trigger-daily
+
+# Test TOEIC vocabulary service (generates 15 words: 10 new + 5 review for TOEIC 800+)
+curl -X POST http://localhost:8282/api/toeic-vocabulary/trigger-daily
+
+# Test IELTS reading service (generates academic passage + explanations)
+curl -X POST http://localhost:8282/api/ielts/send-reading
+
+# Test Thai learning service (generates speaking & listening lesson for beginners)
+curl -X POST http://localhost:8282/api/thai/trigger-daily
+
+# Test TOEIC listening service (generates collocations + 3 audio passages)
+curl -X POST http://localhost:8282/api/toeic/trigger-listeningaily Vocabulary** (5:00 AM): 4 vocabulary words with AI explanations and audio
 - **Japanese Lesson** (7:00 AM): Structured Japanese lessons from Excel curriculum (Hiragana, Katakana, Kanji, Grammar)
 - **IELTS Reading Practice** (11:00 AM): Academic reading passages with detailed explanations
+- **Thai Language Learning** (5:00 PM): Daily Thai lessons focused on speaking and listening for beginners
 - **TOEIC Listening Practice** (6:00 PM): Business collocations with audio passages
 
 All powered by Google's Gemini AI and Google Text-to-Speech for immersive, multi-modal learning.
@@ -58,6 +71,18 @@ All powered by Google's Gemini AI and Google Text-to-Speech for immersive, multi
   - Practice instructions and listening strategies
   - Professional HTML email template with orange/blue theme
 
+### 🇹🇭 Thai Language Learning (5:00 PM)
+- **Beginner-Focused**: Daily Thai lessons designed specifically for absolute beginners
+- **Speaking & Listening Emphasis**: Practical conversation skills with pronunciation guidance
+- **Comprehensive Content**: AI-generated lessons including:
+  - Vocabulary with IPA pronunciation
+  - Example sentences with cultural context
+  - Listening comprehension exercises
+  - Speaking practice drills
+  - Interactive quiz questions
+- **90-Day Curriculum**: Structured progression from basic greetings to conversational Thai
+- **Excel-Based Management**: Automatic lesson tracking and progress monitoring
+
 ### 🎯 TOEIC Vocabulary Practice (9:00 AM)
 - **Advanced Vocabulary**: 15 TOEIC words daily (10 new + 5 review) targeting score 800+
 - **Part 6 & 7 Focus**: Words specifically chosen for Text Completion and Reading Comprehension
@@ -73,8 +98,8 @@ All powered by Google's Gemini AI and Google Text-to-Speech for immersive, multi
 - **Professional Email**: Beautiful HTML template with modern design and clear structure
 
 ### 🔧 System Features
-- **Triple Automated Scheduling**: Three daily sessions with different content types and timings
-- **Beautiful HTML Emails**: Professional templates for vocabulary, IELTS, and TOEIC content  
+- **Five Automated Scheduling**: Five daily sessions with different content types and timings
+- **Beautiful HTML Emails**: Professional templates for vocabulary, Japanese, Thai, IELTS, and TOEIC content  
 - **Audio Generation**: High-quality TTS with different speeds for learning
 - **Excel Logging**: Persistent tracking of all vocabulary and progress
 - **Manual Testing**: REST API endpoints for immediate testing
@@ -86,19 +111,22 @@ All powered by Google's Gemini AI and Google Text-to-Speech for immersive, multi
 ├── VocabularyScheduler       → Daily vocabulary at 5:00 AM (4 words: 3 new + 1 review)
 ├── JapaneseScheduler         → Daily Japanese lesson at 7:00 AM (from Excel curriculum)
 ├── IeltsScheduler           → Daily IELTS reading at 11:00 AM (academic passages + explanations)
+├── ThaiLearningScheduler    → Daily Thai lesson at 5:00 PM (speaking & listening for beginners)
 ├── ToeicVocabularyScheduler → Daily TOEIC vocabulary at 9:00 AM (15 words: 10 new + 5 review)
 ├── ToeicScheduler           → Daily TOEIC listening at 6:00 PM (collocations + passages)
 ├── GeminiClient             → Google Gemini AI integration for content generation
-├── EmailService             → Quad HTML templates for vocabulary, IELTS, TOEIC vocab, and TOEIC audio
+├── EmailService             → Multi HTML templates for all language services
 ├── AudioService             → TTS generation with Python/gTTS integration
 ├── ExcelService             → Progress tracking and word history management
 ├── VocabularyService        → Core vocabulary processing with AI monologues
 ├── JapaneseLessonService    → Japanese lesson generation and processing
+├── ThaiLearningService      → Thai lesson generation for speaking & listening
 ├── IeltsReadingService      → IELTS academic reading generation and processing
 ├── ToeicVocabularyService   → Advanced TOEIC vocabulary for score 800+ (Part 6 & 7)
 ├── ToeicListeningService    → TOEIC content generation and audio processing
 ├── VocabularyController     → REST API for vocabulary testing
 ├── JapaneseController       → REST API for Japanese lesson testing
+├── ThaiLearningController   → REST API for Thai lesson testing
 ├── IeltsController          → REST API for IELTS testing
 ├── ToeicVocabularyController → REST API for TOEIC vocabulary testing
 ├── ToeicController          → REST API for TOEIC testing
@@ -107,7 +135,7 @@ All powered by Google's Gemini AI and Google Text-to-Speech for immersive, multi
 
 ## 📅 Complete Daily Learning Schedule
 
-The application provides a comprehensive English and Japanese learning experience with four automated sessions throughout the day:
+The application provides a comprehensive English, Japanese, and Thai learning experience with five automated sessions throughout the day:
 
 | Time | Service | Content | Duration | Focus |
 |------|---------|---------|----------|-------|
@@ -115,15 +143,17 @@ The application provides a comprehensive English and Japanese learning experienc
 | **7:00 AM** | 🇯🇵 Japanese | Daily lesson from curriculum | ~20 min | Hiragana/Katakana/Kanji/Grammar |
 | **9:00 AM** | 🎯 TOEIC Vocabulary | 15 words (10 new + 5 review) | ~20 min | Advanced TOEIC vocabulary (800+) |
 | **11:00 AM** | 📖 IELTS Reading | Academic passage + questions | ~20 min | Reading comprehension |
+| **5:00 PM** | 🇹🇭 Thai Learning | Speaking & listening lesson | ~20 min | Practical conversation skills |
 | **6:00 PM** | 🎧 TOEIC Listening | Business collocations + audio | ~25 min | Listening skills |
 
-**Total Daily Learning Time**: ~100 minutes of structured English and Japanese practice
+**Total Daily Learning Time**: ~120 minutes of structured English, Japanese, and Thai practice
 
 ### Learning Progression
 - **Early Morning (5 AM)**: Start with vocabulary foundation building
 - **Morning (7 AM)**: Japanese language basics and grammar
 - **Mid-Morning (9 AM)**: Advanced TOEIC vocabulary for business contexts
-- **Midday (11 AM)**: Academic reading skills for IELTS preparation  
+- **Midday (11 AM)**: Academic reading skills for IELTS preparation
+- **Evening (5 PM)**: Thai conversation and pronunciation practice
 - **Evening (6 PM)**: Business English listening for TOEIC preparation
 
 ## 🚀 Quick Start
@@ -243,7 +273,7 @@ The application automatically creates and maintains a `vocabulary_log.xlsx` file
 
 ## 🕐 Scheduling
 
-The application runs three automated daily sessions:
+The application runs five automated daily sessions:
 
 ### 📚 Vocabulary Session (5:00 AM)
 ```java
@@ -276,6 +306,18 @@ public void scheduledIeltsReadingSession() {
 }
 ```
 
+### 🇹🇭 Thai Learning Session (5:00 PM)
+```java
+@Scheduled(cron = "0 0 17 * * ?") // 5:00 PM daily
+public void scheduledThaiLearningSession() {
+    // Processes daily Thai lesson from Excel curriculum (90 days)
+    // Generates AI content focused on speaking and listening
+    // Creates vocabulary with IPA pronunciation
+    // Produces listening and speaking exercises
+    // Sends Thai lesson email with practice materials
+}
+```
+
 ### 🎧 TOEIC Listening Session (6:00 PM)
 ```java
 @Scheduled(cron = "0 0 18 * * ?") // 6:00 PM daily  
@@ -291,6 +333,7 @@ public void scheduledToeicListeningSession() {
 - `0 0 5 * * ?` = Every day at 5:00:00 AM
 - `0 0 7 * * ?` = Every day at 7:00:00 AM
 - `0 0 11 * * ?` = Every day at 11:00:00 AM
+- `0 0 17 * * ?` = Every day at 5:00:00 PM
 - `0 0 18 * * ?` = Every day at 6:00:00 PM
 - Modify in respective scheduler files to change times
 
@@ -355,6 +398,41 @@ Check Japanese service health.
 
 ```bash
 curl http://localhost:8282/api/japanese/health
+```
+
+### Thai Learning Endpoints
+
+**POST** `/api/thai/trigger-daily`
+Manually triggers daily Thai lesson processing for speaking and listening practice.
+
+```bash
+curl -X POST http://localhost:8282/api/thai/trigger-daily
+```
+
+**POST** `/api/thai/process-lesson`
+Process a specific Thai lesson with custom content.
+
+```bash
+curl -X POST http://localhost:8282/api/thai/process-lesson \
+  -H "Content-Type: application/json" \
+  -d '{
+    "topic": "Basic Greetings and Introductions",
+    "day": 1
+  }'
+```
+
+**GET** `/api/thai/status`
+Get Thai service status and configuration details.
+
+```bash
+curl http://localhost:8282/api/thai/status
+```
+
+**GET** `/api/thai/health`
+Check Thai service health.
+
+```bash
+curl http://localhost:8282/api/thai/health
 ```
 
 ### IELTS Endpoints
@@ -429,6 +507,14 @@ Leave the application running for automated learning:
 - Academic writing analysis and question strategies
 - Professional formatting for study focus
 
+**5:00 PM Daily:** Thai Learning Email
+- Daily Thai lesson from Excel curriculum (90-day program)
+- Vocabulary with IPA pronunciation and cultural context
+- Practical conversation examples and listening exercises
+- Speaking practice drills with tone emphasis
+- Interactive quiz questions for comprehension
+- Progress tracked in Excel curriculum
+
 **6:00 PM Daily:** TOEIC Listening Email  
 - 10 business collocations with explanations
 - 3 TOEIC Part 4 style audio passages
@@ -448,6 +534,9 @@ curl -X POST http://localhost:8282/api/japanese/trigger-daily
 # Test IELTS reading service immediately
 curl -X POST http://localhost:8282/api/ielts/send-reading
 
+# Test Thai learning service immediately
+curl -X POST http://localhost:8282/api/thai/trigger-daily
+
 # Test TOEIC listening service immediately  
 curl -X POST http://localhost:8282/api/toeic/trigger-part7
 
@@ -459,6 +548,7 @@ curl -X POST http://localhost:8282/api/vocabulary/process-words \
 # Check service health
 curl http://localhost:8282/api/vocabulary/health
 curl http://localhost:8282/api/japanese/health
+curl http://localhost:8282/api/thai/health
 curl http://localhost:8282/api/toeic/health
 curl http://localhost:8282/audio/health
 
@@ -482,7 +572,7 @@ http://localhost:8282/audio/2025-09-08/
 
 ## 🎨 Email Templates
 
-The application sends three types of beautiful HTML emails:
+The application sends four types of beautiful HTML emails:
 
 ### 📚 Vocabulary Email Template (`email-template.html`)
 - **Header**: Date and vocabulary session title
@@ -498,6 +588,16 @@ The application sends three types of beautiful HTML emails:
 - **Practice Tasks**: Interactive writing and speaking tasks
 - **Footer**: Study tips and service attribution
 - **Styling**: Professional CSS with red theme and clean formatting
+
+### 🇹🇭 Thai Lesson Email Template (`thai-email-template.html`)
+- **Header**: Date and Thai lesson title with beginner-friendly design
+- **Vocabulary Section**: Thai words with IPA pronunciation and cultural context
+- **Example Sentences**: Practical conversations with pronunciation guides
+- **Listening Exercises**: Audio-based comprehension activities
+- **Speaking Practice**: Pronunciation drills and conversation scenarios
+- **Quiz Section**: Interactive questions to test comprehension
+- **Footer**: Encouragement and cultural tips
+- **Styling**: Professional CSS with Thai-inspired orange/gold theme
 
 ### 📖 IELTS Email Template (`ielts-email-template.html`)
 - **Header**: IELTS Academic Reading title with date
@@ -560,6 +660,55 @@ Date: Monday, August 25, 2025
 ─────────────────────
 1. Write out the characters あ, い, う
 2. Practice pronunciation with audio
+```
+
+### Sample Thai Lesson Email Structure
+
+```
+🇹🇭 Thai Language Learning: Basic Greetings
+Date: Monday, August 25, 2025
+
+📚 TODAY'S VOCABULARY
+─────────────────────
+1. สวัสดี (sà-wàt-dii) /sa˨˩.wat̚˨˩.diː˧/ - Hello/Goodbye
+   Cultural Note: Used any time of day, hands in prayer position
+
+2. ขอบคุณ (kɔ̀ɔp-kun) /kʰɔ̀ːp̚˨˩.kʰun˧/ - Thank you
+   Usage: Most common way to express gratitude
+
+3. ชื่อ (chɯ̂ɯ) /tɕʰɯ̂ː˥˩/ - Name
+   Example: ชื่อของฉันคือ... (My name is...)
+
+📝 EXAMPLE CONVERSATIONS
+─────────────────────────
+A: สวัสดีครับ ผมชื่อจอห์น (Hello, my name is John)
+B: สวัสดีค่ะ ดิฉันชื่อมาลี (Hello, my name is Mali)
+A: ยินดีที่ได้รู้จักครับ (Nice to meet you)
+
+🎧 LISTENING EXERCISES
+─────────────────────
+1. Listen and repeat the greetings
+2. Identify the speaker's name in the conversation
+3. Practice correct tone pronunciation
+
+🗣️ SPEAKING PRACTICE
+─────────────────────
+1. Introduce yourself using today's vocabulary
+2. Practice the five Thai tones with สวัสดี
+3. Role-play meeting someone new
+
+❓ QUIZ QUESTIONS
+─────────────────────
+1. How do you say "thank you" in Thai?
+   a) สวัสดี  b) ขอบคุณ  c) ชื่อ
+
+2. When can you use สวัสดี?
+   a) Only morning  b) Only evening  c) Any time of day
+
+💡 CULTURAL TIP
+─────────────────────
+Always use ครับ (khráp) if you're male or ค่ะ (khâ) if you're female 
+at the end of polite sentences!
 ```
 
 ### Sample IELTS Email Structure

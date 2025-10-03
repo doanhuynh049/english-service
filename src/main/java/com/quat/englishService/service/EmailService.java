@@ -361,6 +361,55 @@ public class EmailService {
         }
     }
 
+    /**
+     * Send Thai lesson email with HTML content
+     */
+    @Retryable(value = {Exception.class}, maxAttempts = 3, backoff = @Backoff(delay = 2000))
+    public void sendThaiLessonEmail(String subject, String htmlContent) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setFrom(fromEmail);
+            helper.setTo(toEmail);
+            helper.setSubject(subject);
+            helper.setText(htmlContent, true);
+
+            mailSender.send(message);
+            logger.info("Thai lesson email sent successfully to {}", toEmail);
+
+        } catch (Exception e) {
+            logger.error("Failed to send Thai lesson email: {}", e.getMessage(), e);
+            throw new RuntimeException("Thai lesson email sending failed", e);
+        }
+    }
+
+    /**
+     * Send Thai lesson email with HTML content and Excel attachment
+     */
+    @Retryable(value = {Exception.class}, maxAttempts = 3, backoff = @Backoff(delay = 2000))
+    public void sendThaiLessonEmailWithAttachment(String subject, String htmlContent, String excelFilePath) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setFrom(fromEmail);
+            helper.setTo(toEmail);
+            helper.setSubject(subject);
+            helper.setText(htmlContent, true);
+
+            // Attach Excel file if it exists
+            attachThaiExcelFile(helper, excelFilePath);
+
+            mailSender.send(message);
+            logger.info("Thai lesson email with Excel attachment sent successfully to {}", toEmail);
+
+        } catch (Exception e) {
+            logger.error("Failed to send Thai lesson email with attachment: {}", e.getMessage(), e);
+            throw new RuntimeException("Thai lesson email with attachment sending failed", e);
+        }
+    }
+
     private void attachAudioFiles(MimeMessageHelper helper, List<ParsedVocabularyWord> vocabularyWords) {
         for (ParsedVocabularyWord word : vocabularyWords) {
             try {
@@ -952,6 +1001,22 @@ public class EmailService {
                 throw new RuntimeException("TOEIC Part 7 email template not found");
             }
             return new String(inputStream.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
+        }
+    }
+
+    private void attachThaiExcelFile(MimeMessageHelper helper, String excelFilePath) {
+        try {
+            File excelFile = new File(excelFilePath);
+            if (excelFile.exists() && excelFile.isFile()) {
+                String fileName = "Thai_Learning_Progress_" +
+                                LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + ".xlsx";
+                helper.addAttachment(fileName, excelFile);
+                logger.info("Attached Thai learning Excel file: {} ({} bytes)", fileName, excelFile.length());
+            } else {
+                logger.warn("Thai learning Excel file not found: {}", excelFilePath);
+            }
+        } catch (Exception e) {
+            logger.error("Error attaching Thai learning Excel file: {}", e.getMessage(), e);
         }
     }
 

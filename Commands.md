@@ -13,6 +13,7 @@ curl -X GET http://localhost:8282/api/vocabulary/status
 curl -X GET http://localhost:8282/api/japanese/status
 curl -X GET http://localhost:8282/api/toeic-vocabulary/status
 curl -X GET http://localhost:8282/api/ielts/status
+curl -X GET http://localhost:8282/api/thai/status
 curl -X GET http://localhost:8282/api/toeic/status
 ```
 
@@ -202,6 +203,120 @@ Example Excel content:
 curl -X GET http://localhost:8282/api/japanese/status | jq '.excelFormat'
 ```
 
+## 🇹🇭 Thai Learning Service (Daily Thai Lessons - 5:00 PM)
+
+### Trigger Daily Processing
+```bash
+curl -X POST http://localhost:8282/api/thai/trigger-daily
+```
+
+### Process Specific Lesson
+```bash
+curl -X POST http://localhost:8282/api/thai/process-lesson \
+  -H "Content-Type: application/json" \
+  -d '{
+    "topic": "Basic Greetings and Introductions",
+    "day": 1
+  }'
+```
+
+### Test with Different Topics
+```bash
+# Basic greetings lesson
+curl -X POST http://localhost:8282/api/thai/process-lesson \
+  -H "Content-Type: application/json" \
+  -d '{
+    "topic": "Basic Greetings and Introductions",
+    "day": 1
+  }'
+
+# Numbers lesson
+curl -X POST http://localhost:8282/api/thai/process-lesson \
+  -H "Content-Type: application/json" \
+  -d '{
+    "topic": "Numbers 1-10",
+    "day": 5
+  }'
+
+# Colors and basic adjectives
+curl -X POST http://localhost:8282/api/thai/process-lesson \
+  -H "Content-Type: application/json" \
+  -d '{
+    "topic": "Colors and Basic Adjectives",
+    "day": 10
+  }'
+
+# Food and drinks
+curl -X POST http://localhost:8282/api/thai/process-lesson \
+  -H "Content-Type: application/json" \
+  -d '{
+    "topic": "Food and Drinks",
+    "day": 15
+  }'
+
+# Directions and locations
+curl -X POST http://localhost:8282/api/thai/process-lesson \
+  -H "Content-Type: application/json" \
+  -d '{
+    "topic": "Asking for Directions",
+    "day": 30
+  }'
+
+# Shopping conversation
+curl -X POST http://localhost:8282/api/thai/process-lesson \
+  -H "Content-Type: application/json" \
+  -d '{
+    "topic": "Shopping and Bargaining",
+    "day": 45
+  }'
+
+# Transportation
+curl -X POST http://localhost:8282/api/thai/process-lesson \
+  -H "Content-Type: application/json" \
+  -d '{
+    "topic": "Transportation and Travel",
+    "day": 60
+  }'
+
+# Daily routine conversation
+curl -X POST http://localhost:8282/api/thai/process-lesson \
+  -H "Content-Type: application/json" \
+  -d '{
+    "topic": "Daily Routines and Time",
+    "day": 75
+  }'
+```
+
+### Service Status and Health
+```bash
+# Get detailed service information
+curl -X GET http://localhost:8282/api/thai/status
+
+# Health check
+curl -X GET http://localhost:8282/api/thai/health
+```
+
+### Excel Curriculum Format
+The Thai learning service reads from an Excel file with the following structure:
+- **Column A**: Day (numeric) - 1 to 90 days
+- **Column B**: Topic (lesson topic focused on speaking and listening)
+- **Column C**: Status ("Open" or "Done")
+- **Column D**: Completed Day (timestamp when completed)
+
+Example Excel content:
+```bash
+# View expected Excel format via API
+curl -X GET http://localhost:8282/api/thai/status | jq '.excelFormat'
+```
+
+### Learning Features
+The Thai service focuses on practical conversation skills:
+- **IPA Pronunciation**: All Thai vocabulary includes IPA transcription
+- **Cultural Context**: Lessons include cultural notes and proper usage
+- **Speaking Exercises**: Pronunciation drills and conversation practice
+- **Listening Comprehension**: Audio-based exercises for beginners
+- **Interactive Quizzes**: Multiple choice and fill-in-the-blank questions
+
 ## 🧪 Testing Workflows
 
 ### Complete Daily Test (All Services)
@@ -218,6 +333,9 @@ curl -X POST http://localhost:8282/api/toeic-vocabulary/trigger-daily
 
 echo "Testing IELTS Reading Service..."
 curl -X POST http://localhost:8282/api/ielts/send-reading
+
+echo "Testing Thai Learning Service..."
+curl -X POST http://localhost:8282/api/thai/trigger-daily
 
 echo "Testing TOEIC Listening Service..."
 curl -X POST http://localhost:8282/api/toeic/trigger-listening
@@ -261,11 +379,12 @@ curl -X GET http://localhost:8282/actuator/info
 
 ### Service-Specific Status
 ```bash
-# Get detailed status for each service including Japanese
+# Get detailed status for each service including Japanese and Thai
 curl -X GET http://localhost:8282/api/vocabulary/status | jq
 curl -X GET http://localhost:8282/api/japanese/status | jq
 curl -X GET http://localhost:8282/api/toeic-vocabulary/status | jq
 curl -X GET http://localhost:8282/api/ielts/status | jq
+curl -X GET http://localhost:8282/api/thai/status | jq
 curl -X GET http://localhost:8282/api/toeic/status | jq
 ```
 
