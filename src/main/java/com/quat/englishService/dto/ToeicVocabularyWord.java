@@ -14,6 +14,8 @@ public class ToeicVocabularyWord {
     private String example;
     private String[] collocations;
     private String vietnameseTranslation;
+    private String[] synonyms;
+    private String[] confusedWith;
     private LocalDateTime createdAt;
 
     // Constructors
@@ -49,6 +51,12 @@ public class ToeicVocabularyWord {
 
     public String getVietnameseTranslation() { return vietnameseTranslation; }
     public void setVietnameseTranslation(String vietnameseTranslation) { this.vietnameseTranslation = vietnameseTranslation; }
+
+    public String[] getSynonyms() { return synonyms; }
+    public void setSynonyms(String[] synonyms) { this.synonyms = synonyms; }
+
+    public String[] getConfusedWith() { return confusedWith; }
+    public void setConfusedWith(String[] confusedWith) { this.confusedWith = confusedWith; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }

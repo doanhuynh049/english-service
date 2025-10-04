@@ -31,30 +31,26 @@ public class ToeicVocabularyService {
 
 
     private static final String GENERATE_EXPLANATIONS_PROMPT = """
-            You are helping TOEIC learners aiming for a score of 800+. 
-            I will give you %d vocabulary words (%d new + %d random from past lists).""".formatted(TOTAL_WORDS_FOR_EMAIL, NEW_WORDS_COUNT, EXISTING_WORDS_COUNT) + """
+            You are helping TOEIC learners aiming for a score of 800+.  
+            I will give you %d advanced vocabulary words (%d new + %d review words from past difficult lists).  
 
-            For each word, provide the following in JSON format:
-            - word
-            - pos (Part of Speech)
-            - ipa (pronunciation in IPA)
-            - definition (concise but clear)
-            - example (formal/business context, TOEIC style)
-            - collocations (3–4 useful ones)
-            - translation (Vietnamese)
+            Your task:  
+            For each word, generate a JSON object containing the following fields:  
+            - "word": the vocabulary word (advanced/difficult, TOEIC/business level)  
+            - "pos": its Part of Speech (e.g., noun, verb, adjective)  
+            - "ipa": pronunciation in IPA  
+            - "definition": a concise but clear definition suitable for TOEIC/business contexts  
+            - "example": a formal/business-style sentence using the word (TOEIC-like context: meetings, reports, contracts, negotiations, announcements)  
+            - "collocations": 3–4 useful collocations or fixed phrases (business/TOEIC relevant)  
+            - "translation": Vietnamese translation of the word  
+            - "synonyms": 2–3 advanced synonyms  
+            - "confused_with": 1–2 words often confused with this word, plus a short clarification  
 
-            Example output format:
-            [
-              {
-                "word": "alleviate",
-                "pos": "verb",
-                "ipa": "/əˈliːvieɪt/",
-                "definition": "to make a problem or situation less severe",
-                "example": "The new software was designed to alleviate workload for office staff.",
-                "collocations": ["alleviate pressure", "alleviate concerns", "alleviate difficulties"],
-                "translation": "giảm bớt, làm nhẹ"
-              }
-            ]
+            Important requirements:  
+            - Only include **difficult or less common words** relevant to TOEIC/business English.  
+            - Output **only valid JSON** (an array of word objects).  
+            - No commentary or text outside the JSON.  
+            - Definitions and examples must be short, professional, and TOEIC-focused.  
 
             Words to process: %s
             """;
@@ -260,7 +256,7 @@ public class ToeicVocabularyService {
                 .map(ToeicVocabularyWord::getWord)
                 .collect(Collectors.joining(", "));
             
-            String prompt = String.format(GENERATE_EXPLANATIONS_PROMPT, wordsList);
+            String prompt = String.format(GENERATE_EXPLANATIONS_PROMPT, TOTAL_WORDS_FOR_EMAIL, NEW_WORDS_COUNT, EXISTING_WORDS_COUNT, wordsList);
             String response = geminiClient.generateContent(prompt);
             
             if (response == null || response.trim().isEmpty()) {
@@ -300,8 +296,36 @@ public class ToeicVocabularyService {
                     Object collocationsObj = explanationMap.get("collocations");
                     if (collocationsObj instanceof List) {
                         @SuppressWarnings("unchecked")
-                        List<String> collocationsList = (List<String>) collocationsObj;
-                        toeicWord.setCollocations(collocationsList.toArray(new String[0]));
+                        List<Object> collocationsList = (List<Object>) collocationsObj;
+                        String[] collocationsArray = collocationsList.stream()
+                            .filter(Objects::nonNull)
+                            .map(Object::toString)
+                            .toArray(String[]::new);
+                        toeicWord.setCollocations(collocationsArray);
+                    }
+                    
+                    // Handle synonyms array
+                    Object synonymsObj = explanationMap.get("synonyms");
+                    if (synonymsObj instanceof List) {
+                        @SuppressWarnings("unchecked")
+                        List<Object> synonymsList = (List<Object>) synonymsObj;
+                        String[] synonymsArray = synonymsList.stream()
+                            .filter(Objects::nonNull)
+                            .map(Object::toString)
+                            .toArray(String[]::new);
+                        toeicWord.setSynonyms(synonymsArray);
+                    }
+                    
+                    // Handle confused_with array
+                    Object confusedWithObj = explanationMap.get("confused_with");
+                    if (confusedWithObj instanceof List) {
+                        @SuppressWarnings("unchecked")
+                        List<Object> confusedWithList = (List<Object>) confusedWithObj;
+                        String[] confusedWithArray = confusedWithList.stream()
+                            .filter(Objects::nonNull)
+                            .map(Object::toString)
+                            .toArray(String[]::new);
+                        toeicWord.setConfusedWith(confusedWithArray);
                     }
                 }
             }
@@ -467,6 +491,52 @@ public class ToeicVocabularyService {
                     <div class="vietnamese-text">%s</div>
                 </div>
                 """, escapeHtml(word.getVietnameseTranslation())));
+        }
+        
+        // Synonyms section
+        if (word.getSynonyms() != null && word.getSynonyms().length > 0) {
+            card.append("""
+                <div class="synonyms-section">
+                    <div class="section-header">
+                        <span class="section-icon">🔄</span>
+                        <span class="section-title">Synonyms</span>
+                    </div>
+                    <div class="synonyms-grid">
+                """);
+            
+            for (String synonym : word.getSynonyms()) {
+                card.append(String.format("""
+                        <div class="synonym-item">%s</div>
+                    """, escapeHtml(synonym)));
+            }
+            
+            card.append("""
+                    </div>
+                </div>
+                """);
+        }
+        
+        // Confused With section
+        if (word.getConfusedWith() != null && word.getConfusedWith().length > 0) {
+            card.append("""
+                <div class="confused-with-section">
+                    <div class="section-header">
+                        <span class="section-icon">⚠️</span>
+                        <span class="section-title">Often Confused With</span>
+                    </div>
+                    <div class="confused-with-grid">
+                """);
+            
+            for (String confusedWord : word.getConfusedWith()) {
+                card.append(String.format("""
+                        <div class="confused-with-item">%s</div>
+                    """, escapeHtml(confusedWord)));
+            }
+            
+            card.append("""
+                    </div>
+                </div>
+                """);
         }
         
         card.append("</div>");
