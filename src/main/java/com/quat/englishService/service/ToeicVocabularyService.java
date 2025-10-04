@@ -21,6 +21,7 @@ public class ToeicVocabularyService {
 
     private final GeminiClient geminiClient;
     private final EmailService emailService;
+    private final AudioService audioService;
     private final ObjectMapper objectMapper;
     private String toeicExcelFilePath = "toeic_vocabulary_log.xlsx";
     
@@ -56,9 +57,10 @@ public class ToeicVocabularyService {
             """;
 
     public ToeicVocabularyService(GeminiClient geminiClient, EmailService emailService, 
-                                  ExcelService excelService, ObjectMapper objectMapper) {
+                                  AudioService audioService, ExcelService excelService, ObjectMapper objectMapper) {
         this.geminiClient = geminiClient;
         this.emailService = emailService;
+        this.audioService = audioService;
         this.objectMapper = objectMapper;
     }
 
@@ -88,11 +90,18 @@ public class ToeicVocabularyService {
             List<ToeicVocabularyWord> enrichedWords = getExplanationsFromAPI(selectedWords);
             logger.info("Enriched {} words with detailed explanations", enrichedWords.size());
 
-            // Step 5: Build HTML email content
+            // Step 5: Generate audio files for each word
+            List<String> audioFilePaths = generateAudioFiles(enrichedWords);
+            logger.info("Generated {} audio files", audioFilePaths.size());
+
+            // Step 6: Build HTML email content
             String htmlContent = buildHtml(enrichedWords);
 
-            // Step 6: Send email
-            sendEmail(htmlContent);
+            // Step 7: Send email with audio attachments
+            sendEmailWithAudio(htmlContent, audioFilePaths);
+
+            // Step 8: Clean up audio files after sending email
+            cleanupAudioFiles(audioFilePaths);
 
             logger.info("Daily TOEIC vocabulary processing completed successfully");
 
@@ -122,11 +131,8 @@ public class ToeicVocabularyService {
                 return Collections.emptyList();
             }
 
-            logger.info("Full response: {}", response);
-
             // Clean the response - remove markdown code blocks if present
             String cleanedResponse = cleanJsonResponse(response);
-            logger.info("Cleaned response: {}", cleanedResponse);
 
             // Parse JSON response
             List<Map<String, String>> wordMaps = objectMapper.readValue(
@@ -264,11 +270,8 @@ public class ToeicVocabularyService {
                 return words; // Return original words without enrichment
             }
 
-            logger.info("Full explanations response: {}", response);
-
             // Clean the response - remove markdown code blocks if present
             String cleanedResponse = cleanJsonResponse(response);
-            logger.info("Cleaned explanations response: {}", cleanedResponse);
 
             // Parse JSON response
             List<Map<String, Object>> explanationMaps = objectMapper.readValue(
@@ -581,6 +584,130 @@ public class ToeicVocabularyService {
                   .replace("\"", "&quot;")
                   .replace("'", "&#39;");
     }
+    /**
+     * Generate audio files for all vocabulary words
+     */
+    public List<String> generateAudioFiles(List<ToeicVocabularyWord> words) {
+        logger.info("Generating audio files for {} vocabulary words", words.size());
+        
+        List<String> audioFilePaths = new ArrayList<>();
+        
+        for (ToeicVocabularyWord word : words) {
+            try {
+                // Generate vocabulary-specific audio files using the enhanced method
+                AudioService.AudioInfo audioInfo = audioService.generateVocabularyAudioFiles(
+                    word.getWord(),
+                    word.getDefinition(),
+                    word.getExample()
+                );
+                
+                if (audioInfo != null) {
+                    audioFilePaths.add(audioInfo.getPronunciationPath());
+
+                    logger.info("Successfully generated audio for word: {} (pronunciation)", word.getWord());
+                } else {
+                    logger.warn("Failed to generate audio for word: {}", word.getWord());
+                }
+                
+            } catch (Exception e) {
+                logger.error("Error generating audio for word '{}': {}", word.getWord(), e.getMessage(), e);
+            }
+        }
+        
+        logger.info("Generated {} audio files out of {} words", audioFilePaths.size(), words.size());
+        return audioFilePaths;
+    }
+
+    /**
+     * Build audio script for a vocabulary word (word + example)
+     */
+    private String buildAudioScript(ToeicVocabularyWord word) {
+        StringBuilder script = new StringBuilder();
+        
+        // Add the word pronunciation
+        if (word.getWord() != null) {
+            script.append("The word is: ").append(word.getWord());
+            
+            // Add pronunciation if available
+            if (word.getPronunciation() != null) {
+                script.append(", pronounced as ").append(word.getPronunciation());
+            }
+            
+            script.append(". ");
+        }
+        
+        // Add definition
+        if (word.getDefinition() != null) {
+            script.append("Definition: ").append(word.getDefinition()).append(". ");
+        }
+        
+        // Add example sentence
+        if (word.getExample() != null) {
+            script.append("Example: ").append(word.getExample()).append(". ");
+        }
+        
+        // Add Vietnamese translation if available
+        if (word.getVietnameseTranslation() != null) {
+            script.append("Vietnamese translation: ").append(word.getVietnameseTranslation()).append(".");
+        }
+        
+        return script.toString();
+    }
+
+    /**
+     * Send email with audio attachments
+     */
+    public void sendEmailWithAudio(String htmlContent, List<String> audioFilePaths) {
+        logger.info("Sending TOEIC vocabulary email with {} audio attachments...", audioFilePaths.size());
+        
+        try {
+            String subject = "🎯 Daily TOEIC Vocabulary with Audio - " + 
+                           java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("MMM d, yyyy")) +
+                           " (Target: 800+)";
+            
+            // Use absolute path for Excel file
+            String absoluteExcelPath = new java.io.File(toeicExcelFilePath).getAbsolutePath();
+            
+            // Create list of all attachments (Excel + audio files)
+            List<String> allAttachments = new ArrayList<>();
+            allAttachments.add(absoluteExcelPath);
+            allAttachments.addAll(audioFilePaths);
+            
+            // Send email with multiple attachments
+            emailService.sendToeicVocabularyEmailWithMultipleAttachments(subject, htmlContent, allAttachments);
+            
+            logger.info("Successfully sent TOEIC vocabulary email with {} total attachments", allAttachments.size());
+            
+        } catch (Exception e) {
+            logger.error("Error sending TOEIC vocabulary email with audio: {}", e.getMessage(), e);
+            throw new RuntimeException("Failed to send TOEIC vocabulary email with audio", e);
+        }
+    }
+
+    /**
+     * Clean up audio files after email is sent
+     */
+    public void cleanupAudioFiles(List<String> audioFilePaths) {
+        logger.info("Cleaning up {} audio files...", audioFilePaths.size());
+        
+        int deletedCount = 0;
+        for (String filePath : audioFilePaths) {
+            try {
+                java.io.File file = new java.io.File(filePath);
+                if (file.exists() && file.delete()) {
+                    deletedCount++;
+                    logger.debug("Deleted audio file: {}", filePath);
+                } else {
+                    logger.warn("Could not delete audio file: {}", filePath);
+                }
+            } catch (Exception e) {
+                logger.error("Error deleting audio file '{}': {}", filePath, e.getMessage(), e);
+            }
+        }
+        
+        logger.info("Successfully deleted {} out of {} audio files", deletedCount, audioFilePaths.size());
+    }
+
     /**
      * Send email with HTML content and Excel attachment
      */

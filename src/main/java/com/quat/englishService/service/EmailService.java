@@ -245,6 +245,32 @@ public class EmailService {
     }
 
     /**
+     * Send TOEIC vocabulary email with HTML content and multiple attachments (Excel + Audio files)
+     */
+    @Retryable(value = {Exception.class}, maxAttempts = 3, backoff = @Backoff(delay = 2000))
+    public void sendToeicVocabularyEmailWithMultipleAttachments(String subject, String htmlContent, List<String> attachmentPaths) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setFrom(fromEmail);
+            helper.setTo(toEmail);
+            helper.setSubject(subject);
+            helper.setText(htmlContent, true);
+
+            // Attach all files
+            attachMultipleFiles(helper, attachmentPaths);
+
+            mailSender.send(message);
+            logger.info("TOEIC vocabulary email with {} attachments sent successfully to {}", attachmentPaths.size(), toEmail);
+
+        } catch (Exception e) {
+            logger.error("Failed to send TOEIC vocabulary email with multiple attachments: {}", e.getMessage(), e);
+            throw new RuntimeException("TOEIC vocabulary email with multiple attachments sending failed", e);
+        }
+    }
+
+    /**
      * Send Japanese lesson email with HTML content
      */
     @Retryable(value = {Exception.class}, maxAttempts = 3, backoff = @Backoff(delay = 2000))
@@ -483,6 +509,46 @@ public class EmailService {
             }
         } catch (Exception e) {
             logger.error("Error attaching TOEIC Excel file: {}", e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Attach multiple files to email (Excel + Audio files)
+     */
+    private void attachMultipleFiles(MimeMessageHelper helper, List<String> attachmentPaths) {
+        for (String filePath : attachmentPaths) {
+            try {
+                File file = new File(filePath);
+                if (file.exists() && file.isFile()) {
+                    String fileName = generateAttachmentFileName(file);
+                    helper.addAttachment(fileName, file);
+                    logger.debug("Attached file: {} ({} bytes)", fileName, file.length());
+                } else {
+                    logger.warn("Attachment file not found: {}", filePath);
+                }
+            } catch (Exception e) {
+                logger.error("Error attaching file '{}': {}", filePath, e.getMessage(), e);
+            }
+        }
+    }
+
+    /**
+     * Generate appropriate file name for attachment based on file type and content
+     */
+    private String generateAttachmentFileName(File file) {
+        String originalName = file.getName();
+        String dateStr = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        
+        // Handle different file types
+        if (originalName.endsWith(".xlsx")) {
+            return "TOEIC_Vocabulary_History_" + dateStr + ".xlsx";
+        } else if (originalName.endsWith(".mp3")) {
+            // For audio files, preserve more of the original name but add date
+            String baseName = originalName.replace(".mp3", "");
+            return "TOEIC_Audio_" + baseName + "_" + dateStr + ".mp3";
+        } else {
+            // For other files, add date prefix
+            return dateStr + "_" + originalName;
         }
     }
 

@@ -9,6 +9,9 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.stream.Collectors;
 
 /**
  * REST controller for TOEIC vocabulary operations
@@ -158,6 +161,8 @@ public class ToeicVocabularyController {
                     "generate-new", "GET - Generate 10 new vocabulary words",
                     "process-words", "POST - Get detailed explanations for specific words",
                     "send-test-email", "POST - Send test email with specified words",
+                    "test-audio", "POST - Test audio generation for specified words",
+                    "send-audio-email", "POST - Send test email with audio attachments",
                     "status", "GET - Get service status"
                 )
             ));
@@ -166,6 +171,100 @@ public class ToeicVocabularyController {
             return ResponseEntity.internalServerError().body(Map.of(
                 "success", false,
                 "error", e.getMessage()
+            ));
+        }
+    }
+
+    /**
+     * Test audio generation for specified words
+     * POST /api/toeic-vocabulary/test-audio
+     */
+    @PostMapping("/test-audio")
+    public ResponseEntity<Map<String, Object>> testAudioGeneration(@RequestBody List<String> words) {
+        try {
+            logger.info("Testing audio generation for TOEIC vocabulary words: {}", words);
+            
+            // Process words to get detailed explanations
+            List<ToeicVocabularyWord> processedWords = toeicVocabularyService.processSpecificWords(words);
+            
+            // Generate audio files
+            List<String> audioFilePaths = toeicVocabularyService.generateAudioFiles(processedWords);
+            
+            // Build response with audio file information
+            List<Map<String, Object>> audioInfo = new ArrayList<>();
+            for (int i = 0; i < processedWords.size(); i++) {
+                ToeicVocabularyWord word = processedWords.get(i);
+                Map<String, Object> wordInfo = new HashMap<>();
+                wordInfo.put("word", word.getWord());
+                wordInfo.put("definition", word.getDefinition());
+                wordInfo.put("example", word.getExample());
+                
+                // Find corresponding audio files
+                List<String> wordAudioFiles = audioFilePaths.stream()
+                    .filter(path -> path.contains(word.getWord().toLowerCase()))
+                    .collect(Collectors.toList());
+                wordInfo.put("audioFiles", wordAudioFiles);
+                
+                audioInfo.add(wordInfo);
+            }
+
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "Audio generation test completed",
+                "wordCount", processedWords.size(),
+                "totalAudioFiles", audioFilePaths.size(),
+                "audioDetails", audioInfo
+            ));
+            
+        } catch (Exception e) {
+            logger.error("Error testing audio generation: {}", e.getMessage(), e);
+            return ResponseEntity.internalServerError().body(Map.of(
+                "success", false,
+                "message", "Audio generation test failed: " + e.getMessage(),
+                "wordCount", 0,
+                "totalAudioFiles", 0
+            ));
+        }
+    }
+
+    /**
+     * Send test email with audio attachments
+     * POST /api/toeic-vocabulary/send-audio-email
+     */
+    @PostMapping("/send-audio-email")
+    public ResponseEntity<Map<String, Object>> sendAudioEmail(@RequestBody List<String> words) {
+        try {
+            logger.info("Sending test TOEIC vocabulary email with audio for words: {}", words);
+            
+            // Process words to get detailed explanations
+            List<ToeicVocabularyWord> processedWords = toeicVocabularyService.processSpecificWords(words);
+            
+            // Generate audio files
+            List<String> audioFilePaths = toeicVocabularyService.generateAudioFiles(processedWords);
+            
+            // Build HTML content
+            String htmlContent = toeicVocabularyService.buildHtml(processedWords);
+            
+            // Send email with audio attachments
+            toeicVocabularyService.sendEmailWithAudio(htmlContent, audioFilePaths);
+            
+            // Clean up audio files after sending
+            toeicVocabularyService.cleanupAudioFiles(audioFilePaths);
+
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "Test TOEIC vocabulary email with audio sent successfully",
+                "wordCount", processedWords.size(),
+                "audioFilesGenerated", audioFilePaths.size()
+            ));
+            
+        } catch (Exception e) {
+            logger.error("Error sending test TOEIC vocabulary email with audio: {}", e.getMessage(), e);
+            return ResponseEntity.internalServerError().body(Map.of(
+                "success", false,
+                "message", "Test email with audio failed: " + e.getMessage(),
+                "wordCount", 0,
+                "audioFilesGenerated", 0
             ));
         }
     }

@@ -28,6 +28,9 @@ public class AudioService {
     @Value("${app.audio.python-script-path:scripts/tts_generator.py}")
     private String pythonScriptPath;
 
+    @Value("${app.audio.vocabulary-script-path:scripts/vocabulary_tts_generator.py}")
+    private String vocabularyScriptPath;
+
     @Value("${app.audio.speed.word:1.0}")
     private double wordSpeedFactor;
 
@@ -119,6 +122,69 @@ public class AudioService {
         } catch (Exception e) {
             logger.error("Error generating audio files with monologue for word '{}': {}", word, e.getMessage(), e);
             return null;
+        }
+    }
+
+    /**
+     * Generate vocabulary-specific audio files (pronunciation + combined)
+     * Uses the specialized vocabulary TTS script for better control
+     */
+    public AudioInfo generateVocabularyAudioFiles(String word, String definition, String example) {
+        try {
+            // Create storage directory structure
+            String dateFolder = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+            Path dailyStoragePath = Paths.get(audioStoragePath, dateFolder);
+            Files.createDirectories(dailyStoragePath);
+
+            // Generate file names
+            String wordFileName = sanitizeFilename(word) + "_pronunciation.mp3";
+
+            Path wordAudioPath = dailyStoragePath.resolve(wordFileName);
+
+            // Use the vocabulary-specific script
+            boolean success = generateVocabularyAudioPair(
+                word, 
+                example != null ? example : "",
+                wordAudioPath.toString()
+            );
+
+            if (success) {
+                String wordUrl = audioBaseUrl + "/" + dateFolder + "/" + wordFileName;
+
+                logger.info("Successfully generated vocabulary audio files for word: {}", word);
+                return new AudioInfo(wordUrl, "", wordAudioPath.toString(), "");
+            } else {
+                logger.error("Failed to generate vocabulary audio files for word: {}", word);
+                return null;
+            }
+
+        } catch (Exception e) {
+            logger.error("Error generating vocabulary audio files for word '{}': {}", word, e.getMessage(), e);
+            return null;
+        }
+    }
+
+    /**
+     * Generate vocabulary audio pair using the specialized Python script
+     */
+    private boolean generateVocabularyAudioPair(String word, String example, String pronunciationPath) {
+        try {
+            StringBuilder combinedText = new StringBuilder();
+            combinedText.append(word).append(". ");
+            
+            if (!example.isEmpty()) {
+                combinedText.append("Example: ").append(example).append(".");
+            }
+
+            boolean pronunciationSuccess = generateSingleAudio(
+                combinedText.toString(), pronunciationPath, "monologue", MONOLOGUE_TIMEOUT_SECONDS
+            );
+
+            return pronunciationSuccess;
+
+        } catch (Exception e) {
+            logger.error("Error in fallback vocabulary audio generation for word '{}': {}", word, e.getMessage(), e);
+            return false;
         }
     }
 
