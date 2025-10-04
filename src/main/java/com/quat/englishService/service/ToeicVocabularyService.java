@@ -319,7 +319,7 @@ public class ToeicVocabularyService {
                         toeicWord.setSynonyms(synonymsArray);
                     }
                     
-                    // Handle confused_with array
+                    // Handle confused_with array or string
                     Object confusedWithObj = explanationMap.get("confused_with");
                     if (confusedWithObj instanceof List) {
                         @SuppressWarnings("unchecked")
@@ -329,6 +329,27 @@ public class ToeicVocabularyService {
                             .map(Object::toString)
                             .toArray(String[]::new);
                         toeicWord.setConfusedWith(confusedWithArray);
+                    } else if (confusedWithObj instanceof String) {
+                        // Handle single string - split by common delimiters or treat as single item
+                        String confusedWithStr = (String) confusedWithObj;
+                        if (confusedWithStr.trim().isEmpty()) {
+                            toeicWord.setConfusedWith(new String[0]);
+                        } else {
+                            // If it contains parentheses, it's likely a single explanation
+                            // Otherwise, try to split by common delimiters
+                            String[] confusedWithArray;
+                            if (confusedWithStr.contains("(") && confusedWithStr.contains(")")) {
+                                // Single explanation format
+                                confusedWithArray = new String[]{confusedWithStr.trim()};
+                            } else {
+                                // Try to split by common delimiters
+                                confusedWithArray = confusedWithStr.split("[,;]");
+                                for (int i = 0; i < confusedWithArray.length; i++) {
+                                    confusedWithArray[i] = confusedWithArray[i].trim();
+                                }
+                            }
+                            toeicWord.setConfusedWith(confusedWithArray);
+                        }
                     }
                 }
             }
